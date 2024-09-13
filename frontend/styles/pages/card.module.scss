@@ -1,0 +1,61 @@
+@import '../variables.scss';
+
+.customCard {
+    width: 224px;
+    height: 280px;
+    background: $dark-blue; //(103, 225, 255);
+    transition: all 0.4s;
+    border-radius: 10%;
+    box-shadow: 0px 0px 10px 5px  rgba(0, 0, 0, 0.705);
+    font-size: 36px;
+    font-weight: 900;
+  }
+  
+  .customCard:hover {
+    border-radius: 10%;
+    cursor: pointer;
+    transform: scale(1.2);
+    box-shadow: 0px 0px 10px 5px  rgba(0, 0, 0, 0.705);
+    background: rgb(33, 71, 125);
+  }
+  
+  .first_content {
+    height: 100%;
+    width: 100%;
+    transition: all 0.4s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    border-radius: 0;
+  }
+  
+  .customCard:hover .first_content {
+    height: 0px;
+    opacity: 0;
+  }
+  
+  .second_content {
+    height: 0%;
+    width: 100%;
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0;
+    transition: all 0.4s;
+    font-size: 0px;
+    transform: rotate(90deg) scale(-1);
+  }
+  
+  .customCard:hover .second_content {
+    opacity: 1;
+    height: 100%;
+    transform: rotate(0deg);
+    .button {
+        font-size: 32px;
+        border-radius: 50%;
+        color:white//rgb(103, 225, 255)
+    }
+  }
+  
