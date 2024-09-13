@@ -12,8 +12,8 @@ For inquiries regarding the use of this source code, please contact AvaWatz.
 
 import os
 
-print("before loading mongodb ----")
-os.system(f"free -h")
+# print("before loading mongodb ----")
+# os.system(f"free -h")
 
 import setproctitle, pymongo, psutil, traceback, re, uuid, subprocess, numpy as np
 from datetime import datetime, timedelta
@@ -21,8 +21,8 @@ from datetime import datetime, timedelta
 
 mongodb = pymongo.MongoClient('mongodb://localhost:27017')['ZELLA_TEST_1']
 
-print("after loading mongodb ----")
-os.system(f"free -h")
+# print("after loading mongodb ----")
+# os.system(f"free -h")
 
 
 
@@ -146,7 +146,7 @@ def log_resources_usage(title='', file_name="", check_id=0):
         #     logger.info(f'GPU Memory Used - {gpu_memory} GB')
 
         print(f"{file_name} - {title}")
-        os.system(f"free -h")
+        # os.system(f"free -h")
 
         mongodb['resource_utilization'].insert_one({"title" : title, 
                                                     "file_name" : file_name,
@@ -158,9 +158,7 @@ def log_resources_usage(title='', file_name="", check_id=0):
                                                     "available_memory" : available_memory,
                                                     "used_memory" : used_memory,
                                                     "used_memory_percent" : used_memory_percent, 
-                                                    "gpu_memory" : gpu_memory_usage,
-                                                    "gpu1_memory" : gpu_memory[0],
-                                                    "gpu2_memory" : gpu_memory[1]})
+                                                    "gpu_memory" : gpu_memory_usage})
         print('\n')
 
     except Exception as e:
@@ -174,12 +172,12 @@ log_resources_usage(title=f'before any initializations', file_name="initials.py"
 
 
 # Necessary Imports
-import os, platform, requests, torch, tensorflow as tf, pandas as pd, numpy as np, torch.nn as nn, socket,  \
+import os, platform, requests, torch, tensorflow as tf, pandas as pd, numpy as np, torch.nn as nn, socket, gdown, \
         torchvision.transforms as standard_transforms, torch.multiprocessing as mp, \
         torchvision, math, redis, pymongo, pickle, random, logging, psutil, cv2, sys, PIL, \
         argparse, imutils, time, json, gc, uuid, websockets, asyncio, struct, \
         threading, base64, markdown.extensions.fenced_code, traceback, plotly, \
-        plotly.graph_objs as go, plotly.express as px, matplotlib.pyplot as plt, apricot, shutil, re
+        plotly.graph_objs as go, plotly.express as px, matplotlib.pyplot as plt, apricot, shutil, re, zipfile
 # import submodlib
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 from tqdm import tqdm
@@ -517,7 +515,7 @@ def generate_avatar(letter, file_path, size=(100, 100), font_size=40):
     draw = ImageDraw.Draw(image)
 
     # Use a truetype font, you can replace this with a font file path on your system
-    fontfile_path = os.path.join('models', 'Arial.ttf')
+    fontfile_path = os.path.join('files', 'Arial.ttf')
     if not os.path.exists(fontfile_path):
         raise FileNotFoundError(f'File {fontfile_path} not exists!')
     font = ImageFont.truetype(fontfile_path, font_size)

@@ -196,10 +196,13 @@ def user_signup():
         os.makedirs(avatar_dir, exist_ok=True)
         avatar_path = os.path.join(avatar_dir, email+'.jpg')
         generate_avatar(letter=first_name[0], file_path=avatar_path)
+        
+        user_workdir = os.path.join('workdir', user_id)
+        os.makedirs(user_workdir, exist_ok=True)
 
         allowed_msg_methods = {"sms" : False, "whatsapp" : False, "telegram" : False, "email" : False}
         
-        mongodb['users'].insert_one({'_id': user_id, 'email' : email, 'phone_number' : phone_number, 'first_name' : first_name, 'last_name' : last_name, 'password' : password, 'avatar_path' : avatar_path, "allowed_msg_methods" : allowed_msg_methods})
+        mongodb['users'].insert_one({'_id': user_id, 'email' : email, 'phone_number' : phone_number, 'first_name' : first_name, 'last_name' : last_name, 'password' : password, 'avatar_path' : avatar_path, "user_workdir" : user_workdir, "allowed_msg_methods" : allowed_msg_methods})
 
         
         res = {
@@ -518,6 +521,11 @@ def set_user_data():
 
 
 
+
+
+
+
+
 # @app.route('/free-unread-alerts')
 # def free_unread_alerts():
     
@@ -545,6 +553,336 @@ def set_user_data():
 
 #     logger.info(json.dumps(res, indent=4))
 #     return json.dumps(res, separators=(',', ':'))
+
+
+
+
+@app.route("/create-project", methods=['POST'])
+def create_project():
+    
+    logger.info(f"Get request for /create-project")
+    
+    try:
+
+        email = request.form['email']         
+        project_name = request.form['project_name']
+        project_type = request.form['project_type']
+            
+        logger.info(f'Params - email : {email}, project_name : {project_name}, project_type : {project_type}')
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nproject_type : {project_type}\n"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+        
+        if mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name}) is not None:
+               
+            res = {
+                    "status": "fail",
+                    "message": f"Project name already exists!"
+                }
+            
+        
+        project_id =  str(uuid.uuid4())[:8]
+        
+        project_dir = os.path.join("workdir", user_id, project_name)
+        os.makedirs(project_dir, exist_ok=True)
+        
+        project_creation_time = datetime.now()
+        project_creation_time_str = project_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+        project_meta = {
+            "_id" : user_id+"_"+project_id,
+            "project_id" : project_id,
+            "user_id" : user_id,
+            "project_name" : project_name,
+            "project_type" : project_type,
+            "project_dir" : project_dir,
+            "project_creation_time" : project_creation_time,        
+        }
+        
+        mongodb["projects"].insert_one(project_meta)
+        
+            
+        res = {
+                "status": "success",
+                "data": project_meta,                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+
+
+
+
+@app.route("/get-project-list", methods=['POST'])
+def get_project_list():
+    
+    logger.info(f"Get request for /get-project-list")
+    
+    try:
+        
+        email = request.form['email']
+
+        logger.info(f'Params - email : {email}')
+            
+        frontend_inputs = f"email : {email}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+        
+        project_list = list(mongodb["projects"].find({'user_id' : user_id}))
+        
+        
+            
+        res = {
+                "status": "success",
+                "project_list": project_list                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+
+
+@app.route("/upload-data", methods=['POST'])
+def upload_data():
+    
+    logger.info(f"Get request for /upload-data")
+    
+    try:
+
+        email = request.form['email']         
+        project_name = request.form['project_name']
+        data_name =  request.form['data_name']
+        data_type = request.form['data_type']
+        data_drive_id = request.form['data_drive_id']
+        data_zip_file = request.files['data_zip_file']
+        
+            
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, data_type : {data_type}, data_drive_id : {data_drive_id}')
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\ndata_type : {data_type}\ndata_drive_id : {data_drive_id}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+        
+        if mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, 'data_name' : data_name}) is not None:
+               
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset with {data_name} name already exists!"
+                }
+            
+        
+        
+        project_dir = os.path.join("workdir", user_id, project_name)
+        os.makedirs(project_dir, exist_ok=True)
+        
+        data_id = str(uuid.uuid4())[:8]
+        
+        if data_drive_id != "":
+            
+            file_url = f'https://drive.google.com/uc?id={data_drive_id}'
+            data_dest_file = os.path.join(project_dir, f"data_{data_id}.zip")
+            
+            gdown.download(file_url, data_dest_file, quiet=False)
+            
+        else:
+            
+            data_dest_file = os.path.join(project_dir, f"data_{data_id}.zip")
+            data_zip_file.save(data_dest_file)
+            
+                
+        def unzip_to_directory(zip_file_path, new_extract_dir):
+            
+            # Ensure the new directory exists
+            if not os.path.exists(new_extract_dir):
+                os.makedirs(new_extract_dir)
+
+            # Extract the zip file to the new directory
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall(new_extract_dir)
+
+            print(f"Files extracted to: {new_extract_dir}")    
+            
+        extracted_path = os.path.join(project_dir, f"data_{data_id}_extracted")
+            
+        unzip_to_directory(data_dest_file, extracted_path)
+            
+        
+        data_creation_time = datetime.now()
+        data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+        
+        project_type = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})["project_type"]
+        
+        data_meta = {
+            "_id" : user_id+"_"+project_name+"_"+data_id,
+            "data_id" : data_id,
+            "project_name" : project_name,
+            "user_id" : user_id,
+            "data_name" : data_name,
+            "data_type" : data_type,
+            "project_type" : project_type,
+            "data_zip_path" : data_dest_file,
+            "data_extracted_path" : extracted_path,
+            "data_creation_time" : data_creation_time_str,
+        }
+        
+        mongodb["datasets"].insert_one(data_meta)
+            
+        res = {
+                "status": "success",
+                "data": data_meta,                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+
+
+
+
+@app.route("/get-dataset-list", methods=['POST'])
+def get_dataset_list():
+    
+    logger.info(f"Get request for /get-dataset-list")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+        
+        dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "dataset_list": dataset_list                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
