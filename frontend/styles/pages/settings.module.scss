@@ -1,0 +1,29 @@
+@import '../variables.scss';
+
+.settings_layout {
+    // border: 2px solid red;
+    background-color: $dark-blue;
+    margin: 2%;
+    border-radius: 20px;
+    text-align: center;
+    padding: 2%;
+
+    .setting_panel {
+        // border: 1px solid red;
+        border-radius: 6px;
+        background-color: $light-blue;
+        padding: 0.5em;
+        margin: 1em 0.5em;
+    }
+
+    .setting_button {
+        background-color: $button-color;
+        border-radius: 8px;
+        min-width: 100px;
+        padding: 8px 20px;
+        text-align: center;
+        color: #FFFFFF
+
+    }
+}
+

@@ -1,0 +1,28 @@
+
+@import '../variables.scss';
+
+.logs_layout {
+    // border: 2px solid yellow;
+    background-color: $dark-blue;
+    margin: 2%;
+    border-radius: 20px;
+    text-align: center;
+    padding: 2%;
+
+    .logs_panel {
+        height: 100%;
+        // border: 1px solid red;
+        border-radius: 0.5rem;
+        background-color: $light-blue;
+    }
+
+    .log_button {
+        background-color: $button-color;
+        border-radius: 8px;
+        min-width: 100px;
+        padding: 8px 20px;
+        text-align: center;
+        color: #FFFFFF
+
+    }
+}

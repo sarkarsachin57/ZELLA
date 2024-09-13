@@ -1,0 +1,38 @@
+.login {
+  // text-align: center;
+  height: 100%;
+    &__logo {
+        display: flex;
+        justify-content: center;
+    }
+
+  &__content {
+    display: flex;
+    justify-content: center;
+    margin-top: 60.22px;
+    border-radius: 30px;
+    .card {
+      .cardContent {
+        padding: 70px 100px;
+        margin-bottom: 0px;
+      }
+    }
+  }
+
+  &__forgetPassword {
+    border-radius: 2px solid red;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px;
+  }
+}
+
+.form_input:-webkit-autofill,
+.form_input:-webkit-autofill:hover,
+.form_input:-webkit-autofill:focus,
+.form_input:-webkit-autofill:active{
+	-webkit-box-shadow:0 0 0 30px #ffff00 inset !important;
+}
+
+
