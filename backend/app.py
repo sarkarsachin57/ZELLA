@@ -30,8 +30,8 @@ setproctitle.setproctitle("app.py")
 sys.path.append(".")
 sys.path.append("utils")
 
-# from utils.autopurge import *
-
+from utils.image_classification.training import *
+ImageClassificationTrainingPipeline
 
 # Thread(target=AutoPurge, args=(6, 2*24)).start()
 
@@ -591,6 +591,11 @@ def create_project():
                     "status": "fail",
                     "message": f"Project name already exists!"
                 }
+
+            
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
             
         
         project_id =  str(uuid.uuid4())[:8]
@@ -609,6 +614,7 @@ def create_project():
             "project_type" : project_type,
             "project_dir" : project_dir,
             "project_creation_time" : project_creation_time,        
+            "project_creation_time_str" : project_creation_time_str,        
         }
         
         mongodb["projects"].insert_one(project_meta)
@@ -620,7 +626,7 @@ def create_project():
             }
 
         logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -677,7 +683,7 @@ def get_project_list():
             }
 
         logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -733,8 +739,10 @@ def upload_data():
                     "status": "fail",
                     "message": f"Dataset with {data_name} name already exists!"
                 }
-            
-        
+                    
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
         
         project_dir = os.path.join("workdir", user_id, project_name)
         os.makedirs(project_dir, exist_ok=True)
@@ -787,7 +795,8 @@ def upload_data():
             "project_type" : project_type,
             "data_zip_path" : data_dest_file,
             "data_extracted_path" : extracted_path,
-            "data_creation_time" : data_creation_time_str,
+            "data_creation_time" : data_creation_time,
+            "data_creation_time_str" : data_creation_time_str,
         }
         
         mongodb["datasets"].insert_one(data_meta)
@@ -798,7 +807,7 @@ def upload_data():
             }
 
         logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -855,7 +864,7 @@ def get_dataset_list():
             }
 
         logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -877,10 +886,219 @@ def get_dataset_list():
 
 
 
+@app.route("/train_image_classification_model", methods=['POST'])
+def train_image_classification_model():
+    
+    logger.info(f"Get request for /train_image_classification_model")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name =  request.form['data_name']
+        run_name = request.form['run_name']
+        arch_name = request.form['arch_name']
+        training_mode = request.form['training_mode']
+        num_epochs = request.form['num_epochs']
+        batch_size = request.form['batch_size']
+        learning_rate = request.form['learning_rate']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, run_name : {run_name}, arch_name : {arch_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nrun_name : {run_name}\narch_name : {arch_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        
+        num_epochs = int(num_epochs)
+        batch_size = int(batch_size)
+        learning_rate = float(learning_rate)
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+
+
+        run_record = mongodb["run_records"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
+        if run_records is not None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Run Name exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+        
+        dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
+        data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        data_path = data_meta['data_extracted_path']
+
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+
+        Thread(target=ImageClassificationTrainingPipeline, args=(run_name,data_name,project_name,user_id,arch_name,training_mode,batch_size,num_epochs,learning_rate,device,data_path)).start()
+
+        
+        training_start_time = datetime.now()
+        training_start_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+
+        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "data_name" : data_name, \
+                                        "project_name" : project_name, "user_id" : user_id, "arch_name" : arch_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                         "learning_rate" : learning_rate, "training_status" : "training"})
+
+            
+        res = {
+                "status": "success",
+                "message": "Training started successfully!"                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
 
 
 
 
+
+
+
+@app.route("/get-run-logs", methods=['POST'])
+def get_run_logs():
+    
+    logger.info(f"Get request for /get-run-logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["training_history"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "dataset_list": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
+
+
+
+
+
+
+@app.route("/get_detailed_training_history", methods=['POST'])
+def get_detailed_training_history():
+    
+    logger.info(f"Get request for /get_detailed_training_history")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        run_name = request.form['run_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, run_name : {run_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nrun_name : {run_name}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4))
+            return json.dumps(res, separators=(',', ':'))
+
+        user_id = user_data["_id"]
+
+        
+        train_hist = mongodb["training_history"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
+    
+        history = train_hist["history"]
+        classification_report = train_hist["classification_report"]
+
+        res = {
+                "status": "success",
+                "history": history,
+                "classification_report" : classification_report      
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4))
+        return json.dumps(res, separators=(',', ':'))
 
 
 
@@ -908,7 +1126,7 @@ def get_error_logs():
             }
 
         logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
