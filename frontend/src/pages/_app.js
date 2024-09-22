@@ -76,11 +76,11 @@ const App = props => {
               {({ settings }) => {
                 return (
                   <ThemeComponent settings={settings}>
-                    {/* <AuthMiddleware> */}
+                    <AuthMiddleware>
                       {/* <MessageMiddleware> */}
                         {getLayout(<Component {...pageProps} />)}
                       {/* </MessageMiddleware> */}
-                    {/* </AuthMiddleware> */}
+                    </AuthMiddleware>
                   </ThemeComponent>
                 )
               }}
