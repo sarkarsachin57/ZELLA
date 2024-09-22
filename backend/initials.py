@@ -93,30 +93,36 @@ def log_exception(e, additional_info=None):
     
 
 def get_gpu_memory_usage():
-    # Run nvidia-smi command to get GPU memory usage
-    result = subprocess.run(
-        ['nvidia-smi', '--query-gpu=memory.used,memory.total', '--format=csv,nounits,noheader'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        check=True
-    )
     
-    # Parse the output
-    memory_usage = result.stdout.strip().split('\n')
-    memory_info = [list(map(int, mem.split(','))) for mem in memory_usage]
-    
-    # Print GPU memory usage
+    try:
+        # Run nvidia-smi command to get GPU memory usage
+        result = subprocess.run(
+            ['nvidia-smi', '--query-gpu=memory.used,memory.total', '--format=csv,nounits,noheader'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        
+        # Parse the output
+        memory_usage = result.stdout.strip().split('\n')
+        memory_info = [list(map(int, mem.split(','))) for mem in memory_usage]
+        
+        # Print GPU memory usage
 
-    
-    gpu_used = {}
-    gpu_ids = []
-    used_mem = []
-    for idx, (used, total) in enumerate(memory_info):
-        gpu_used[idx] = used
-        print(f"GPU {idx}: {used} MiB / {total} MiB")
-        used_mem.append(used)
-        gpu_ids.append(f"cuda:{idx}")
+        
+        gpu_used = {}
+        gpu_ids = []
+        used_mem = []
+        for idx, (used, total) in enumerate(memory_info):
+            gpu_used[idx] = used
+            print(f"GPU {idx}: {used} MiB / {total} MiB")
+            used_mem.append(used)
+            gpu_ids.append(f"cuda:{idx}")
+            
+    except:
+        return 0,["cpu"],0
+        
         
 
     return gpu_used, gpu_ids[np.argmin(used_mem)], gpu_ids[np.argmax(used_mem)]

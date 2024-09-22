@@ -927,7 +927,7 @@ def train_image_classification_model():
 
 
         run_record = mongodb["run_records"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
-        if run_records is not None:
+        if run_record is not None:
             
             res = {
                     "status": "fail",
@@ -948,7 +948,7 @@ def train_image_classification_model():
 
         
         training_start_time = datetime.now()
-        training_start_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        training_start_time_str = training_start_time.strftime('%Y-%m-%d %I:%M:%S %p')
         
 
         mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "data_name" : data_name, \
