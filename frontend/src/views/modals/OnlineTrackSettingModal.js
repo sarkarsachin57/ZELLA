@@ -31,7 +31,7 @@ import {
   useTerminate_cameraMutation,
   useUploadVideoMutation,
   useInitialize_offline_videoMutation
-} from 'src/pages/redux/apis/streamApi'
+} from 'src/pages/redux/apis/edfsdf'
 
 import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
 
@@ -161,12 +161,12 @@ export default function SearchModal(props) {
             active: 0,
           });
           await createLog({
-            content: `${conValues.camera_name} - Camera Connected`, 
+            content: `${conValues.camera_name} - Camera Connected`,
             camera_name: conValues.camera_name,
             mode: 'online',
             tracking_mode: conValues.tracking_mode,
             _timestamp: new Date().getTime(),
-            timestamp: Math.floor(new Date().getTime()/1000)  
+            timestamp: Math.floor(new Date().getTime()/1000)
 
           })
           toast.success(`${conValues.camera_name} - Camera Connected`)
@@ -248,7 +248,7 @@ export default function SearchModal(props) {
                 }}
               />
             </Grid>
-             
+
           </Grid>
         </Box>
       </CustomModalLayout>

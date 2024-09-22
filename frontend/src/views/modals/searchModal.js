@@ -178,14 +178,14 @@ export default function SearchModal(props) {
                   Add Target Classes
                 </Button>
               </Grid>
-              
+
                 {filterData.targetClasses &&
                   filterData.targetClasses.map((targetElement, index) => {
                     return (
                       <Grid item xs={6} sm={3} >
-                        <Card style={{ 
-                            background:'#0A1929', 
-                            borderStyle: 'Groove', 
+                        <Card style={{
+                            background:'#0A1929',
+                            borderStyle: 'Groove',
                             borderWidth: '2px',
                             borderColor: 'rgba(231, 227, 252, 0.25)',
                             borderRadius: '10px',
@@ -193,7 +193,7 @@ export default function SearchModal(props) {
                           key={index}
                           >
                           <CardContent style={{ position: 'relative' }}>
-                            <CardActions style={{ 
+                            <CardActions style={{
                                 position: 'absolute',
                                 left: '75%',
                                 top: '-10%'
@@ -245,7 +245,7 @@ export default function SearchModal(props) {
           </DialogContent>
         </Box>
       </Modal>
-      
+
       { isAddTargetModalOpen &&
           <AddTargetModal
             isOpen={isAddTargetModalOpen}

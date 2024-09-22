@@ -9,10 +9,13 @@ export const userApi = createApi({
   tagTypes: ['User'],
   endpoints: (builder) => ({
     getMe: builder.query({
-      query() {
+      query(data) {
+        console.log(data)
+
         return {
-          url: 'users/me',
-          credentials: 'include',
+          url: 'get-user-data',
+          method: 'POST',
+          body: data,
         };
       },
       providesTags: ['User'],
@@ -23,9 +26,10 @@ export const userApi = createApi({
 
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
+          console.log(data)
           const { data } = await queryFulfilled;
           dispatch(setUser(data.user));
-          
+
           dispatch(setConfigs(data.configs));
         } catch (error) {}
       },

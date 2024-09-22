@@ -95,7 +95,17 @@ const RegisterPage = () => {
 
   const onSubmitHandler = formValues => {
     // 👇 Executing the registerUser Mutation **QmQ
-    registerUser(formValues)
+
+    const formData = new FormData();
+    formData.append('first_name', formValues.first_name);
+    formData.append('last_name', formValues.last_name);
+    formData.append('email', formValues.email);
+    formData.append('phone_number', formValues.phone_number);
+    formData.append('password', formValues.password);
+    console.log(formData)
+
+    registerUser(formData)
+
     setValues({...values, email: formValues.email})
   };
 
@@ -110,18 +120,18 @@ const RegisterPage = () => {
   }
 
   return (
-    <Box className={CGroups.login} sx={{marginBottom: '120px'}}>
+    <Box className={CGroups.login} sx={{marginBottom: '30px'}}>
       <Box className={CGroups.login__logo} sx={{ mb: 8 }}>
         <LogoImage alt="logo image" src='/images/logo.png' />
       </Box>
       <Box className={CGroups.login__content}>
         <Card sx={{ zIndex: 1 }}>
-          <CardContent sx={{ padding: "60px 100px", marginBottom: '0px' }}>
+          <CardContent sx={{ padding: "20px 100px", marginBottom: '0px' }}>
             <Box sx={{ mb: 6 }}>
               <Typography variant='h5' sx={{ fontWeight: 600, marginBottom: 1.5, color: 'white', fontSize: '36px', lineHeight: '42px'}}>
                 Register
               </Typography>
-              <Typography variant='body2'>Please Enter Username & Email & Password</Typography>
+              <Typography variant='body2'>Please Enter User Data</Typography>
             </Box>
             <FormProvider {...methods }>
               <Box
@@ -131,8 +141,10 @@ const RegisterPage = () => {
                 autoComplete='off'
                 width='100%'
               >
-                <FormInput autoFocus={true} name='name' label='Username:' type='text' sx={{borderRadius: '0.75rem'}}/>
+                <FormInput autoFocus={true} name='first_name' label='First Name:' type='text' sx={{borderRadius: '0.75rem'}}/>
+                <FormInput name='last_name' label='Last Name:' type='text' sx={{borderRadius: '0.75rem'}}/>
                 <FormInput name='email' label='Email:' type='email' sx={{borderRadius: '0.75rem'}}/>
+                <FormInput name='phone_number' label='Phone Number:' type='text' sx={{borderRadius: '0.75rem'}}/>
                 <FormInput name='password' label='Password:' type={ values.showPassword ? 'text': 'password'}
                   endAdornment={
                     <InputAdornment position='end'>
@@ -147,7 +159,7 @@ const RegisterPage = () => {
                     </InputAdornment>
                   }
                 />
-                <FormInput name='passwordConfirm' label='Confirm password:' type={ values.showPassword ? 'text': 'password'}
+                {/* <FormInput name='passwordConfirm' label='Confirm password:' type={ values.showPassword ? 'text': 'password'}
                   endAdornment={
                     <InputAdornment position='end'>
                       <IconButton
@@ -160,7 +172,7 @@ const RegisterPage = () => {
                       </IconButton>
                     </InputAdornment>
                   }
-                />
+                /> */}
                 <LoadingButton
                   variant='contained'
                   sx={{ mt: '1rem' }}
@@ -168,17 +180,9 @@ const RegisterPage = () => {
                   disableElevation
                   type='submit'
                   loading={isLoading}
-                  onClick={handleModalOpen}
                 >
                   Sign Up
                 </LoadingButton>
-                {/* <EmailVerifyModal
-                  width={700}
-                  isOpen={isEmailModalOpen}
-                  onHandleModalClose={handleModalClose}
-                  onHandleModalOpen={handleModalOpen}
-                  email={values.email}
-                /> */}
               </Box>
             </FormProvider>
             <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>

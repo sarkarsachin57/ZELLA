@@ -15,7 +15,7 @@ const FooterSection = styled('div')(()=>({
   fontWeight: '400',
   fontSize: '12px',
   lineHeight: '15px',
-  padding: '2rem',
+  padding: '1rem',
   bottom: 0,
   width: '100%',
 }))

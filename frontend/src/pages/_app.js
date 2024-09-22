@@ -77,7 +77,9 @@ const App = props => {
                 return (
                   <ThemeComponent settings={settings}>
                     {/* <AuthMiddleware> */}
-                      <MessageMiddleware>{getLayout(<Component {...pageProps} />)}</MessageMiddleware>
+                      {/* <MessageMiddleware> */}
+                        {getLayout(<Component {...pageProps} />)}
+                      {/* </MessageMiddleware> */}
                     {/* </AuthMiddleware> */}
                   </ThemeComponent>
                 )

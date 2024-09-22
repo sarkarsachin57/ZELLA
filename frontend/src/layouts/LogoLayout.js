@@ -15,7 +15,7 @@ const UserLayout = ({ children }) => {
         <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
           <LanguageToggler settings={settings} saveSettings={saveSettings} />
           <UserDropdown />
-      </Box>
+        </Box>
       </Box>
       {children}
     </Box>

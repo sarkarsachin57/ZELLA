@@ -39,7 +39,7 @@ import { useUpdateUserMutation } from './redux/apis/userApi'
 import {
   useInitialize_cameraMutation,
   useTerminate_cameraMutation,
-} from './redux/apis/streamApi'
+} from './redux/apis/edfsdf'
 
 
 // ** Styled Components
@@ -119,12 +119,12 @@ const LiveView = () => {
       // after receive the response from flask, delete the configuration from DB **QmQ
       await deleteConfig(id);
       const _log = {
-        content: `${trimedStr(sel_camera.camera_name, 8)} - Camera Terminated`, 
+        content: `${trimedStr(sel_camera.camera_name, 8)} - Camera Terminated`,
         camera_name: sel_camera.camera_name,
-        mode: sel_camera.mode, 
+        mode: sel_camera.mode,
         tracking_mode: sel_camera.tracking_mode,
         _timestamp: new Date().getTime(),
-        timestamp: Math.floor(new Date().getTime()/1000)  
+        timestamp: Math.floor(new Date().getTime()/1000)
 
       }
       if(res?.data?.status == 'success') await createLog(_log)
@@ -152,7 +152,7 @@ const LiveView = () => {
     <Box sx={{ textAlign: 'center', margin: 'auto', height: '100%'}}>
       {
         isSettingModalOpen &&
-        <OnlineTrackSettingModal 
+        <OnlineTrackSettingModal
           isOpen={isSettingModalOpen}
           onClose={onClose}
         />
@@ -164,12 +164,12 @@ const LiveView = () => {
             <BoxWrapper>
               <Typography variant='h1'>{`No Sensor`}</Typography>
               <Typography variant='h5' sx={{ mb: 1, fontSize: '1.5rem !important' }}>
-                Connected ⚠️ 
+                Connected ⚠️
               </Typography>
               <Typography variant='body2'>Please connect the camera from settings.</Typography>
             </BoxWrapper>
           </Box>
-        </Box>  
+        </Box>
         <CustomButton
           variant='contained'
           sx={{ mt: 1 }}
@@ -241,7 +241,7 @@ const LiveView = () => {
         </div>
       }
 
-      <InitializeModal 
+      <InitializeModal
         width = {800}
         isOpen={isInitModalOpen}
         isLoading={init_camera_loading}

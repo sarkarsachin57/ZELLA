@@ -6,6 +6,7 @@ import { useState, Fragment, useEffect } from 'react'
 // ** Next Import
 import { useRouter } from 'next/router'
 import { useSelector, useDispatch } from 'react-redux'
+import { useCookies } from 'react-cookie';
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -43,6 +44,7 @@ const UserDropdown = () => {
   const user = useSelector(state => {
     return state.userState.user
   })
+  const [cookies, setCookie, removeCookie] = useCookies(['authToken']);
 
   const [logoutUser, { isLoading, isSuccess, error, isError }] = useLogoutUserMutation()
   const router = useRouter()
@@ -69,7 +71,12 @@ const UserDropdown = () => {
   }, [isLoading])
 
   const onLogoutHandler = async () => {
-    logoutUser()
+    localStorage.removeItem('token')
+
+    // removeCookie('authToken', { path: '/' });
+    window.location.href = '/login'
+
+      // logoutUser()
   }
 
   // ** States

@@ -29,7 +29,7 @@ const offlineNavItemList = [
   {
     title: 'Upload Data page',
     icon: CloudUploadIcon,
-    path: '/'
+    path: '/dataUpload'
   },
 
   {

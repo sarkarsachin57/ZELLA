@@ -13,21 +13,23 @@ export const loginSchema = object({
 
 
 export const registerSchema = object({
-    name: string()
-      .min(1, 'Username is required'),
+    first_name: string()
+      .min(1, 'First Name is required'),
+    last_name: string()
+      .min(1, 'Last Name is required'),
     email: string()
       .min(1, 'Email address is required')
       .email('Email Address is invalid'),
+    phone_number: string()
+      .min(1, 'Phone Number is required'),
     password: string()
       .min(1, 'Password is required')
       .min(8, 'Password must be more than 8 characters')
       .max(32, 'Password must be less than 32 characters'),
-    passwordConfirm: string()
-      .min(1, 'Please confirm your password')
-}).refine((data) => data.password == data.passwordConfirm, {
-    path: ['passwordConfirm'],
-    message: 'Passwords don\'t match'
-});
+
+    // passwordConfirm: string()
+    //   .min(1, 'Please confirm your password')
+})
 
 export const profileSchema = object({
   name: string()
@@ -52,11 +54,15 @@ export const passwordSchema = object({
   path: ['confirmNewPassword'],
   message: "Passwords don't match"
 })
-export const connectSchema = object({
-  url: string()
-    .min(1, 'Url is required'),
-  cameraName: string()
-    .min(1, 'Camera Name is required')
+
+export const projectSchema = object({
+  email: string()
+    .min(1, 'Email address is required')
+    .email('Email Address is invalid'),
+  projectName: string()
+    .min(1, 'Project Name is required'),
+  projectType: string()
+    .min(1, 'Project Name is required')
 })
 
 

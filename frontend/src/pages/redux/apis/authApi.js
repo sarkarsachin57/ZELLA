@@ -2,10 +2,6 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { userApi } from './userApi';
 import customFetchBase from './customFetchBase';
 
-/**
- * 👇 @file handles the auth apis
- */
-
 export const authApi = createApi({
     reducerPath: 'authApi',
     baseQuery: customFetchBase,
@@ -13,7 +9,7 @@ export const authApi = createApi({
         registerUser: builder.mutation({
             query(data) {
                 return {
-                    url: 'auth/register',
+                    url: 'user-signup',
                     method: 'POST',
                     body: data
                 }
@@ -22,16 +18,18 @@ export const authApi = createApi({
         loginUser: builder.mutation({
             query(data) {
                 return {
-                    url: 'auth/login',
+                    url: 'user-login',
                     method: 'POST',
                     body: data,
-                    credentials: 'include'
                 }
             },
             async onQueryStarted(args, { dispatch, queryFulfilled }) {
                 try {
-                    await queryFulfilled;
-                    await dispatch(userApi.endpoints.getMe.initiate(null));
+                  const { data } = await queryFulfilled;
+
+                  localStorage.setItem("token", data.token);
+
+                  await dispatch(userApi.endpoints.getMe.initiate(args));
                 } catch (error) {
                 }
             },

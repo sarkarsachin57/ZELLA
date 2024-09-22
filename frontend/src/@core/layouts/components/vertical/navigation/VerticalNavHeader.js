@@ -49,7 +49,7 @@ const VerticalNavHeader = props => {
       {userVerticalNavMenuBranding ? (
         userVerticalNavMenuBranding(props)
       ) : (
-        <Link href='https://avawatz.com/' passHref>
+        <Link href='/' passHref>
           <StyledLink>
             <Box sx={{ mb: 8, display: 'flex', justifyContent: 'center' }}>
               <LogoImage alt='logo image' src='/images/logo.png' />

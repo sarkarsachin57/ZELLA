@@ -12,7 +12,7 @@ import { authApi } from './apis/authApi'
 import { userApi } from './apis/userApi'
 import { configApi } from './apis/configApi'
 import { logApi } from './apis/logApi';
-import { streamApi } from './apis/streamApi';
+import { streamApi } from './apis/edfsdf';
 
 /**
  * @file => central store.

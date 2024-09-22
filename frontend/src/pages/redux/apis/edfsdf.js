@@ -40,6 +40,27 @@ export const streamApi = createApi({
         invalidatesTags: ['Python']
       }),
 
+      createProject: builder.mutation({
+        query(data) {
+            return {
+                url: 'user-signup',
+                method: 'POST',
+                body: data
+              }
+          }
+      }),
+
+
+
+
+
+
+
+
+
+
+
+
       connect_camera: builder.mutation({
         query(conn) {
           return {
@@ -163,6 +184,7 @@ export const streamApi = createApi({
       uploadVideo: builder.mutation({
         query(data) {
           console.log('upload ====>', data.tracking_mode, data.vid_name, data.vid_ext)
+
           return {
             //   url: `/upload-offline-video/${data.tracking_mode}/${data.vid_name}/${data.vid_ext}`,
             url: `/upload-offline-video/${data.tracking_mode}/${data.vid_name}`,
@@ -286,6 +308,7 @@ export const streamApi = createApi({
       addDetectionCamera: builder.mutation({
         query(formData) {
           console.log('add detection camera', formData)
+
           return {
             url: '/online-object-detection',
             method: 'POST',
@@ -358,7 +381,7 @@ export const uploadChunkedVideo = async data => {
     const formData = new FormData();
     const end = Math.min(start + CHUNK_SIZE, file.size);
     const chunk = file.slice(start, end);
-    
+
     if(chunk.size === 0) {
       formData.append('file', chunk);
       const res = await axios.post(
@@ -424,7 +447,7 @@ export const uploadChunkedDetectionVideo = async (configData) => {
             filename: configData.videoName
          }
         }
-      )      
+      )
     return res;
     }
 
@@ -451,6 +474,10 @@ export const uploadChunkedDetectionVideo = async (configData) => {
 }
 
 export const {
+  useCreateProjectMutation,
+
+
+
   useConnect_cameraMutation,
   useShow_framesMutation,
   useShow_messagesMutation,

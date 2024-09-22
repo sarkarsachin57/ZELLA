@@ -21,15 +21,15 @@ import CustomModalLayout from './CustomModalLayout'
 import FileInput from 'src/views/commons/FileInput'
 import { CustomButton } from 'src/@core/components/button/CustomButton'
 
-// state managements 
+// state managements
 import {
     useCreateConfigMutation} from 'src/pages/redux/apis/configApi'
 import { useCreateLogMutation } from 'src/pages/redux/apis/logApi'
 import {
     useAddDetectionVideoMutation,
     uploadChunkedFile,
-    uploadChunkedDetectionVideo , 
-} from 'src/pages/redux/apis/streamApi';
+    uploadChunkedDetectionVideo ,
+} from 'src/pages/redux/apis/edfsdf';
 import { TRUST_MODE, TRUST_METHOD, TRUST_VIEWMODE } from 'src/constants'
 import { useSelector } from 'react-redux'
 
@@ -54,9 +54,9 @@ export default function VideoSettingModal(props) {
 
     const [createConfig, {}] = useCreateConfigMutation();
     const [createLog, {}] = useCreateLogMutation();
-    
+
     const [addDetectionVideo, {isLoading: isAddLoading, isError, error, isSuccess}] = useAddDetectionVideoMutation();
-  
+
     const [configData, setConfigData] = useState(defaultConfigData)
 
     const [newModelFile, setNewModelFile] = useState(undefined);
@@ -79,7 +79,7 @@ export default function VideoSettingModal(props) {
     }
 
     const handleNewModelFileOnChange = (data) => {
-        
+
         setNewModelName(data.file.name);
         setNewModelFile(data.file)
     }
@@ -92,13 +92,13 @@ export default function VideoSettingModal(props) {
         const sliced8_uuid = _uuid.slice(0,8)
         try {
             const res = await uploadChunkedFile({
-                file: newModelFile, 
+                file: newModelFile,
                 mode: TRUST_MODE.offline,
                 uuidedName: sliced8_uuid
-            }) 
+            })
             if (res.status === 200 && res.data.status === 'Completed') {
                 let _modelList = [...configData.modelList];
-                
+
                 _modelList.push({model_id: sliced8_uuid, model_family: newModelFamily, model_name: newModelName, model_path: res.data.model_path});
                 // [...(configData.modelList), {id: _uuid, modelName: newModelName, modelFile: newModelFile}]
                 setConfigData({
@@ -106,9 +106,9 @@ export default function VideoSettingModal(props) {
                     modelList: _modelList
                 })
             }
-            setAddModelLoading(false)   
+            setAddModelLoading(false)
         } catch (error) {
-            setAddModelLoading(false)               
+            setAddModelLoading(false)
         }
     }
 
@@ -138,10 +138,10 @@ export default function VideoSettingModal(props) {
         setVideoUploadingStatus(true);
         if (!validateData()) return;
         e.preventDefault();
-        
+
         const res = await uploadChunkedDetectionVideo(configData);
         if (res.error) {
-            
+
         } else {
             const _config = {
               camera_name: configData.videoName,
@@ -153,13 +153,13 @@ export default function VideoSettingModal(props) {
               method: TRUST_METHOD.detection,
               useCase: configData.useCase
             }
-            
+
             const config_res = await createConfig(_config);
             // === create the video processing started log ===
             const _timestamp = new Date().getTime();
             const timestamp = Math.floor(new Date().getTime()/1000);
             await createLog({
-                content: `${configData.videoName} - Video started processing`, 
+                content: `${configData.videoName} - Video started processing`,
                 camera_name: configData.videoName,
                 mode: TRUST_MODE.offline,
                 method: TRUST_METHOD.detection,
@@ -236,7 +236,7 @@ export default function VideoSettingModal(props) {
             <Grid item xs={12} sm={5}>
                 <FileInput label="Upload Model" video_file={newModelFile} onChange={ handleNewModelFileOnChange }/>
             </Grid>
-            
+
             <Grid item xs={12} sm={3} sx={{margin: 'auto'}}>
                 <CustomButton
                     variant='contained'

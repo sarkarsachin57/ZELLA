@@ -51,7 +51,7 @@ import {
   useTerminate_cameraMutation,
   useUploadVideoMutation,
   useInitialize_offline_videoMutation
-} from 'src/pages/redux/apis/streamApi'
+} from 'src/pages/redux/apis/edfsdf'
 
 import { getFileExtension } from 'src/helpers/utils'
 import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
@@ -336,15 +336,7 @@ const ModelTraining = () => {
         <CustomTable />
       </CardBox>
 
-      {/* show the modal to select tracker to be initialized **QmQ */}
-      <InitializeVideoModal
-        width={800}
-        isOpen={isInitModalOpen}
-        isLoading={init_camera_loading}
-        onHandleSubmit={handleInitSubmit}
-        onHandleModalClose={handleInitModalClose}
-        camera_info={configs.find(el => el._id == initEl)}
-      />
+
     </Box>
   )
 }

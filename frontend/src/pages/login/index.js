@@ -101,8 +101,18 @@ const LoginPage = () => {
   }, [isSubmitSuccessful])
 
   const onSubmitHandler = values => {
-    // 👇 Executing the loginUser Mutation
-    loginUser(values)
+    const formData = new FormData();
+
+    localStorage.setItem("email", values.email);
+
+    formData.append('email', values.email);
+    formData.append('password', values.password);
+
+    // const formData = {
+    //   "email": "123@gmail.com",
+    //   "password": "123123123"
+    // }
+    loginUser(formData)
   }
 
   const handleClickShowPassword = () => {

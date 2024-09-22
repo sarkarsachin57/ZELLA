@@ -33,7 +33,7 @@ import {
   useUploadVideoMutation,
   useInitialize_offline_videoMutation,
   uploadChunkedVideo
-} from 'src/pages/redux/apis/streamApi'
+} from 'src/pages/redux/apis/edfsdf'
 
 import { getFileExtension } from 'src/helpers/utils'
 import { TRUST_METHOD, TRUST_MODE } from 'src/constants'

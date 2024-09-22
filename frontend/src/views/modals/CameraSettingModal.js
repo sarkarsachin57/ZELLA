@@ -21,14 +21,14 @@ import CustomModalLayout from './CustomModalLayout'
 import FileInput from 'src/views/commons/FileInput'
 import { CustomButton } from 'src/@core/components/button/CustomButton'
 
-// state managements 
+// state managements
 import {
     useCreateConfigMutation} from 'src/pages/redux/apis/configApi'
 import { useCreateLogMutation } from 'src/pages/redux/apis/logApi'
 import {
     useAddDetectionCameraMutation,
     uploadChunkedFile
-} from 'src/pages/redux/apis/streamApi';
+} from 'src/pages/redux/apis/edfsdf';
 import { TRUST_MODE, TRUST_METHOD } from 'src/constants'
 
 const defaultConfigData = {
@@ -52,9 +52,9 @@ export default function CameraSettingModal(props) {
 
     const [createConfig, {}] = useCreateConfigMutation();
     const [createLog, {}] = useCreateLogMutation();
-    
+
     const [addDetectionCamera, {isLoading: isAddLoading, isError, error, isSuccess}] = useAddDetectionCameraMutation();
-  
+
     console.log('status============================>')
     console.log(isAddLoading, isError, error, isSuccess)
     const [configData, setConfigData] = useState(defaultConfigData)
@@ -70,7 +70,7 @@ export default function CameraSettingModal(props) {
 
     const handleNewModelFileOnChange = (data) => {
         console.log('new model data============>', data, data.file)
-        
+
         setNewModelName(data.file.name);
         setNewModelFile(data.file)
     }
@@ -82,7 +82,7 @@ export default function CameraSettingModal(props) {
         const sliced8_uuid = _uuid.slice(0,8)
         try {
             const res = await uploadChunkedFile({
-                file: newModelFile, 
+                file: newModelFile,
                 mode: TRUST_MODE.online,
                 uuidedName: sliced8_uuid
             })
@@ -90,7 +90,7 @@ export default function CameraSettingModal(props) {
             // if (configData.modelList.find((el) => el.modelName === newModelFile.name)) {
             if (res.status === 200 && res.data.status === 'Completed') {
                 let _modelList = [...configData.modelList];
-                
+
                 _modelList.push({model_id: sliced8_uuid, model_family: newModelFamily, model_name: newModelName, model_path: res.data.model_path});
                 // [...(configData.modelList), {id: _uuid, modelName: newModelName, modelFile: newModelFile}]
                 setConfigData({
@@ -98,9 +98,9 @@ export default function CameraSettingModal(props) {
                     modelList: _modelList
                 })
             }
-            setAddModelLoading(false)   
+            setAddModelLoading(false)
         } catch (error) {
-            setAddModelLoading(false)   
+            setAddModelLoading(false)
         }
     }
 
@@ -136,8 +136,8 @@ export default function CameraSettingModal(props) {
         formData.append('classes', configData.classesFile)
         formData.append('model_metas', JSON.stringify(configData.modelList))
         formData.append('use_case', configData.useCase)
-  
-        
+
+
         const res = await addDetectionCamera(formData, configData.cameraName);
         console.log('======> add detection camera response ====>', res)
         if (res.error) {
@@ -161,7 +161,7 @@ export default function CameraSettingModal(props) {
             const _timestamp = new Date().getTime();
             const timestamp = Math.floor(new Date().getTime()/1000);
             await createLog({
-                content: `${configData.cameraName} - Video started processing`, 
+                content: `${configData.cameraName} - Video started processing`,
                 camera_name: configData.cameraName,
                 mode: TRUST_MODE.online,
                 method: TRUST_METHOD.detection,
@@ -170,7 +170,7 @@ export default function CameraSettingModal(props) {
                 use_case: configData.useCase
             })
             toast.success(res.data?.message)
-          
+
             clearSettingData();
             onHandleModalClose();
         }
@@ -225,7 +225,7 @@ export default function CameraSettingModal(props) {
                     setConfigData({ ...configData, useCase: e.target.value })
                 }}/>
             </Grid>
-            
+
             <Grid item xs={12} sm={4} sx={{textAlign: 'left'}}>
                 <FormControl fullWidth >
                     <InputLabel id="model_family"> {"Model Family"} </InputLabel>
@@ -244,7 +244,7 @@ export default function CameraSettingModal(props) {
             <Grid item xs={12} sm={5}>
                 <FileInput label="Upload Model" video_file={newModelFile} onChange={ handleNewModelFileOnChange }/>
             </Grid>
-            
+
             <Grid item xs={12} sm={3} sx={{margin: 'auto'}}>
                 <CustomButton
                     variant='contained'

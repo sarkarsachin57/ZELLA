@@ -1,38 +1,43 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/router'
 import { useCookies } from 'react-cookie'
 import { userApi } from '../pages/redux/apis/userApi'
-import { configApi } from '../pages/redux/apis/configApi'
 import FullScreenLoader from 'src/@core/components/FullScreenLoader'
 import LoginPage from '../pages/login'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
-import { useGetAllConfigsQuery } from 'src/pages/redux/apis/configApi'
-import { switchMode } from 'src/pages/redux/features/siteSettingSlice'
-import { useEffect } from 'react'
-import { TRUST_MODE } from 'src/constants'
+import { useEffect, useState } from 'react'
 
 const AuthMiddleware = ({ children }) => {
-  const [cookies] = useCookies(['logged_in'])
+
+  const [cookies, setCookie, removeCookie] = useCookies(['authToken'])
+  const [token, setToken] = useState("")
   const router = useRouter()
 
-  /**
-   * @author QmQ
-   * @content using router url, switch online and offline
-   */
   const dispatch = useDispatch()
-  useEffect(() => {
-    if (router.pathname.includes('offline')) {
-      dispatch(switchMode(TRUST_MODE.offline))
-    } else {
-      dispatch(switchMode(TRUST_MODE.online))
-    }
-  }, [router.pathname])
 
+  // useEffect(() => {
+  //   setToken(cookies.authToken)
+  // }, [cookies.authToken])
+
+  useEffect(() => {
+    // Listen for changes in cookies.authToken and update token state
+    const handleCookieChange = () => {
+      // setToken(cookies.authToken)
+      setToken(localStorage.getItem("token"))
+    }
+    handleCookieChange()
+
+    // const unsubscribe = setCookie.onSet('authToken', handleCookieChange)
+
+    // return () => {
+    //   unsubscribe()
+    // }
+  })
   const publicPaths = ['/register/', '/login/', '/register', '/login']
 
   const { isLoading, isFetching, isSuccess, isError } = userApi.endpoints.getMe.useQuery(null, {
-    skip: !cookies.logged_in,
+    skip: !cookies.authToken,
     refetchOnMountOrArgChange: true
   })
 
@@ -43,13 +48,14 @@ const AuthMiddleware = ({ children }) => {
   const configs = data?.configs
   const loading = isLoading || isFetching
 
+
   if (loading) {
     return <FullScreenLoader />
   }
 
   if (publicPaths.indexOf(router.pathname) > -1) return children
 
-  if (cookies.logged_in || user) {
+  if (token) {
     return children
   } else {
     return (
@@ -58,6 +64,7 @@ const AuthMiddleware = ({ children }) => {
       </BlankLayout>
     )
   }
+
 }
 
 export default AuthMiddleware
