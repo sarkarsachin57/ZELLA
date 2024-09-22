@@ -143,8 +143,9 @@ def log_resources_usage(title='', file_name="", check_id=0):
         # logger.info(f'Memory - Total : {total_memory} GB, Available : {available_memory} GB, Used : {used_memory} GB ({used_memory_percent}%)')
         gpu_memory = get_gpu_memory_usage()[0]
         gpu_memory_usage = 0
-        for id in gpu_memory:
-            gpu_memory_usage += gpu_memory[id]
+        if gpu_memory != 0:
+            for id in gpu_memory:
+                gpu_memory_usage += gpu_memory[id]
         print(f"gpu_memory : {gpu_memory}")
         # if torch.cuda.is_available():
         #     torch.cuda.reset_peak_memory_stats()
