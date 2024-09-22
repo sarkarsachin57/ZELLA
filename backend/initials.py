@@ -186,7 +186,7 @@ import os, platform, requests, torch, tensorflow as tf, pandas as pd, numpy as n
         threading, base64, markdown.extensions.fenced_code, traceback, plotly, \
         plotly.graph_objs as go, plotly.express as px, matplotlib.pyplot as plt, apricot, shutil, re, zipfile
 # import submodlib
-from moviepy.editor import VideoFileClip, concatenate_videoclips
+# from moviepy.editor import VideoFileClip, concatenate_videoclips
 from tqdm import tqdm
 import moviepy.video.fx.all as vfx
 from threading import Thread
