@@ -14,25 +14,14 @@ const AuthMiddleware = ({ children }) => {
   const [token, setToken] = useState("")
   const router = useRouter()
 
-  const dispatch = useDispatch()
-
-  // useEffect(() => {
-  //   setToken(cookies.authToken)
-  // }, [cookies.authToken])
-
   useEffect(() => {
-    // Listen for changes in cookies.authToken and update token state
+
     const handleCookieChange = () => {
-      // setToken(cookies.authToken)
+
       setToken(localStorage.getItem("token"))
     }
     handleCookieChange()
-
-    // const unsubscribe = setCookie.onSet('authToken', handleCookieChange)
-
-    // return () => {
-    //   unsubscribe()
-    // }
+    
   })
   const publicPaths = ['/register/', '/login/', '/register', '/login']
 
