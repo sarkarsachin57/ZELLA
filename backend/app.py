@@ -713,7 +713,6 @@ def upload_data():
         data_name =  request.form['data_name']
         data_type = request.form['data_type']
         data_drive_id = request.form['data_drive_id']
-        data_zip_file = request.files['data_zip_file']
         
             
         logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, data_type : {data_type}, data_drive_id : {data_drive_id}')
@@ -751,13 +750,18 @@ def upload_data():
         
         if data_drive_id != "":
             
-            file_url = f'https://drive.google.com/uc?id={data_drive_id}'
-            data_dest_file = os.path.join(project_dir, f"data_{data_id}.zip")
-            
-            gdown.download(file_url, data_dest_file, quiet=False)
+            data_dest_file = os.path.join(project_dir, f"data_{data_id}.zip")            
+            dest_dir = os.path.dirname(data_dest_file)
+            file_name = os.path.basename(data_dest_file)
+            current_dir = os.getcwd()
+            os.chdir(dest_dir)
+            os.system(f"gdown --output {file_name} {data_drive_id}")
+            os.chdir(current_dir)
+            # os.system(f"gdown --output {data_dest_file} {data_drive_id}")
             
         else:
             
+            data_zip_file = request.files['data_zip_file']
             data_dest_file = os.path.join(project_dir, f"data_{data_id}.zip")
             data_zip_file.save(data_dest_file)
             

@@ -1,6 +1,9 @@
 
 from initials import * 
 
+
+
+
 def get_model(arch_name, num_classes, pretrained=True, train_mode='finetune'):
 
     from torchvision import models
@@ -205,6 +208,12 @@ def prepare_dataset(dataset_path, trainval_ratio=0.8, batch_size=32, num_workers
     - num_classes: Number of classes in the dataset.
     """
     
+    import torchvision.transforms as transforms
+    from torchvision import datasets
+    from torch.utils.data import DataLoader, Dataset, random_split
+
+
+    
     # Define transformations for the dataset
     transform = transforms.Compose([
         transforms.Resize(input_size),  # Resize images to the expected input size for the model
@@ -266,7 +275,10 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
     - history: A dictionary containing the training and validation loss/accuracy for each epoch.
     - classification_report: The classification report generated on the validation set using the best model.
     """
-    
+    import torch.optim as optim
+    from sklearn.metrics import classification_report
+
+
     # Move the model to the specified device
     model = model.to(device)
     
@@ -478,7 +490,7 @@ def ImageClassificationTrainingPipeline(
         
     model = model.to(device)
 
-    model_summary(model, input_size=tuple([3] + list(input_size)), batch_size=batch_size, device=device)
+    # model_summary(model, input_size=tuple([3] + list(input_size)), batch_size=batch_size, device=device)
 
     print(f"Number of Classes : {num_classes}")
     print(f"Classes : {classnames}")
