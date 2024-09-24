@@ -13,8 +13,8 @@ import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import AddIcon from '@mui/icons-material/Add';
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
-import { useSelector, useDispatch } from 'react-redux'
 
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import LogoLayout from 'src/layouts/LogoLayout';
@@ -66,10 +66,6 @@ const CreateProject = () => {
     tracking_mode: 'sot'
   })
 
-  const user = useSelector(state => {
-    return state.userState.user
-  })
-  console.log(user)
 
   const headCells = [
     {
@@ -126,6 +122,10 @@ const CreateProject = () => {
   ]
 
   // ============ Define the states <end> ================ **QmQ
+
+  const user = useSelector(state => {
+    return state.userState.user
+  })
 
   configApi.endpoints.getAllConfigs.useQuery(null, {
     skip: false,
