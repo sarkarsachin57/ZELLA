@@ -732,6 +732,20 @@ def upload_data():
 
         user_id = user_data["_id"]
         
+        
+        project_data = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+
+        if project_data is None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Project {project_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        
         if mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, 'data_name' : data_name}) is not None:
                
             res = {
@@ -787,7 +801,7 @@ def upload_data():
         data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
         
         
-        project_type = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})["project_type"]
+        project_type = project_data["project_type"]
         
         data_meta = {
             "_id" : user_id+"_"+project_name+"_"+data_id,
