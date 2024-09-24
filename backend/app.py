@@ -189,8 +189,8 @@ def user_signup():
                     "message": f"Email Already Exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
         avatar_dir = os.path.join('files', 'user-avatars')
         os.makedirs(avatar_dir, exist_ok=True)
@@ -210,8 +210,8 @@ def user_signup():
                 "message": f"Account created successfully!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -224,8 +224,8 @@ def user_signup():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -252,8 +252,8 @@ def user_login():
                     "message": f"User not Exists! Please Sign Up or check your credentials."
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
         if user_df.shape[0] == 1:
             if user_df.loc[0]['password'] != password:
@@ -263,8 +263,8 @@ def user_login():
                         "message": f"Password incorrect! Please try again with correct password."
                     }
 
-                logger.info(json.dumps(res, indent=4))
-                return json.dumps(res, separators=(',', ':'))
+                logger.info(json.dumps(res, indent=4,  default=str))
+                return json.dumps(res, separators=(',', ':'), default=str)
             
         token = uuid.uuid4().__str__()
         current_tokens[token] = {'email':email, 'start_time' : time.time(), "avatar_path" : user_df.loc[0]['avatar_path']}
@@ -279,8 +279,8 @@ def user_login():
                 
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
         
@@ -293,8 +293,8 @@ def user_login():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 @app.route("/check-login-status", methods=['POST'])
@@ -322,8 +322,8 @@ def login_status():
                         
                     }
 
-                logger.info(json.dumps(res, indent=4))
-                return json.dumps(res, separators=(',', ':'))
+                logger.info(json.dumps(res, indent=4,  default=str))
+                return json.dumps(res, separators=(',', ':'), default=str)
 
             
             res = {
@@ -334,8 +334,8 @@ def login_status():
                     
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
 
         res = {
@@ -344,8 +344,8 @@ def login_status():
                 
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
     except Exception as e:
@@ -359,8 +359,8 @@ def login_status():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -390,8 +390,8 @@ def get_user_data():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         del user_data["_id"]
 
@@ -407,8 +407,8 @@ def get_user_data():
                 "data": user_data                
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -421,8 +421,8 @@ def get_user_data():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -465,8 +465,8 @@ def set_user_data():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         if mongodb['users'].find_one({'email' : new_email}) is not None and email != new_email:
 
@@ -476,8 +476,8 @@ def set_user_data():
                     "message": f"New Email already exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
         
         if mongodb['users'].find_one({'phone_number' : new_phone_number}) is not None and phone_number != new_phone_number:
@@ -488,8 +488,8 @@ def set_user_data():
                     "message": f"New Phone Number already exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
 
         update_query = {"_id" : user_data["_id"]}
@@ -500,8 +500,8 @@ def set_user_data():
                 "status": "success",
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
                 
@@ -514,8 +514,8 @@ def set_user_data():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -551,8 +551,8 @@ def set_user_data():
 #                 "message": f"Something went wrong.",
 #             }
 
-#     logger.info(json.dumps(res, indent=4))
-#     return json.dumps(res, separators=(',', ':'))
+#     logger.info(json.dumps(res, indent=4,  default=str))
+#     return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -580,8 +580,8 @@ def create_project():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
         
@@ -593,8 +593,8 @@ def create_project():
                 }
 
             
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
             
         
@@ -625,7 +625,7 @@ def create_project():
                 "data": project_meta,                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4, default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -639,8 +639,8 @@ def create_project():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -668,8 +668,8 @@ def get_project_list():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
         
@@ -682,7 +682,7 @@ def get_project_list():
                 "project_list": project_list                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -696,8 +696,8 @@ def get_project_list():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -728,8 +728,8 @@ def upload_data():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
         
@@ -740,8 +740,8 @@ def upload_data():
                     "message": f"Dataset with {data_name} name already exists!"
                 }
                     
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         
         project_dir = os.path.join("workdir", user_id, project_name)
@@ -806,7 +806,7 @@ def upload_data():
                 "data": data_meta,                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -820,8 +820,8 @@ def upload_data():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -850,8 +850,8 @@ def get_dataset_list():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
         
@@ -863,7 +863,7 @@ def get_dataset_list():
                 "dataset_list": dataset_list                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -877,8 +877,8 @@ def get_dataset_list():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -920,8 +920,8 @@ def train_image_classification_model():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
 
@@ -934,8 +934,8 @@ def train_image_classification_model():
                     "message": f"Run Name exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
         dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
         data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
@@ -961,7 +961,7 @@ def train_image_classification_model():
                 "message": "Training started successfully!"                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -975,8 +975,8 @@ def train_image_classification_model():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -1007,8 +1007,8 @@ def get_run_logs():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
         
@@ -1020,7 +1020,7 @@ def get_run_logs():
                 "dataset_list": run_history                
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -1034,8 +1034,8 @@ def get_run_logs():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -1066,8 +1066,8 @@ def get_detailed_training_history():
                     "message": f"Email does not exists!"
                 }
 
-            logger.info(json.dumps(res, indent=4))
-            return json.dumps(res, separators=(',', ':'))
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
 
@@ -1083,7 +1083,7 @@ def get_detailed_training_history():
                 "classification_report" : classification_report      
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -1097,8 +1097,8 @@ def get_detailed_training_history():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -1125,7 +1125,7 @@ def get_error_logs():
                 "status": "success",
             }
 
-        logger.info(json.dumps(res, indent=4))
+        logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
     except Exception as e:
@@ -1138,8 +1138,8 @@ def get_error_logs():
                 "message": f"Somthing went wrong!"
             }
 
-        logger.info(json.dumps(res, indent=4))
-        return json.dumps(res, separators=(',', ':'))
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 

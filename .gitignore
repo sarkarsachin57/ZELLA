@@ -1,3 +1,4 @@
-*/__pycache__
+*/__pycache__/*
 
 backend/workdir/*
+backend/.ipynb_checkpoints/*
