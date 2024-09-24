@@ -51,8 +51,13 @@ import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
  */
 
 const CreateProject = () => {
+  const [user, setUser] = useState(useSelector(state => {
+    return state.userState.user
+  }))
 
-  const [email, setEmail] = useState('')
+  console.log(user)
+
+  const [email, setEmail] = useState(user.email)
   const [projectName, setProjectName] = useState('')
   const [projectType, setProjectType] = useState('')
 
@@ -65,7 +70,6 @@ const CreateProject = () => {
     camera_name: '',
     tracking_mode: 'sot'
   })
-
 
   const headCells = [
     {
@@ -123,9 +127,7 @@ const CreateProject = () => {
 
   // ============ Define the states <end> ================ **QmQ
 
-  const user = useSelector(state => {
-    return state.userState.user
-  })
+  
 
   configApi.endpoints.getAllConfigs.useQuery(null, {
     skip: false,

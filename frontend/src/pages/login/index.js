@@ -107,11 +107,7 @@ const LoginPage = () => {
 
     formData.append('email', values.email);
     formData.append('password', values.password);
-
-    // const formData = {
-    //   "email": "123@gmail.com",
-    //   "password": "123123123"
-    // }
+    
     loginUser(formData)
   }
 

@@ -11,28 +11,16 @@ import { useEffect, useState } from 'react'
 const AuthMiddleware = ({ children }) => {
 
   const [cookies, setCookie, removeCookie] = useCookies(['authToken'])
-  const [token, setToken] = useState("")
+  const [token, setToken] = useState(null)
   const router = useRouter()
 
   const dispatch = useDispatch()
 
-  // useEffect(() => {
-  //   setToken(cookies.authToken)
-  // }, [cookies.authToken])
-
   useEffect(() => {
-    // Listen for changes in cookies.authToken and update token state
     const handleCookieChange = () => {
-      // setToken(cookies.authToken)
       setToken(localStorage.getItem("token"))
     }
     handleCookieChange()
-
-    // const unsubscribe = setCookie.onSet('authToken', handleCookieChange)
-
-    // return () => {
-    //   unsubscribe()
-    // }
   })
   const publicPaths = ['/register/', '/login/', '/register', '/login']
 
@@ -47,7 +35,6 @@ const AuthMiddleware = ({ children }) => {
   const user = data?.user
   const configs = data?.configs
   const loading = isLoading || isFetching
-
 
   if (loading) {
     return <FullScreenLoader />

@@ -9,13 +9,15 @@ export const userApi = createApi({
   tagTypes: ['User'],
   endpoints: (builder) => ({
     getMe: builder.query({
-      query(data) {
-        console.log(data)
+      query() {
+        const formData = new FormData();
+        console.log(localStorage.getItem('email'))
+        formData.append('email', localStorage.getItem('email'));
 
         return {
           url: 'get-user-data',
           method: 'POST',
-          body: data,
+          body: formData,
         };
       },
       providesTags: ['User'],
@@ -26,11 +28,8 @@ export const userApi = createApi({
 
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
-          console.log(data)
           const { data } = await queryFulfilled;
-          dispatch(setUser(data.user));
-
-          dispatch(setConfigs(data.configs));
+          dispatch(setUser(data));
         } catch (error) {}
       },
     }),
