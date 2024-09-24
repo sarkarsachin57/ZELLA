@@ -21,6 +21,8 @@ import LogoLayout from 'src/layouts/LogoLayout';
 import CardBox from 'src/views/settings/CardBox'
 import CustomTable from 'src/@core/components/table/CustomTable'
 
+import { useGetMeMutation } from 'src/pages/redux/apis/userApi'
+
 // import BasicModal from 'src/views/modals/CustomModalLayout'
 import { projectSchema } from 'src/@core/schema'
 import {
@@ -56,6 +58,8 @@ const CreateProject = () => {
   }))
 
   console.log(user)
+
+  const [ getMe ] = useGetMeMutation()
 
   const [email, setEmail] = useState(user.email)
   const [projectName, setProjectName] = useState('')
@@ -134,6 +138,9 @@ const CreateProject = () => {
     refetchOnMountOrArgChange: true
   })
 
+  useEffect(() => {
+    getMe()
+  }, []);
   // ============ Define actions <start> ================== **QmQ
   const [createProject] = useCreateProjectMutation()
   const [createConfig, { isLoading, isError, error, isSuccess }] = useCreateConfigMutation()
