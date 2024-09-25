@@ -96,7 +96,6 @@ export const userApi = createApi({
 });
 
 export const {
-  useGetMeMutation,
   useUpdateUserMutation,
   useUpdatePasswordMutation,
   useUploadImageMutation

@@ -21,8 +21,6 @@ import LogoLayout from 'src/layouts/LogoLayout';
 import CardBox from 'src/views/settings/CardBox'
 import CustomTable from 'src/@core/components/table/CustomTable'
 
-import { useGetMeMutation } from 'src/pages/redux/apis/userApi'
-
 // import BasicModal from 'src/views/modals/CustomModalLayout'
 import { projectSchema } from 'src/@core/schema'
 import {
@@ -32,9 +30,7 @@ import {
   useUpdateConfigMutation,
   useDeleteConfigMutation
 } from 'src/pages/redux/apis/configApi'
-import { useCreateLogMutation } from 'src/pages/redux/apis/logApi'
-import { useUpdateUserMutation } from 'src/pages/redux/apis/userApi'
-import { useCreateProjectMutation } from 'src/pages/redux/apis/baseApi';
+import { useCreateProjectMutation, useGetProjectListMutation } from 'src/pages/redux/apis/baseApi';
 
 import { handleErrorResponse, trimedStr } from 'src/helpers/utils'
 import {
@@ -53,27 +49,54 @@ import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
  */
 
 const CreateProject = () => {
-  const [user, setUser] = useState(useSelector(state => {
+  const user = useSelector(state => {
     return state.userState.user
-  }))
+  })
+  // const [projectList, setProjectList] = useState(useSelector(state => {
+  //   return state.baseState.projectList
+  // }))
 
-  console.log(user)
+  const projectList = useSelector((state) => {
+    return state.baseState.projectList
+  })
 
-  const [ getMe ] = useGetMeMutation()
+  const [createProject] = useCreateProjectMutation()
+  const [getProjectList] = useGetProjectListMutation()
+  const [createConfig, { isLoading, isError, error, isSuccess }] = useCreateConfigMutation()
 
-  const [email, setEmail] = useState(user.email)
+  const [email, setEmail] = useState(user && user.email)
+
+  useEffect(() => {
+    setEmail(user && user.email)
+
+  }, user);
+
+  useEffect(() => {
+    const onGetProjectList = async () => {
+      if (user && user?.email) {
+        const formData = new FormData()
+        formData.append('email', user.email)
+        try {
+          await getProjectList(formData)
+        } catch (error) {
+          toast.error('Something went wrong!');
+        }
+      }
+    }
+
+    onGetProjectList()
+  }, [user]);
+
+  useEffect(() => {
+    console.log("project list: ", projectList)
+  }, [projectList])
+
+  
+  
+  
+
   const [projectName, setProjectName] = useState('')
   const [projectType, setProjectType] = useState('')
-
-  const [isInitModalOpen, setInitModalSwitch] = useState(false)
-  const [initEl, setInitEl] = useState('')
-  const [termEl, setTermEl] = useState('')
-
-  const [conValues, setConValues] = useState({
-    video_file: undefined,
-    camera_name: '',
-    tracking_mode: 'sot'
-  })
 
   const headCells = [
     {
@@ -119,31 +142,24 @@ const CreateProject = () => {
   }
 
   const data = [
-    createData(1, 'project1', 'Image Classification', '2.24.9.17'),
-    createData(2, 'project2', 'Object Detection', '2.24.9.17'),
-    createData(3, 'project3', 'Image Classification', '2.24.9.17'),
-    createData(4, 'project4', 'Object Detection', '2.24.9.17'),
-    createData(5, 'project5', 'Object Detection', '2.24.9.17'),
-    createData(6, 'project6', 'Image Classification', '2.24.9.17'),
-    createData(7, 'project7', 'Image Classification', '2.24.9.17'),
-    createData(8, 'project8', 'Image Classification', '2.24.9.17'),
+    createData(1, 'project1', 'Image Classification', '2024-09-24 03:33:35'),
+    createData(2, 'project2', 'Object Detection', '2024-09-24 03:33:35'),
+    createData(3, 'project3', 'Image Classification', '2024-09-24 03:33:35'),
+    createData(4, 'project4', 'Object Detection', '2024-09-24 03:33:35'),
+    createData(5, 'project5', 'Object Detection', '2024-09-24 03:33:35'),
+    createData(6, 'project6', 'Image Classification', '2024-09-24 03:33:35'),
+    createData(7, 'project7', 'Image Classification', '2024-09-24 03:33:35'),
+    createData(8, 'project8', 'Image Classification', '2024-09-24 03:33:35'),
   ]
 
   // ============ Define the states <end> ================ **QmQ
 
-  
-
-  configApi.endpoints.getAllConfigs.useQuery(null, {
-    skip: false,
-    refetchOnMountOrArgChange: true
-  })
-
   useEffect(() => {
-    getMe()
-  }, []);
+    setEmail(user && user.email)
+
+  }, user);
   // ============ Define actions <start> ================== **QmQ
-  const [createProject] = useCreateProjectMutation()
-  const [createConfig, { isLoading, isError, error, isSuccess }] = useCreateConfigMutation()
+
 
     useInitialize_offline_videoMutation()
 
@@ -178,7 +194,9 @@ const CreateProject = () => {
       formData.append('project_type', projectType)
 
       try {
-        const res = await createProject(formData)
+        await createProject(formData)
+        toast.success('Successfully project created!');
+        
       } catch (error) {
         toast.error('Something went wrong!');
       }

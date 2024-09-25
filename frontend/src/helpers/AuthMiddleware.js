@@ -24,9 +24,9 @@ const AuthMiddleware = ({ children }) => {
   })
   const publicPaths = ['/register/', '/login/', '/register', '/login']
 
-  const { isLoading, isFetching, isSuccess, isError } = userApi.endpoints.getMe.useQuery(null, {
-    skip: !cookies.authToken,
-    refetchOnMountOrArgChange: true
+  const { isLoading, isFetching, isSuccess, isError } = userApi.endpoints.getMe.useQuery({
+    // skip: !cookies.authToken,
+    // refetchOnMountOrArgChange: true
   })
 
   const data = userApi.endpoints.getMe.useQueryState(null, {
