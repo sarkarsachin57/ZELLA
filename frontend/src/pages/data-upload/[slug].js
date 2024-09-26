@@ -216,9 +216,7 @@ export default function Page({params}) {
           formData.append('data_name', dataName)
           formData.append('data_type', dataType)
           formData.append('data_drive_id', dataDriveId)
-          formData.append('file', dataFile)
-    
-    
+          formData.append('data_zip_file', dataFile)
           try {
                 const res = await uploadData(formData)
                 console.log(res)
@@ -229,97 +227,11 @@ export default function Page({params}) {
                   toast.success("successfully data uploaded!")
                 }
 
-            // if (conValues.tracking_mode == 'sot' && res.data?.status == 'success') {
-            //   // After receive the success msg, create the configuration file and log **QmQ
-            //   const _config = {
-            //     camera_name: conValues.camera_name,
-            //     video_path_track: res.data.data.vid_path,
-            //     video_path_detect: 'none',
-            //     video_path_correct: 'none',
-            //     mode: 'offline',
-            //     method: TRUST_METHOD.tracking,
-            //     tracking_mode: conValues.tracking_mode,
-            //     active: 0
-            //   }
-            //   const res_node = await createConfig(_config)
-    
-            //   //  there is no need to show inserting and terminating log in the case of offline ** QmQ
-            //   const _timestamp = new Date().getTime()
-            //   const timestamp = Math.floor(new Date().getTime() / 1000)
-            //   await createLog({
-            //     content: `${conValues.camera_name} - Video Inserted`,
-            //     camera_name: conValues.camera_name,
-            //     mode: 'offline',
-            //     tracking_mode: conValues.tracking_mode,
-            //     _timestamp: _timestamp,
-            //     timestamp: timestamp
-            //   })
-            //   toast.success(res.data?.message)
-            //   setConValues({ camera_name: '', video_file: undefined, tracking_mode: 'sot' })
-            // } else if (conValues.tracking_mode == 'mot' && res.data?.status == 'success') {
-            //   const _config = {
-            //     camera_name: conValues.camera_name,
-            //     video_path_track: res.data.data.vid_path,
-            //     mode: 'offline',
-            //     method: TRUST_METHOD.tracking,
-            //     active: 1,
-            //     tracking_mode: conValues.tracking_mode
-            //   }
-            //   const res_node = await createConfig(_config)
-            //   toast.success(res.data?.message)
-            //   setConValues({ camera_name: '', video_file: undefined, tracking_mode: 'sot' })
-            // } else {
-            //   toast.error('Something went wrong')
-            // }
           } catch (error) {
             toast.error('Something went wrong!');
           }
         }
       }
-    
-      /**
-       * @autor QmQ
-       * @function handles to open the initialization modal
-       */
-      const onHandleInitialize = () => {
-        if (initEl == '') {
-          toast.error('Please select the video to initialize.')
-        } else {
-          const selected_camera = configs.find(el => el._id == initEl)
-          if (selected_camera) {
-            handleInitModalOpen()
-          } else {
-            toast.error('Please select another video. Something went wrong.')
-          }
-        }
-      }
-    
-      /**
-       * @author QmQ
-       * @function sends the tracker info
-       * @param {object} data - {hase the tracker info : width, height, postion}
-       */
-      const handleInitSubmit = async data => {
-        const sel_camera = configs.find(el => el._id == initEl)
-        const res = await initialize_offline_video({ initEl: sel_camera, trackerInfo: data })
-    
-        try {
-          if (res.data?.status == 'success') {
-            // after receive the 'success' response, update the configuration file and print the log **QmQ
-            await updateConfig({ id: initEl, update: { status: 1, active: 1, video_path: res.data.data.vid_path } })
-    
-            // await createLog({content: res.data.message})
-            toast.success(res.data.message)
-            setInitEl('')
-          } else {
-            toast.error('Something went wrong.')
-          }
-          handleInitModalClose()
-        } catch (error) {
-          toast.error('Something went wrong.')
-        }
-      }
-    
     
       return (
         <Box className={CGroups.settings_layout}>
