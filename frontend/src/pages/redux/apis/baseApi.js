@@ -72,6 +72,7 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
+            console.log(data.data)
             dispatch(appendDataSetItem(data.data))
           } catch (error) {}
         },

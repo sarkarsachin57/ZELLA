@@ -88,7 +88,7 @@ EnhancedTableHead.propTypes = {
   rowCount: PropTypes.number.isRequired
 }
 
-export default function CustomTable(props) {
+export default function DatasetTable(props) {
 
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState('calories')
@@ -97,7 +97,7 @@ export default function CustomTable(props) {
   const [dense, setDense] = useState(false)
   const [rowsPerPage, setRowsPerPage] = useState(5)
 
-  const { headCells, rows, type } = props
+  const { headCells, rows } = props
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -155,7 +155,7 @@ export default function CustomTable(props) {
             <TableBody>
               {
                   visibleRows.map((row, index) => {
-                    const isItemSelected = isSelected(row.no)
+                    const isItemSelected = isSelected(row._id)
                     const labelId = `enhanced-table-checkbox-${index}`
 
                     return (
@@ -175,12 +175,12 @@ export default function CustomTable(props) {
                         </TableCell>
                         <TableCell align='center'>{row.project_name}</TableCell>
                         <TableCell align='center'>{row.project_type}</TableCell>
-                        <TableCell align='center'>{row.project_creation_time}</TableCell>
+                        <TableCell align='center'>{row.data_name}</TableCell>
+                        <TableCell align='center'>{row.data_type}</TableCell>
+                        <TableCell align='center'>{row.data_creation_time_str}</TableCell>
                         <TableCell align='center'>
                           {/* <CustomLink href={`/data-upload/${row._id}`} >Go to upload</CustomLink> */}
-                          <Link href={`/data-upload/${row._id}`}>
-                            <CustomSpan>Go to Upload</CustomSpan>
-                          </Link>
+                            <CustomSpan>View Detail</CustomSpan>
                         </TableCell>
                       </TableRow>
                     )

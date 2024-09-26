@@ -19,6 +19,8 @@ import { useRouter } from "next/router"
 import FileInput from 'src/views/commons/FileInput'
 import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
+import CardBox from 'src/views/settings/CardBox'
+import DatasetTable from 'src/@core/components/table/DatasetTable'
 
 import DatasetCard from 'src/views/settings/DatasetCard'
 
@@ -105,6 +107,51 @@ export default function Page({params}) {
       }
     
       // ============= Define the actions related with modal open and close <end> ======== ** QmQ
+
+      const headCells = [
+        {
+          id: 'no',
+          numeric: false,
+          disablePadding: true,
+          label: 'No'
+        },
+        {
+          id: 'projectName',
+          numeric: true,
+          disablePadding: false,
+          label: 'Project Name'
+        },
+        {
+            id: 'projectType',
+            numeric: true,
+            disablePadding: false,
+            label: 'ProjectType'
+        },
+        {
+          id: 'dataName',
+          numeric: true,
+          disablePadding: false,
+          label: 'Data Name'
+        },
+        {
+          id: 'dataType',
+          numeric: true,
+          disablePadding: false,
+          label: 'Data Type'
+        },
+        {
+            id: 'dataCreationTime',
+            numeric: true,
+            disablePadding: false,
+            label: 'Data Creation Time'
+          },
+        {
+          id: 'detail',
+          numeric: true,
+          disablePadding: false,
+          label: 'Detail'
+        },
+      ]
     
       // Check the connection validation ** QmQ
       const validate = () => {
@@ -128,11 +175,7 @@ export default function Page({params}) {
     
           return false
         }
-        if (!dataDriveId) {
-          toast.error('Please select the Data Drive ID')
-    
-          return false
-        }
+        
         if (dataFile == undefined) {
           toast.error('Please Upload the File')
     
@@ -171,7 +214,7 @@ export default function Page({params}) {
           formData.append('email', email)
           formData.append('project_name', projectName)
           formData.append('data_name', dataName)
-          formData.append('data-type', dataType)
+          formData.append('data_type', dataType)
           formData.append('data_drive_id', dataDriveId)
           formData.append('file', dataFile)
     
@@ -179,6 +222,12 @@ export default function Page({params}) {
           try {
                 const res = await uploadData(formData)
                 console.log(res)
+                if(res.error){
+                  toast.error("Something went wrong!")
+                }
+                else{
+                  toast.success("successfully data uploaded!")
+                }
 
             // if (conValues.tracking_mode == 'sot' && res.data?.status == 'success') {
             //   // After receive the success msg, create the configuration file and log **QmQ
@@ -364,23 +413,12 @@ export default function Page({params}) {
               </Grid>
             </Grid>
           </SettingPanelLayout>
-          <Grid container spacing={6}>
-            <Grid item xs={12} sm={3}>
-              <DatasetCard />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <DatasetCard />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <DatasetCard />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <DatasetCard />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <DatasetCard />
-            </Grid>
-          </Grid>
+          <CardBox>
+            <DatasetTable
+                headCells = {headCells}
+                rows = {dataSetList}
+            />
+        </CardBox>
         </Box>
       )
 }
