@@ -12,8 +12,19 @@ import TableRow from '@mui/material/TableRow'
 import TableSortLabel from '@mui/material/TableSortLabel'
 import Paper from '@mui/material/Paper'
 import { visuallyHidden } from '@mui/utils'
-import { CustomButton } from '../button/CustomButton'
+import Link from 'next/link'
+import { colors } from '@mui/material'
 
+import { styled } from '@mui/material/styles'
+
+export const CustomSpan = styled('div')(({ theme }) => ({
+  color: 'rgba(231, 227, 252, 0.68)',
+  fontWeight: 500,
+  '&:hover': {
+    color: '#ebc22c',
+    transform: 'translateY(-2px)',
+  },
+}));
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -32,39 +43,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy)
 }
 
-// const headCells = [
-//   {
-//     id: 'name',
-//     numeric: false,
-//     disablePadding: true,
-//     label: 'Dessert (100g serving)'
-//   },
-//   {
-//     id: 'calories',
-//     numeric: true,
-//     disablePadding: false,
-//     label: 'Calories'
-//   },
-//   {
-//     id: 'fat',
-//     numeric: true,
-//     disablePadding: false,
-//     label: 'Fat (g)'
-//   },
-//   {
-//     id: 'carbs',
-//     numeric: true,
-//     disablePadding: false,
-//     label: 'Carbs (g)'
-//   },
-//   {
-//     id: 'protein',
-//     numeric: true,
-//     disablePadding: false,
-//     label: 'Protein (g)'
-//   }
-// ]
-
 function EnhancedTableHead(props) {
   const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, headCells } = props
 
@@ -78,7 +56,7 @@ function EnhancedTableHead(props) {
         {headCells.map(headCell => (
           <TableCell
             key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
+            align={headCell.numeric ? 'center' : 'left'}
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
@@ -119,7 +97,7 @@ export default function CustomTable(props) {
   const [dense, setDense] = useState(false)
   const [rowsPerPage, setRowsPerPage] = useState(5)
 
-  const { headCells, rows, action } = props
+  const { headCells, rows, } = props
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -190,17 +168,16 @@ export default function CustomTable(props) {
                     sx={{ cursor: 'pointer' }}
                   >
                     <TableCell component='th' id={labelId} scope='row' padding='none'>
-                      {row.no}
+                      {index+1}
                     </TableCell>
-                    <TableCell align='right'>{row.projectName}</TableCell>
-                    <TableCell align='right'>{row.projectType}</TableCell>
-                    <TableCell align='right'>{row.projectCreationTime}</TableCell>
-                    <TableCell align='right'>
-                      <CustomButton
-                       onClick={ action }
-                      >
-                        GO
-                      </CustomButton>
+                    <TableCell align='center'>{row.project_name}</TableCell>
+                    <TableCell align='center'>{row.project_type}</TableCell>
+                    <TableCell align='center'>{row.project_creation_time}</TableCell>
+                    <TableCell align='center'>
+                      {/* <CustomLink href={`/data-upload/${row._id}`} >Go to upload</CustomLink> */}
+                      <Link href={`/data-upload/${row._id}`}>
+                        <CustomSpan>Go to Upload</CustomSpan>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 )

@@ -56,6 +56,19 @@ import { getFileExtension } from 'src/helpers/utils'
 import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
 
 const DataUpload = () => {
+  const user = useSelector(state => {
+    return state.userState.user
+  })
+  // const [projectList, setProjectList] = useState(useSelector(state => {
+  //   return state.baseState.projectList
+  // }))
+
+  const projectList = useSelector((state) => {
+    return state.baseState.projectList
+  })
+
+  console.log("user: +++", user)
+  console.log("project List: +++", projectList)
 
   const [email, setEmail] = useState('')
   const [projectName, setProjectName] = useState('')
@@ -77,9 +90,6 @@ const DataUpload = () => {
 
   // ============ Define the states <end> ================ **QmQ
 
-  const user = useSelector(state => {
-    return state.userState.user
-  })
 
   configApi.endpoints.getAllConfigs.useQuery(null, {
     skip: false,

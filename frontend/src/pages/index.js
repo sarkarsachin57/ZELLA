@@ -91,9 +91,6 @@ const CreateProject = () => {
     console.log("project list: ", projectList)
   }, [projectList])
 
-  
-  
-  
 
   const [projectName, setProjectName] = useState('')
   const [projectType, setProjectType] = useState('')
@@ -151,7 +148,7 @@ const CreateProject = () => {
     createData(7, 'project7', 'Image Classification', '2024-09-24 03:33:35'),
     createData(8, 'project8', 'Image Classification', '2024-09-24 03:33:35'),
   ]
-
+  console.log('data :', data)
   // ============ Define the states <end> ================ **QmQ
 
   useEffect(() => {
@@ -201,10 +198,6 @@ const CreateProject = () => {
         toast.error('Something went wrong!');
       }
     }
-  }
-
-  const action = async () => {
-    window.location.href = '/dataUpload'
   }
 
   return (
@@ -265,8 +258,7 @@ const CreateProject = () => {
       <CardBox>
         <CustomTable
           headCells = {headCells}
-          rows = {data}
-          action = {action}
+          rows = {projectList}
         />
       </CardBox>
     </Box>
