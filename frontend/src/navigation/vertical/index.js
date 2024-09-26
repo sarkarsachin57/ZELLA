@@ -29,7 +29,8 @@ const offlineNavItemList = [
   {
     title: 'Upload Data page',
     icon: CloudUploadIcon,
-    path: '/dataUpload'
+    path: `data-upload/`
+    // path: `data-upload/${localStorage.getItem("projectId")}`
   },
 
   {

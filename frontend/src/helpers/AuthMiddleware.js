@@ -7,6 +7,7 @@ import FullScreenLoader from 'src/@core/components/FullScreenLoader'
 import LoginPage from '../pages/login'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 import { useEffect, useState } from 'react'
+import { useGetProjectListMutation } from 'src/pages/redux/apis/baseApi';
 
 const AuthMiddleware = ({ children }) => {
 
@@ -23,6 +24,7 @@ const AuthMiddleware = ({ children }) => {
     handleCookieChange()
   })
   const publicPaths = ['/register/', '/login/', '/register', '/login']
+  const [getProjectList] = useGetProjectListMutation()
 
   const { isLoading, isFetching, isSuccess, isError } = userApi.endpoints.getMe.useQuery({
     // skip: !cookies.authToken,
@@ -32,6 +34,24 @@ const AuthMiddleware = ({ children }) => {
   const data = userApi.endpoints.getMe.useQueryState(null, {
     selectFromResult: ({ data }) => data
   })
+
+  useEffect(() => {
+    const onGetProjectList = async () => {
+      if (user && user?.email) {
+        const formData = new FormData()
+        formData.append('email', user.email)
+        try {
+          console.log("formdata")
+          await getProjectList(formData)
+        } catch (error) {
+          toast.error('Something went wrong!');
+        }
+      }
+    }
+
+    onGetProjectList()
+  }, []);
+
   const user = data?.user
   const configs = data?.configs
   const loading = isLoading || isFetching

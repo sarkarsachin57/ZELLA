@@ -44,7 +44,6 @@ const UserDropdown = () => {
   const user = useSelector(state => {
     return state.userState.user
   })
-  console.log("user: ", user)
   const [cookies, setCookie, removeCookie] = useCookies(['authToken']);
 
   const [logoutUser, { isLoading, isSuccess, error, isError }] = useLogoutUserMutation()

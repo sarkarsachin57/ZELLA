@@ -1,13 +1,10 @@
 import CGroups from '../../styles/pages/settings.module.scss'
 
-// ** React Imports
-
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
@@ -21,44 +18,26 @@ import LogoLayout from 'src/layouts/LogoLayout';
 import CardBox from 'src/views/settings/CardBox'
 import CustomTable from 'src/@core/components/table/CustomTable'
 
-// import BasicModal from 'src/views/modals/CustomModalLayout'
 import { projectSchema } from 'src/@core/schema'
 import {
-  configApi,
   useCreateConfigMutation,
-  useGetAllConfigsQuery,
-  useUpdateConfigMutation,
-  useDeleteConfigMutation
 } from 'src/pages/redux/apis/configApi'
 import { useCreateProjectMutation, useGetProjectListMutation } from 'src/pages/redux/apis/baseApi';
-
-import { handleErrorResponse, trimedStr } from 'src/helpers/utils'
-import {
-  useTerminate_cameraMutation,
-  useUploadVideoMutation,
-  useInitialize_offline_videoMutation
-} from 'src/pages/redux/apis/edfsdf'
-
-import { getFileExtension } from 'src/helpers/utils'
-import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
-
-/**
- * @author QmQ
- * @file shows the main page-live view page
- * @returns
- */
+import { setProjectList } from './redux/features/baseSlice'
 
 const CreateProject = () => {
   const user = useSelector(state => {
     return state.userState.user
   })
-  // const [projectList, setProjectList] = useState(useSelector(state => {
-  //   return state.baseState.projectList
-  // }))
+  console.log("projectList: ", useSelector(state => state.baseState.projectList))
+  // const [projectList, setProjectList] = useState(useSelector(state => state.baseState.projectList))
+  const [projectList, setProjectList] = useState([]);
 
-  const projectList = useSelector((state) => {
+  const tmpProjectList= useSelector(state => {
     return state.baseState.projectList
   })
+  console.log("user: ", user)
+  console.log("projectList: ", tmpProjectList)
 
   const [createProject] = useCreateProjectMutation()
   const [getProjectList] = useGetProjectListMutation()
@@ -77,6 +56,7 @@ const CreateProject = () => {
         const formData = new FormData()
         formData.append('email', user.email)
         try {
+          console.log("formdata")
           await getProjectList(formData)
         } catch (error) {
           toast.error('Something went wrong!');
@@ -88,8 +68,10 @@ const CreateProject = () => {
   }, [user]);
 
   useEffect(() => {
-    console.log("project list: ", projectList)
-  }, [projectList])
+    if(tmpProjectList && tmpProjectList.length > 0) {
+      setProjectList(tmpProjectList)
+    }
+  }, [tmpProjectList])
 
 
   const [projectName, setProjectName] = useState('')
@@ -138,29 +120,12 @@ const CreateProject = () => {
     }
   }
 
-  const data = [
-    createData(1, 'project1', 'Image Classification', '2024-09-24 03:33:35'),
-    createData(2, 'project2', 'Object Detection', '2024-09-24 03:33:35'),
-    createData(3, 'project3', 'Image Classification', '2024-09-24 03:33:35'),
-    createData(4, 'project4', 'Object Detection', '2024-09-24 03:33:35'),
-    createData(5, 'project5', 'Object Detection', '2024-09-24 03:33:35'),
-    createData(6, 'project6', 'Image Classification', '2024-09-24 03:33:35'),
-    createData(7, 'project7', 'Image Classification', '2024-09-24 03:33:35'),
-    createData(8, 'project8', 'Image Classification', '2024-09-24 03:33:35'),
-  ]
-  console.log('data :', data)
-  // ============ Define the states <end> ================ **QmQ
 
   useEffect(() => {
     setEmail(user && user.email)
 
   }, user);
   // ============ Define actions <start> ================== **QmQ
-
-
-    useInitialize_offline_videoMutation()
-
-    useUpdateConfigMutation()
 
   const validate = () => {
     if (!email) {

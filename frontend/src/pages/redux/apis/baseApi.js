@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import customFetchBase from './customFetchBase';
-import { appendProjectItem, setProjectList } from '../features/baseSlice';
+import { appendProjectItem, setDataSetList, setProjectList, appendDataSetItem } from '../features/baseSlice';
 
 /**
  * 👇 @file handles the auth apis
@@ -43,11 +43,46 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getDataSetList: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-dataset-list',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            console.log('datasetList: ', data.dataset_list)
+            dispatch(setDataSetList(data.dataset_list));
+          } catch (error) {}
+        },
+      }),
+      uploadData: builder.mutation({
+        query(data) {
+          return {
+            url: 'upload-data',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(appendDataSetItem(data.data))
+          } catch (error) {}
+        },
+      }),
     }),
 });
 
 export const {
   useGetProjectListMutation,
   useCreateProjectMutation,
+  useGetDataSetListMutation,
+  useUploadDataMutation,
 
 } = baseApi;

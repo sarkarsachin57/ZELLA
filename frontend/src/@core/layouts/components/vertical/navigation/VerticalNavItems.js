@@ -6,7 +6,6 @@ import VerticalSubNavLink from './VerticalSubNavLink'
 const resolveNavItemComponent = item => {
   if (item.sectionTitle) return VerticalNavSectionTitle
   if (item.subTitle) {
-    console.log(item.subTitle);
 
     return VerticalSubNavLink
   }

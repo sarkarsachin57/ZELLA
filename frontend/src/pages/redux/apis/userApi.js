@@ -11,7 +11,6 @@ export const userApi = createApi({
     getMe: builder.query({
       query() {
         const formData = new FormData();
-        console.log(localStorage.getItem('email'))
         formData.append('email', localStorage.getItem('email'));
 
         return {
