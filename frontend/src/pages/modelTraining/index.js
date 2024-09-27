@@ -333,7 +333,7 @@ const ModelTraining = () => {
       </SettingPanelLayout>
 
       <CardBox>
-        <CustomTable />
+        {/* <CustomTable /> */}
       </CardBox>
 
 

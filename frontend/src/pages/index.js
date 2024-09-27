@@ -176,19 +176,7 @@ const CreateProject = () => {
         headerTitle='Create Project'
       >
         <Grid container spacing={6}>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              type='text'
-              label='Email'
-              placeholder='Please input Email'
-              value={ email }
-              onChange={e => {
-                setEmail(e.target.value)
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               type='text'
@@ -200,7 +188,7 @@ const CreateProject = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={4} sx={{ textAlign: 'left' }}>
+          <Grid item xs={12} sm={6} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
               <InputLabel id='select_model'> {'Select Model'} </InputLabel>
               <Select
