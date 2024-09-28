@@ -175,11 +175,11 @@ export default function CustomTable(props) {
                         </TableCell>
                         <TableCell align='center'>{row.project_name}</TableCell>
                         <TableCell align='center'>{row.project_type}</TableCell>
-                        <TableCell align='center'>{row.project_creation_time}</TableCell>
+                        <TableCell align='center'>{row.project_creation_time_str}</TableCell>
                         <TableCell align='center'>
                           {/* <CustomLink href={`/data-upload/${row._id}`} >Go to upload</CustomLink> */}
                           <Link href={`/data-upload/${row._id}`}>
-                            <CustomSpan>Go to Upload</CustomSpan>
+                            <CustomSpan>Go to Project</CustomSpan>
                           </Link>
                         </TableCell>
                       </TableRow>

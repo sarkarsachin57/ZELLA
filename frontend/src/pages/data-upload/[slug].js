@@ -21,6 +21,7 @@ import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
 import DatasetTable from 'src/@core/components/table/DatasetTable'
+import { LoadingButton } from 'src/@core/components/button/LoadingButton'
 
 import DatasetCard from 'src/views/settings/DatasetCard'
 
@@ -70,26 +71,11 @@ export default function Page({params}) {
       const [dataType, setDataType] = useState('')
       const [dataDriveId, setDataDriveId] = useState('')
       const [dataFile, setDataFile] = useState(undefined)
+      const [isLoading, setIsLoading] = useState(false)
 
       const [ getDataSetList ] = useGetDataSetListMutation()
       const [ uploadData ] = useUploadDataMutation()
-      
-    
-      // ============ Define actions <start> ================== **QmQ
-      const [createConfig, { isLoading, isError, error, isSuccess }] = useCreateConfigMutation()
-      const [uploadVideo] = useUploadVideoMutation()
-    
-      const [initialize_offline_video, { isSuccess: init_success, isLoading: init_camera_loading, data: init_data }] =
-        useInitialize_offline_videoMutation()
-      const [terminate_camera, { isLoading: term_isLoading }] = useTerminate_cameraMutation()
-    
-      const [updateConfig, { isLoading: update_isLoading, error: init_error, isSuccess: init_isSuccess }] =
-        useUpdateConfigMutation()
-      const [deleteConfig] = useDeleteConfigMutation()
-      const [createLog] = useCreateLogMutation()
-    
-      const [updateUser, { isLoading: update_user_isLoading }] = useUpdateUserMutation()
-    
+        
       // ============ Define actions <end> ==================== **QmQ
     
       const configs = useSelector(state => {
@@ -176,12 +162,6 @@ export default function Page({params}) {
           return false
         }
         
-        if (dataFile == undefined) {
-          toast.error('Please Upload the File')
-    
-          return false
-        }
-    
         return true
       }
     
@@ -216,15 +196,23 @@ export default function Page({params}) {
           formData.append('data_name', dataName)
           formData.append('data_type', dataType)
           formData.append('data_drive_id', dataDriveId)
+          if(dataDriveId !== ''){
+            setDataFile('')
+          }
           formData.append('data_zip_file', dataFile)
+          setIsLoading(true)
           try {
                 const res = await uploadData(formData)
-                console.log(res)
+                setIsLoading(false)
                 if(res.error){
                   toast.error("Something went wrong!")
                 }
                 else{
                   toast.success("successfully data uploaded!")
+                  setDataName('')
+                  setDataType('')
+                  setDataDriveId('')
+                  setDataFile(undefined)
                 }
 
           } catch (error) {
@@ -246,33 +234,7 @@ export default function Page({params}) {
             select_tracking_mode={true}
           >
             <Grid container spacing={6} sx={{marginBottom:'15px'}}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  type='text'
-                  label='Email'
-                  placeholder='Please input Email'
-                  value={email}
-                  onChange={e => {
-                    setEmail(e.target.value)
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <FormControl fullWidth>
-                    <TextField
-                        fullWidth
-                        type='text'
-                        label='projectName'
-                        placeholder='Please input project Name'
-                        value={projectName}
-                        onChange={e => {
-                        setProjectName( e.target.value )
-                        }}
-                    />
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <TextField
                   fullWidth
                   type='text'
@@ -284,9 +246,7 @@ export default function Page({params}) {
                   }}
                 />
               </Grid>
-            </Grid>
-            <Grid container spacing={6}>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <FormControl fullWidth>
                   <InputLabel id='dataType'> {'Data Type'} </InputLabel>
                   <Select
@@ -303,7 +263,7 @@ export default function Page({params}) {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <FormControl fullWidth>
                     <TextField
                         fullWidth
@@ -317,7 +277,7 @@ export default function Page({params}) {
                     />
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 {
                     dataDriveId === '' ? (<FileInput label='Input Data File' video_file={dataFile} onChange={handleFileOnChange} />) : ''
                 }
