@@ -338,6 +338,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
             loss = criterion(outputs, labels)
             
             # Backward pass and optimize
+            loss.requires_grad = True
             loss.backward()
             optimizer.step()
             

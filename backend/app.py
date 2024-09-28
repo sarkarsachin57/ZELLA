@@ -1035,7 +1035,7 @@ def get_run_logs():
             
         res = {
                 "status": "success",
-                "dataset_list": run_history                
+                "run_history": run_history                
             }
 
         logger.info(json.dumps(res, indent=4,  default=str))
