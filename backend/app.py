@@ -1030,7 +1030,7 @@ def get_run_logs():
 
         user_id = user_data["_id"]
         
-        run_history = list(mongodb["training_history"].find({'user_id' : user_id, 'project_name' : project_name}))
+        run_history = list(mongodb["run_records"].find({'user_id' : user_id, 'project_name' : project_name}))
         
             
         res = {
