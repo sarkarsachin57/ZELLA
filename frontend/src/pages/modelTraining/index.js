@@ -166,8 +166,6 @@ const ModelTraining = () => {
                 {dataset_list.map(item =>{
                   return (<MenuItem value={item.data_name}> {item.data_name} </MenuItem>)
                 })}
-                <MenuItem value={'model1'}> {'model1'} </MenuItem>
-                <MenuItem value={'model2'}> {'model2'} </MenuItem>
               </Select>
             </FormControl>
           </Grid>

@@ -92,22 +92,16 @@ export default function Page({params}) {
           label: 'No'
         },
         {
-          id: 'projectName',
+          id: 'dataName',
           numeric: true,
           disablePadding: false,
-          label: 'Project Name'
+          label: 'Data Name'
         },
         {
             id: 'projectType',
             numeric: true,
             disablePadding: false,
             label: 'ProjectType'
-        },
-        {
-          id: 'dataName',
-          numeric: true,
-          disablePadding: false,
-          label: 'Data Name'
         },
         {
           id: 'dataType',
@@ -219,7 +213,7 @@ export default function Page({params}) {
             schema={connectSchema}
             headerIcon={<CloudUploadIcon />}
             isLoading={isLoading}
-            headerTitle='Data Upload'
+            headerTitle={projectName}
             select_tracking_mode={true}
           >
             <Grid container spacing={6} sx={{marginBottom:'15px'}}>

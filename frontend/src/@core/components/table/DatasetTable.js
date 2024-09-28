@@ -173,9 +173,8 @@ export default function DatasetTable(props) {
                         <TableCell component='th' id={labelId} scope='row' padding='none'>
                           {index+1}
                         </TableCell>
-                        <TableCell align='center'>{row.project_name}</TableCell>
-                        <TableCell align='center'>{row.project_type}</TableCell>
                         <TableCell align='center'>{row.data_name}</TableCell>
+                        <TableCell align='center'>{row.project_type}</TableCell>
                         <TableCell align='center'>{row.data_type}</TableCell>
                         <TableCell align='center'>{row.data_creation_time_str}</TableCell>
                         <TableCell align='center'>
