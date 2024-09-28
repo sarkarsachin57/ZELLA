@@ -56,8 +56,6 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
 
   const [subTitleOpen, setSubTitleOpen] = useState(false)
 
-  console.log(item)
-
   const handleSubTitleOpen = () => {
     setSubTitleOpen(prev => !prev)
     console.log("subTitleOpen============>", subTitleOpen)

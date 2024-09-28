@@ -1,6 +1,12 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import customFetchBase from './customFetchBase';
-import { appendProjectItem, setDataSetList, setProjectList, appendDataSetItem } from '../features/baseSlice';
+import { 
+  appendProjectItem, 
+  setDataSetList, 
+  setProjectList, 
+  appendDataSetItem, 
+  updateLatestProjectUrl 
+} from '../features/baseSlice';
 
 /**
  * 👇 @file handles the auth apis
@@ -77,6 +83,33 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      updateLatestUrl: builder.mutation({
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            console.log("args: ", args);
+            dispatch(updateLatestProjectUrl(args))
+          } catch(error) {
+            throw new error;
+          }
+        }
+      }),
+      trainImageClassificationModel: builder.mutation({
+        query(data) {
+          return {
+            url: 'train_image_classification_model',
+            method: 'POST',
+            body: data
+          }
+        },
+        // transformResponse: result => result,
+        // async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        //   try {
+        //     const { data } = await queryFulfilled;
+        //     console.log(data.data)
+        //     dispatch(appendDataSetItem(data.data))
+        //   } catch (error) {}
+        // },
+      }),
     }),
 });
 
@@ -85,5 +118,6 @@ export const {
   useCreateProjectMutation,
   useGetDataSetListMutation,
   useUploadDataMutation,
-
+  useUpdateLatestUrlMutation,
+  useTrainImageClassificationModelMutation
 } = baseApi;

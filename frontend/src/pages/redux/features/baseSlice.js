@@ -3,7 +3,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState ={
     projectList: [],
-    dataSetList: []
+    dataSetList: [],
+    latestProjectUrl: ""
 }
 
 export const baseSlice = createSlice({
@@ -22,6 +23,9 @@ export const baseSlice = createSlice({
         appendDataSetItem: (state, action) => {
             state.dataSetList = [...state.dataSetList, action.payload]
         },
+        updateLatestProjectUrl: (state, action) => {
+            state.latestProjectUrl = action.payload;
+        }
     }
 });
 
@@ -30,7 +34,8 @@ export const {
     setProjectList,
     appendProjectItem,
     setDataSetList,
-    appendDataSetItem
+    appendDataSetItem,
+    updateLatestProjectUrl
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

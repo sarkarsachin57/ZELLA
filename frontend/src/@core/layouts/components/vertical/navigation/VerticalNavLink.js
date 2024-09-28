@@ -19,6 +19,8 @@ import UserIcon from 'src/layouts/components/UserIcon'
 
 // ** Utils
 import { handleURLQueries } from 'src/@core/layouts/utils'
+import { useScrollTrigger } from '@material-ui/core'
+import { useSelector } from 'react-redux'
 
 // ** Styled Components
 const MenuNavLink = styled(ListItemButton)(({ theme }) => ({
@@ -52,6 +54,10 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
   const IconTag = item.icon
 
   const isNavLinkActive = () => {
+    // const latestProjectUrl = useSelector(state => state.baseState.latestProjectUrl)
+    // const [latestProjectUrl, setLatestProjectUrl] = useState(useSelector(state => state.baseState.latestProjectUrl))
+
+    // console.log(latestProjectUrl)
     if (router.pathname === item.path || handleURLQueries(router, item.path)) {
       return true
     } else {
@@ -71,6 +77,7 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
         py: '10px'
       }}
     >
+      {/* <Link passHref href={item.path === undefined ? '/' : (`${item.path==='data-upload/'?(item.path+latestProjectUrl?latestProjectUrl:''):item.path}`)}> */}
       <Link passHref href={item.path === undefined ? '/' : `${item.path}`}>
         <MenuNavLink
           component={'a'}

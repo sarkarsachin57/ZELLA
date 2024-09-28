@@ -12,7 +12,7 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { useRouter } from "next/router"
 
@@ -21,34 +21,24 @@ import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
 import DatasetTable from 'src/@core/components/table/DatasetTable'
-import { LoadingButton } from 'src/@core/components/button/LoadingButton'
 
-import DatasetCard from 'src/views/settings/DatasetCard'
 
 // import BasicModal from 'src/views/modals/CustomModalLayout'
 import { connectSchema } from 'src/@core/schema'
-import { useGetDataSetListMutation, useUploadDataMutation } from 'src/pages/redux/apis/baseApi'
-import {
-  configApi,
-  useCreateConfigMutation,
-  useGetAllConfigsQuery,
-  useUpdateConfigMutation,
-  useDeleteConfigMutation
-} from 'src/pages/redux/apis/configApi'
-import { useCreateLogMutation } from 'src/pages/redux/apis/logApi'
-
-import { useUpdateUserMutation } from 'src/pages/redux/apis/userApi'
-
-import { handleErrorResponse, trimedStr } from 'src/helpers/utils'
-import {
-  useTerminate_cameraMutation,
-  useUploadVideoMutation,
-  useInitialize_offline_videoMutation
-} from 'src/pages/redux/apis/edfsdf'
+import { useGetDataSetListMutation, useUploadDataMutation, useUpdateLatestUrlMutation } from 'src/pages/redux/apis/baseApi'
 
 export default function Page({params}) {
     const router = useRouter();
     const { slug } = router.query;
+    
+    const [ updateLatestUrl ] = useUpdateLatestUrlMutation()
+    
+    useEffect(() => {
+      updateLatestUrl(slug)
+    }, [])
+
+
+    console.log(useSelector(state => state.baseState.latestProjectUrl))
     const user = useSelector(state => {
         return state.userState.user
     })
@@ -202,19 +192,18 @@ export default function Page({params}) {
           formData.append('data_zip_file', dataFile)
           setIsLoading(true)
           try {
-                const res = await uploadData(formData)
-                setIsLoading(false)
-                if(res.error){
-                  toast.error("Something went wrong!")
-                }
-                else{
-                  toast.success("successfully data uploaded!")
-                  setDataName('')
-                  setDataType('')
-                  setDataDriveId('')
-                  setDataFile(undefined)
-                }
-
+            const res = await uploadData(formData)
+            setIsLoading(false)
+            if(res.error){
+              toast.error("Something went wrong!")
+            }
+            else{
+              toast.success("successfully data uploaded!")
+              setDataName('')
+              setDataType('')
+              setDataDriveId('')
+              setDataFile(undefined)
+            }
           } catch (error) {
             toast.error('Something went wrong!');
           }

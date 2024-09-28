@@ -25,6 +25,8 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
  * @file is responsible for sidebar menu
  */
 
+
+
 const offlineNavItemList = [
   {
     title: 'Upload Data page',

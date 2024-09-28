@@ -36,219 +36,113 @@ import CustomTable from 'src/@core/components/table/CustomTable'
 // import BasicModal from 'src/views/modals/CustomModalLayout'
 import { connectSchema } from 'src/@core/schema'
 import {
-  configApi,
-  useCreateConfigMutation,
-  useGetAllConfigsQuery,
-  useUpdateConfigMutation,
-  useDeleteConfigMutation
-} from 'src/pages/redux/apis/configApi'
-import { useCreateLogMutation } from 'src/pages/redux/apis/logApi'
-
-import { useUpdateUserMutation } from 'src/pages/redux/apis/userApi'
-
-import { handleErrorResponse, trimedStr } from 'src/helpers/utils'
-import {
-  useTerminate_cameraMutation,
-  useUploadVideoMutation,
-  useInitialize_offline_videoMutation
-} from 'src/pages/redux/apis/edfsdf'
-
-import { getFileExtension } from 'src/helpers/utils'
-import { TRUST_METHOD, TRUST_MODE } from 'src/constants'
+  useTrainImageClassificationModelMutation,
+} from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
+  const arch_name_list = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'vgg11', 'vgg13', 'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201','mobilenet_v2', 'mobilenet_v3_large', 'mobilenet_v3_small', 'efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3', 'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7','shufflenet_v2_x0_5', 'shufflenet_v2_x1_0','mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3', 'squeezenet1_0', 'squeezenet1_1', 'googlenet', 'alexnet']
+  const training_mode_list = ['scratch', 'finetune', 'transfer']
   // ============ Define the states <start> ============= **QmQ
-  const [isInitModalOpen, setInitModalSwitch] = useState(false)
-  const [initEl, setInitEl] = useState('')
-  const [termEl, setTermEl] = useState('')
-
-  const [conValues, setConValues] = useState({
-    video_file: undefined,
-    camera_name: '',
-    tracking_mode: 'sot'
-  })
-
-  // ============ Define the states <end> ================ **QmQ
-
   const user = useSelector(state => {
     return state.userState.user
   })
-
-  configApi.endpoints.getAllConfigs.useQuery(null, {
-    skip: false,
-    refetchOnMountOrArgChange: true
+  const project_list = useSelector((state) => {
+    return state.baseState.projectList
+  })
+  const latest_project_url = useSelector((state) => {
+    return state.baseState.latestProjectUrl
   })
 
-  // ============ Define actions <start> ================== **QmQ
-  const [createConfig, { isLoading, isError, error, isSuccess }] = useCreateConfigMutation()
-  const [uploadVideo] = useUploadVideoMutation()
+  const [email, setEmail] = useState(user.email)
+  const [project_name, setsetProjectList] = useState(project_list.find(obj => obj._id === latest_project_url).project_name)
+  const [data_name, setDataName] = useState('')
+  const [run_name, setRunName] = useState('')
+  const [arch_name, setArchName] = useState('')
+  const [training_mode, setTrainingMode] = useState('')
+  const [num_epochs, setNumEpochs] = useState('10')
+  const [batch_size, setBatchSize] = useState('32')
+  const [learning_rate, setLearningRate] = useState('0.01')
+  const [dataset_list, setDatasetList] = useState(useSelector(state => state.baseState.dataSetList))
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [initialize_offline_video, { isSuccess: init_success, isLoading: init_camera_loading, data: init_data }] =
-    useInitialize_offline_videoMutation()
-  const [terminate_camera, { isLoading: term_isLoading }] = useTerminate_cameraMutation()
+  const [ TrainImageClassificationModel ] = useTrainImageClassificationModelMutation()
 
-  const [updateConfig, { isLoading: update_isLoading, error: init_error, isSuccess: init_isSuccess }] =
-    useUpdateConfigMutation()
-  const [deleteConfig] = useDeleteConfigMutation()
-  const [createLog] = useCreateLogMutation()
 
-  const [updateUser, { isLoading: update_user_isLoading }] = useUpdateUserMutation()
 
-  // ============ Define actions <end> ==================== **QmQ
+
 
   const configs = useSelector(state => {
     return state.configState.configs.filter(conn => conn.mode == 'offline')
   })
 
-  // ============= Define the actions related with modal open and close <start> ======== ** QmQ
-
-  const handleInitModalOpen = () => {
-    setInitModalSwitch(true)
-  }
-
-  const handleInitModalClose = () => {
-    setInitModalSwitch(false)
-  }
-
-  // ============= Define the actions related with modal open and close <end> ======== ** QmQ
 
   // Check the connection validation ** QmQ
   const validate = () => {
-    if (!conValues.camera_name.length) {
-      toast.error('Please input the video name')
+    if (!data_name) {
+      toast.error('Please select the data name')
 
       return false
     }
-    if (!conValues.video_file) {
-      toast.error('Please select the video file')
+    if (!run_name) {
+      toast.error('Please input the run name')
 
       return false
     }
+    if (!arch_name) {
+      toast.error('Please select the arch name')
 
-    // const isExist = configs.find((conn)=> {
-    //   const substr = trimedStr(conn.camera_name, 8)
-    //   return (substr == conValues.camera_name && conValues.tracking_mode == conn.tracking_mode)
-    // }
-    // )
-    // if( isExist ) {
-    //   toast.error("Please use another video name.")
-    //   return false;
-    // }
+      return false
+    }
+    if (!training_mode) {
+      toast.error('Please select the training mode')
 
+      return false
+    }
     return true
   }
 
-  /**
-   * @author QmQ
-   *
-   */
 
-  const handleFileOnChange = data => {
-    setConValues({
-      ...conValues,
-      video_file: data.file
-    })
-  }
-
-  /**
-   * @author QmQ
-   * ============================================================================================
-   * ================= handle the stream part start ** QmQ =======================================
-   */
   const onInsertSubmitHandler = async () => {
     if (validate()) {
       // send the camere connection request to flask api ** QmQ
       const formData = new FormData()
-      formData.append('file', conValues.video_file)
-      const vid_ext = getFileExtension(conValues.video_file?.name)
-
-      const payload = {
-        tracking_mode: conValues.tracking_mode,
-        vid_ext: vid_ext,
-        vid_name: conValues.camera_name,
-        formData: formData
-      }
-
-      const res = await uploadVideo(payload)
+      formData.append('email', email)
+      formData.append('project_name', project_name)
+      formData.append('data_name', data_name)
+      formData.append('run_name', run_name)
+      formData.append('arch_name', arch_name)
+      formData.append('training_mode', training_mode)
+      formData.append('num_epochs', num_epochs)
+      formData.append('batch_size', batch_size)
+      formData.append('learning_rate', learning_rate)
+      setIsLoading(true)
 
       try {
-        if (conValues.tracking_mode == 'sot' && res.data?.status == 'success') {
-          // After receive the success msg, create the configuration file and log **QmQ
-          const _config = {
-            camera_name: conValues.camera_name,
-            video_path_track: res.data.data.vid_path,
-            video_path_detect: 'none',
-            video_path_correct: 'none',
-            mode: 'offline',
-            method: TRUST_METHOD.tracking,
-            tracking_mode: conValues.tracking_mode,
-            active: 0
-          }
-          const res_node = await createConfig(_config)
-
-          //  there is no need to show inserting and terminating log in the case of offline ** QmQ
-          const _timestamp = new Date().getTime()
-          const timestamp = Math.floor(new Date().getTime() / 1000)
-          await createLog({
-            content: `${conValues.camera_name} - Video Inserted`,
-            camera_name: conValues.camera_name,
-            mode: 'offline',
-            tracking_mode: conValues.tracking_mode,
-            _timestamp: _timestamp,
-            timestamp: timestamp
-          })
-          toast.success(res.data?.message)
-          setConValues({ camera_name: '', video_file: undefined, tracking_mode: 'sot' })
-        } else if (conValues.tracking_mode == 'mot' && res.data?.status == 'success') {
-          const _config = {
-            camera_name: conValues.camera_name,
-            video_path_track: res.data.data.vid_path,
-            mode: 'offline',
-            method: TRUST_METHOD.tracking,
-            active: 1,
-            tracking_mode: conValues.tracking_mode
-          }
-          const res_node = await createConfig(_config)
-          toast.success(res.data?.message)
-          setConValues({ camera_name: '', video_file: undefined, tracking_mode: 'sot' })
-        } else {
-          toast.error('Something went wrong')
+        const res = await TrainImageClassificationModel(formData)
+        setIsLoading(false)
+        console.log(res)
+        if(res.data.status === "fail"){
+          toast.error(res.data.message)
+        }
+        else{
+          toast.success(res.data.message)
+          setDataName('')
+          setRunName('')
+          setArchName('')
+          setTrainingMode('')
+          setNumEpochs('10')
+          setBatchSize('32')
+          setLearningRate('0.01')
         }
       } catch (error) {
-        // toast.error('Something went wrong!');
+        toast.error('Something went wrong!');
       }
     }
   }
 
-  /**
-   * @author QmQ
-   * @function sends the tracker info
-   * @param {object} data - {hase the tracker info : width, height, postion}
-   */
-  const handleInitSubmit = async data => {
-    const sel_camera = configs.find(el => el._id == initEl)
-    const res = await initialize_offline_video({ initEl: sel_camera, trackerInfo: data })
-
-    try {
-      if (res.data?.status == 'success') {
-        // after receive the 'success' response, update the configuration file and print the log **QmQ
-        await updateConfig({ id: initEl, update: { status: 1, active: 1, video_path: res.data.data.vid_path } })
-
-        // await createLog({content: res.data.message})
-        toast.success(res.data.message)
-        setInitEl('')
-      } else {
-        toast.error('Something went wrong.')
-      }
-      handleInitModalClose()
-    } catch (error) {
-      toast.error('Something went wrong.')
-    }
-  }
 
   return (
     <Box className={CGroups.settings_layout}>
-      {/* video insertion **QmQ */}
       <SettingPanelLayout
         btnTitle={'Start'}
         btnAction={onInsertSubmitHandler}
@@ -261,75 +155,98 @@ const ModelTraining = () => {
         <Grid container spacing={6}>
           <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
-              <InputLabel id='select_model'> {'Select Model'} </InputLabel>
+              <InputLabel id='data_name'> {'Select Data Name'} </InputLabel>
               <Select
-                value={conValues.tracking_mode}
-                onChange={e =>
-                  setConValues({
-                    ...conValues,
-                    tracking_mode: e.target.value
-                  })
-                }
-                id='select_model'
-                labelId='select_model'
-                input={<OutlinedInput label='Select Model' id='Select Model' />}
+                value={data_name}
+                onChange={e => setDataName(e.target.value)}
+                id='data_name'
+                labelId='data_name'
+                input={<OutlinedInput label='Data Name' id='data_name' />}
               >
+                {dataset_list.map(item =>{
+                  return (<MenuItem value={item.data_name}> {item.data_name} </MenuItem>)
+                })}
                 <MenuItem value={'model1'}> {'model1'} </MenuItem>
                 <MenuItem value={'model2'}> {'model2'} </MenuItem>
               </Select>
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              type='text'
+              label='Run Name'
+              placeholder='Please input Run Name'
+              value={run_name}
+              onChange={e => setRunName(e.target.value)}
+            />
+          </Grid>
           <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
-              <InputLabel id='loss_function'> {'Loss Function'} </InputLabel>
+              <InputLabel id='arch_name'> {'Arch Name'} </InputLabel>
               <Select
-                value={conValues.tracking_mode}
-                onChange={e =>
-                  setConValues({
-                    ...conValues,
-                    tracking_mode: e.target.value
-                  })
-                }
-                id='loss_function'
-                labelId='loss_function'
-                input={<OutlinedInput label='Loss Function' id='Loss Function' />}
+                value={arch_name}
+                onChange={e => setArchName(e.target.value)}
+                id='arch_name'
+                labelId='arch_name'
+                input={<OutlinedInput label='Arch Name' id='Arch Name' />}
               >
-                <MenuItem value={'sot'}> {'function1'} </MenuItem>
-                <MenuItem value={'mot'}> {'function2'} </MenuItem>
+                {arch_name_list.map(item =>{
+                  return (<MenuItem value={item}> {item} </MenuItem>)
+                })}
               </Select>
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
+            <FormControl fullWidth>
+              <InputLabel id='training_mode'> {'Training Mode'} </InputLabel>
+              <Select
+                value={training_mode}
+                onChange={e => setTrainingMode(e.target.value)}
+                id='training_mode'
+                labelId='training_mode'
+                input={<OutlinedInput label='Training Mode' id='Training Mode' />}
+              >
+                {training_mode_list.map(item =>{
+                  return (<MenuItem value={item}> {item} </MenuItem>)
+                })}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+        <Grid container spacing={6} sx={{marginTop:'5px'}} >
           <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               type='text'
-              label='Optimizer'
-              placeholder='Please input optimizer'
-              value={conValues.camera_name}
-              onChange={e => {
-                setConValues({
-                  ...conValues,
-                  camera_name: e.target.value
-                })
-              }}
+              label='Num Epochs'
+              placeholder='Please input Num Epochs'
+              value={num_epochs}
+              onChange={e => setNumEpochs(e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               type='text'
-              label='Train val split'
-              placeholder='Please input train val split'
-              value={conValues.camera_name}
-              onChange={e => {
-                setConValues({
-                  ...conValues,
-                  camera_name: e.target.value
-                })
-              }}
+              label='Batch Size'
+              placeholder='Please input Batch Size'
+              value={batch_size}
+              onChange={e => setBatchSize(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              type='text'
+              label='Learning Rate'
+              placeholder='Please input Learning Rate'
+              value={learning_rate}
+              onChange={e => setLearningRate(e.target.value)}
             />
           </Grid>
         </Grid>
+
       </SettingPanelLayout>
 
       <CardBox>
