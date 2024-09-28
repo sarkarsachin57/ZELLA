@@ -508,7 +508,7 @@ def ImageClassificationTrainingPipeline(
         val_loader=val_loader, 
         num_classes=num_classes, 
         classnames=classnames,
-        device='cuda', 
+        device='cuda' if torch.cuda.is_available() else 'cpu', 
         num_epochs=num_epochs, 
         learning_rate=learning_rate
     )
