@@ -551,6 +551,24 @@ logger.info("Check 8")
 
 
 
+
+def normalized_entropy(dist):
+    # Calculate proportions for each class
+    total = np.sum(dist)
+    proportions = dist / total
+    
+    # Shannon entropy
+    entropy = -np.sum(proportions * np.log(proportions + 1e-9))  # small epsilon to avoid log(0)
+    
+    # Normalize by maximum possible entropy (log of number of classes)
+    num_classes = len(dist)
+    max_entropy = np.log(num_classes)
+    
+    # Normalized entropy (between 0 and 1)
+    return round((entropy / max_entropy) * 100) 
+
+
+
 def get_iou(box1, box2):
 
     box1 = [int(x) for x in box1]

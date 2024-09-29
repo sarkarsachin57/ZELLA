@@ -306,12 +306,16 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
 
     mongodb["training_history"].insert_one({"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id, "history" : history, "classification_report" : "Will available after training!"})
     
+    estimated_time = 0
+    average_epoch_time = 0
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}')
         history['epochs'].append(f'{epoch+1}/{num_epochs}')
         
+        epoch_start_time = time.time()
+        
         update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
-        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : f'Epoch {epoch+1}/{num_epochs}'}})
+        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : f'Epoch {epoch+1}/{num_epochs}, Estimated time : {estimated_time//60}:{estimated_time%60} min'}})
 
         print('-' * 10)
         
@@ -323,6 +327,9 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         
         # Iterate over data
         for inputs, labels in tqdm(train_loader, desc='Training'):
+            
+            iter_start_time = time.time()
+            
             inputs, labels = inputs.to(device), labels.to(device)
             
             # Zero the parameter gradients
@@ -409,6 +416,14 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             best_model_wts = model.state_dict().copy()  # Save the best model weights
+            
+        
+        epoch_end_time = time.time()
+        
+        epoch_total_time = epoch_end_time - epoch_start_time
+        average_epoch_time = (average_epoch_time + epoch_total_time) / 2
+        estimated_time = average_epoch_time * (num_epochs - epoch - 1)
+    
 
         
         update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}

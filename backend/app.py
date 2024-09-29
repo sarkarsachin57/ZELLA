@@ -903,6 +903,182 @@ def get_dataset_list():
 
 
 
+@app.route("/get-dataset-info", methods=['POST'])
+def get_dataset_info():
+    
+    logger.info(f"Get request for /get-dataset-info")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name = request.form['data_name']
+        show_samples = request.form['show_samples']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+            
+            split_name = request.form['split_name']
+            class_name = request.form['class_name']
+            page_number = request.form['page_number']
+            
+            logger.info(f'Params - split_name : {split_name}, class_name : {class_name}, page_number : {page_number}')
+            
+            frontend_inputs += f"\nsplit_name : {split_name}\nclass_name : {class_name}\npage_number : {page_number}"
+            
+            samples_per_page = 20
+            page_number = int(page_number)
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], split_name, class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], split_name, class_name))]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "number_of_samples" : number_of_samples,
+                    "sample_paths": sample_paths,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+                      
+                
+        if data_info["data_type"] == "Labeled":
+            
+            train_dir = os.path.join(data_info["data_extracted_path"], "train")
+            val_dir = os.path.join(data_info["data_extracted_path"], "val")
+
+            assert os.listdir(train_dir) == os.listdir(val_dir)
+            
+            class_list = os.listdir(train_dir) 
+            
+            train_total_samples = 0
+            train_sample_dist = {}
+            train_sample_paths = {}
+            for class_name in class_list:
+                train_sample_paths[class_name] = [os.path.join(train_dir, class_name, x) for x in os.listdir(os.path.join(train_dir, class_name))]
+                train_sample_dist[class_name] = len(train_sample_paths[class_name])
+                train_total_samples += train_sample_dist[class_name]
+                
+            val_total_samples = 0
+            val_sample_dist = {}
+            val_sample_paths = {}
+            for class_name in class_list:
+                val_sample_paths[class_name] = [os.path.join(val_dir, class_name, x) for x in os.listdir(os.path.join(val_dir, class_name))]
+                val_sample_dist[class_name] = len(val_sample_paths[class_name])
+                val_total_samples += val_sample_dist[class_name]
+
+            train_dist =  np.array(list(train_sample_dist.values()))
+            train_class_balance_score = normalized_entropy(train_dist)
+            
+            val_dist =  np.array(list(val_sample_dist.values()))
+            val_class_balance_score = normalized_entropy(val_dist)
+            
+            
+            fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
+                        color=list(train_sample_dist.values()))
+
+            fig.update_layout(template='plotly_dark',
+                                title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+                                yaxis_title=f'Number of Samples', 
+                                xaxis_title=f'Class Names')
+
+            fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            
+            train_dist_fig = fig.to_dict()
+            
+            
+            fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
+                        color=list(train_sample_dist.values()))
+
+            fig.update_layout(template='plotly_dark',
+                                title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+                                yaxis_title=f'Number of Samples', 
+                                xaxis_title=f'Class Names')
+
+            fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            
+            val_dist_fig = fig.to_dict()
+                                          
+            res = {
+                    "status": "success",
+                    "data_info": {
+                        "split_names" : ["train", "val"],
+                        "class_list" : class_list,
+                        "train_total_samples": train_total_samples,
+                        "train_class_balance_score": train_class_balance_score,
+                        "train_dist_fig" : train_dist_fig,
+                        "val_total_samples": val_total_samples,
+                        "val_class_balance_score": val_class_balance_score,
+                        "val_dist_fig" : val_dist_fig
+                    }
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        
+        if data_info["data_type"] == "Unlabeled":
+            
+            page_number = request.form['page_number']
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "sample_paths": sample_paths,
+                    "number_of_samples" : number_of_samples,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+            
+            
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
 
 @app.route("/train_image_classification_model", methods=['POST'])
 def train_image_classification_model():
