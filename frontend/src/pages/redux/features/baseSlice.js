@@ -4,7 +4,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 const initialState ={
     projectList: [],
     dataSetList: [],
-    latestProjectUrl: ""
+    latestProjectUrl: "",
+    run_logs_list: [],
+    history: undefined
 }
 
 export const baseSlice = createSlice({
@@ -25,7 +27,14 @@ export const baseSlice = createSlice({
         },
         updateLatestProjectUrl: (state, action) => {
             state.latestProjectUrl = action.payload;
-        }
+        },
+        setRunLosgList: (state, action) => {
+            state.run_logs_list = action.payload
+        },
+        setTrainingViewDetail: (state, action) => {
+            console.log('run_logs_list action: ', action.payload)
+            state.history = action.payload
+        },
     }
 });
 
@@ -35,7 +44,9 @@ export const {
     appendProjectItem,
     setDataSetList,
     appendDataSetItem,
-    updateLatestProjectUrl
+    updateLatestProjectUrl,
+    setRunLosgList,
+    setTrainingViewDetail
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

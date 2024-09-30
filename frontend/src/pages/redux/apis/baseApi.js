@@ -5,7 +5,9 @@ import {
   setDataSetList, 
   setProjectList, 
   appendDataSetItem, 
-  updateLatestProjectUrl 
+  updateLatestProjectUrl ,
+  setRunLosgList,
+  setTrainingViewDetail
 } from '../features/baseSlice';
 
 /**
@@ -101,14 +103,40 @@ export const baseApi = createApi({
             body: data
           }
         },
-        // transformResponse: result => result,
-        // async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        //   try {
-        //     const { data } = await queryFulfilled;
-        //     console.log(data.data)
-        //     dispatch(appendDataSetItem(data.data))
-        //   } catch (error) {}
-        // },
+      }),
+      getRunLogs: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-run-logs',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            console.log('run_history: ', data.run_history)
+            dispatch(setRunLosgList(data.run_history));
+          } catch (error) {}
+        },
+      }),
+      getTrainingViewDetail: builder.mutation({
+        query(data) {
+          return {
+            url: 'get_detailed_training_history',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            console.log('run_history: ', data.run_history)
+            dispatch(setTrainingViewDetail(data.run_history));
+          } catch (error) {}
+        },
       }),
     }),
 });
@@ -119,5 +147,7 @@ export const {
   useGetDataSetListMutation,
   useUploadDataMutation,
   useUpdateLatestUrlMutation,
-  useTrainImageClassificationModelMutation
+  useTrainImageClassificationModelMutation,
+  useGetRunLogsMutation,
+  useGetTrainingViewDetailMutation
 } = baseApi;

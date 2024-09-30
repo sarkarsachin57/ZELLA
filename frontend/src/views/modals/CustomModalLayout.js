@@ -95,7 +95,7 @@ export default function CustomModalUnstyled(props) {
                   </IconButton>
                 </Box>
                 {children}
-                <LoadingButton
+                {/* <LoadingButton
                     variant='contained'
                     className={CGroups.setting_button}
                     sx={{  
@@ -107,7 +107,7 @@ export default function CustomModalUnstyled(props) {
                     loading={isLoading}
                   >
                     {btnName}
-                  </LoadingButton>
+                  </LoadingButton> */}
                 {/* <Button autoFocus onClick={onHandleSubmit} sx={{backgroundColor: '#39B677', width: '80%', color: 'white'}}>
                     {btnName}
                 </Button> */}

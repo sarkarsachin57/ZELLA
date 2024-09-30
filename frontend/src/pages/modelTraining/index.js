@@ -31,17 +31,88 @@ import FileInput from 'src/views/commons/FileInput'
 import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
-import CustomTable from 'src/@core/components/table/CustomTable'
+import ModelTrainingTable from 'src/@core/components/table/model-training-table'
 
 // import BasicModal from 'src/views/modals/CustomModalLayout'
 import { connectSchema } from 'src/@core/schema'
 import {
   useTrainImageClassificationModelMutation,
+  useGetRunLogsMutation,
+  useGetTrainingViewDetailMutation
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
   const arch_name_list = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'vgg11', 'vgg13', 'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201','mobilenet_v2', 'mobilenet_v3_large', 'mobilenet_v3_small', 'efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3', 'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7','shufflenet_v2_x0_5', 'shufflenet_v2_x1_0','mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3', 'squeezenet1_0', 'squeezenet1_1', 'googlenet', 'alexnet']
   const training_mode_list = ['scratch', 'finetune', 'transfer']
+  const headCells = [
+    {
+      id: 'no',
+      numeric: false,
+      disablePadding: true,
+      label: 'No'
+    },
+    {
+      id: 'data_name',
+      numeric: true,
+      disablePadding: false,
+      label: 'Data Name'
+    },
+    {
+        id: 'run_name',
+        numeric: true,
+        disablePadding: false,
+        label: 'Run Name'
+    },
+    {
+      id: 'arch_name',
+      numeric: true,
+      disablePadding: false,
+      label: 'Arch Name'
+    },
+    {
+        id: 'training_mode',
+        numeric: true,
+        disablePadding: false,
+        label: 'Training Mode'
+      },
+    {
+      id: 'num_epochs',
+      numeric: true,
+      disablePadding: false,
+      label: 'Num epochs'
+    },
+    {
+      id: 'batch_size',
+      numeric: true,
+      disablePadding: false,
+      label: 'Batch Size'
+    },
+    {
+      id: 'learning_rate',
+      numeric: true,
+      disablePadding: false,
+      label: 'Learning Rate'
+    },
+    {
+      id: 'start_time',
+      numeric: true,
+      disablePadding: false,
+      label: 'Training Start Time',
+      minWidth: 170
+    },
+    {
+      id: 'training_status',
+      numeric: true,
+      disablePadding: false,
+      label: 'Training Status'
+    },
+    {
+      id: 'detail',
+      numeric: true,
+      disablePadding: false,
+      label: 'Detail'
+    },
+  ]
   // ============ Define the states <start> ============= **QmQ
   const user = useSelector(state => {
     return state.userState.user
@@ -52,6 +123,12 @@ const ModelTraining = () => {
   const latest_project_url = useSelector((state) => {
     return state.baseState.latestProjectUrl
   })
+  console.log("latest_project_url: ", latest_project_url)
+
+  const run_logs_list = useSelector((state) => {
+    return state.baseState.run_logs_list
+  })
+  console.log('run_logs_list: ', run_logs_list)
 
   const [email, setEmail] = useState(user.email)
   const [project_name, setsetProjectList] = useState(project_list.find(obj => obj._id === latest_project_url).project_name)
@@ -64,17 +141,32 @@ const ModelTraining = () => {
   const [learning_rate, setLearningRate] = useState('0.01')
   const [dataset_list, setDatasetList] = useState(useSelector(state => state.baseState.dataSetList))
   const [isLoading, setIsLoading] = useState(false)
+  const [isTrainModalOpen, setTrainModalSwitch] = useState(false)
+  const [training_detail_infor, setTrainingDetailInfor] = useState(undefined)
+
+
 
   const [ TrainImageClassificationModel ] = useTrainImageClassificationModelMutation()
+  const [ getRunLogs ] = useGetRunLogsMutation()
+  const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
 
 
+  useEffect(() => {
+    const onGetRunLogs = async () => {
+      if (user && user?.email) {
+        const formData = new FormData()
+        formData.append('email', user.email)
+        formData.append('project_name', project_name)
+        try {
+          await getRunLogs(formData)
+        } catch (error) {
+          toast.error('Something went wrong!');
+        }
+      }
+    }
 
-
-
-  const configs = useSelector(state => {
-    return state.configState.configs.filter(conn => conn.mode == 'offline')
-  })
-
+    onGetRunLogs()
+  }, []);
 
   // Check the connection validation ** QmQ
   const validate = () => {
@@ -99,6 +191,14 @@ const ModelTraining = () => {
       return false
     }
     return true
+  }
+
+  const handleTrainDetailModalOpen = () => {
+    setTrainModalSwitch(true);
+  }
+
+  const handleTrainDetailModalClose = () => {
+    setTrainModalSwitch(false);
   }
 
 
@@ -137,6 +237,28 @@ const ModelTraining = () => {
       } catch (error) {
         toast.error('Something went wrong!');
       }
+    }
+  }
+  const viewDetailHandler = async (data) => {
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('project_name', project_name)
+    formData.append('run_name', data)
+
+    try {
+      const res = await getTrainingViewDetail(formData)
+      console.log(res)
+      setTrainingDetailInfor(res.data)
+      console.log('training_detail_infor: ', training_detail_infor)
+
+      if(res.data.status === "fail"){
+        toast.error(res.data.message)
+      }
+      handleTrainDetailModalOpen()
+      
+    } catch (error) {
+      toast.error('Something went wrong!');
     }
   }
 
@@ -248,9 +370,18 @@ const ModelTraining = () => {
       </SettingPanelLayout>
 
       <CardBox>
-        {/* <CustomTable /> */}
+        <ModelTrainingTable
+          headCells = {headCells}
+          rows = {run_logs_list}
+          viewDetailHandler = {viewDetailHandler}
+        />
       </CardBox>
-
+      <InitializeVideoModal
+        width={1200}
+        isOpen={isTrainModalOpen}
+        onHandleModalClose = {handleTrainDetailModalClose}
+        data = {training_detail_infor}
+      />
 
     </Box>
   )
