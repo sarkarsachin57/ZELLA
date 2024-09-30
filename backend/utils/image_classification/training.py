@@ -277,7 +277,60 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
     """
     import torch.optim as optim
     from sklearn.metrics import classification_report
+    from sklearn.metrics import confusion_matrix
 
+    def classification_report_df(y_true, y_pred, class_names):
+        # Get confusion matrix
+        cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
+        
+        # Initialize data storage for each class
+        report_data = []
+        
+        # Loop through each class and calculate TP, FP, FN, precision, recall, and accuracy
+        for idx, class_name in enumerate(class_names):
+            TP = cm[idx, idx]  # True Positives
+            FP = cm[:, idx].sum() - TP  # False Positives
+            FN = cm[idx, :].sum() - TP  # False Negatives
+            TN = cm.sum() - (TP + FP + FN)  # True Negatives
+            n_samples = TP + FN  # Number of actual samples for this class
+            
+            # Calculate precision, recall, and accuracy
+            precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+            recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+            accuracy = TP / n_samples if n_samples > 0 else 0
+            
+            # Append to report data
+            report_data.append({
+                'class_name': class_name,
+                'n_sample': n_samples,
+                'TP': TP,
+                'FP': FP,
+                'FN': FN,
+                'Precision': precision,
+                'Recall': recall,
+                'Accuracy': accuracy
+            })
+        
+        # Create a DataFrame from the report data
+        df = pd.DataFrame(report_data).round(2)
+        
+        # Calculate the weighted average (overall) accuracy
+        overall_accuracy = round((df['TP'].sum() / df['n_sample'].sum()), 2)
+        
+        # Calculate class average for precision, recall, accuracy
+        class_avg_precision = round(df['Precision'].mean(), 2)
+        class_avg_recall = round(df['Recall'].mean(), 2)
+        class_avg_accuracy = round(df['Accuracy'].mean(), 2)
+
+
+        total_samples = df["n_sample"].sum()
+        avg_samples = round(df["n_sample"].mean(), 2)
+        
+        # Add Class Average and Overall rows
+        df.loc[len(df)] = ['Class Average', avg_samples, 'NA', 'NA', 'NA', class_avg_precision, class_avg_recall, class_avg_accuracy]
+        df.loc[len(df)] = ['Overall', total_samples, 'NA', 'NA', 'NA', 'NA', 'NA', overall_accuracy]
+        
+        return df
 
     # Move the model to the specified device
     model = model.to(device)
@@ -315,7 +368,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         epoch_start_time = time.time()
         
         update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
-        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : f'Epoch {epoch+1}/{num_epochs}, Estimated time : {estimated_time//60}:{estimated_time%60} min'}})
+        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : f'Epoch {epoch+1}/{num_epochs}, Estimated time : {int(estimated_time//60)}:{int(estimated_time%60)} min'}})
 
         print('-' * 10)
         
@@ -455,12 +508,17 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
             all_labels.extend(labels.cpu().numpy())
     
     # Generate the classification report using sklearn
-    class_report = classification_report(all_labels, all_preds, target_names=classnames, zero_division=0)
-    
+    # class_report = classification_report(all_labels, all_preds, target_names=classnames, zero_division=0)
+    class_report = classification_report_df(all_labels, all_preds, classnames)
+
     print('Classification Report:\n', class_report)
     
+    classification_report = {}
+    for col in class_report.columns:
+        classification_report[col] = class_report[col].tolist()
+    
     update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
-    mongodb['training_history'].update_many(update_query, {'$set' : {"history" : history, "classification_report" : class_report}})
+    mongodb['training_history'].update_many(update_query, {'$set' : {"history" : history, "classification_report" : classification_report}})
 
     
     return model, history, class_report
