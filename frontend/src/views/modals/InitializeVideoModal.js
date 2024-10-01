@@ -11,6 +11,7 @@ import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import DescriptionIcon from '@mui/icons-material/Description';
 
 import HistoryTable from 'src/@core/components/table/history-table'
+import ClassificationTable from 'src/@core/components/table/classification-table'
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 
 export default function InitializeModal (props) {
@@ -71,18 +72,9 @@ export default function InitializeModal (props) {
           position: 'relative',
         }}>
           <Box sx={{textAlign: 'center'}}>
-            {
-              data === undefined ? '': (data.classification_report === 'Will available after training!'?
-              (<Typography sx={{color: 'white'}}>{data.classification_report }</Typography>)
-              :(
-                // console.log(data.classification_report.split("/n"))
-                data.classification_report.split("\n").map((item, index)=>{
-                  console.log(item)
-                  return <Typography sx={{color: 'white'}}>{item}</Typography>
-                })
-              ))
-            }
-            
+            <ClassificationTable 
+              data =  {data === undefined ? [] : data.classification_report}
+            />
           </Box>
         </CardContent>
       </DialogContent>
