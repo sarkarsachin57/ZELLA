@@ -162,27 +162,10 @@ export default function ClassificationTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'Accuracy'} scope='row' style={{ minWidth: 120 }}>
-                    Accuracy
+                  <TableCell component='th' id={'TP'} scope='row' style={{ minWidth: 120 }}>
+                  TP
                   </TableCell>
-
-                  {data.Accuracy?.map((item, index) => (
-                    <TableCell component='th' key={index} scope='row' align={'center'} >
-                      {item}
-                    </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}  {/* Fallback if train_loss is null/undefined */}
-                </TableRow>
-                <TableRow
-                  hover
-                  role='checkbox'
-                  tabIndex={-1}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell component='th' id={'FN'} scope='row' style={{ minWidth: 120 }}>
-                    FN
-                  </TableCell>
-
-                  {data.FN?.map((item, index) => (
+                  {data.TP?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row' align={'center'} >
                       {item}
                     </TableCell>
@@ -197,8 +180,22 @@ export default function ClassificationTable(props) {
                   <TableCell component='th' id={'FP'} scope='row' style={{ minWidth: 120 }}>
                     FP
                   </TableCell>
-
                   {data.FP?.map((item, index) => (
+                    <TableCell component='th' key={index} scope='row' align={'center'} >
+                      {item}
+                    </TableCell>
+                  )) || <TableCell>No Data Available</TableCell>}  {/* Fallback if train_loss is null/undefined */}
+                </TableRow>
+                <TableRow
+                  hover
+                  role='checkbox'
+                  tabIndex={-1}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell component='th' id={'FN'} scope='row' style={{ minWidth: 120 }}>
+                    FN
+                  </TableCell>
+                  {data.FN?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row' align={'center'} >
                       {item}
                     </TableCell>
@@ -242,11 +239,11 @@ export default function ClassificationTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'TP'} scope='row' style={{ minWidth: 120 }}>
-                  TP
+                  <TableCell component='th' id={'Accuracy'} scope='row' style={{ minWidth: 120 }}>
+                    Accuracy
                   </TableCell>
 
-                  {data.TP?.map((item, index) => (
+                  {data.Accuracy?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row' align={'center'} >
                       {item}
                     </TableCell>
