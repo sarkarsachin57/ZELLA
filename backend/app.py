@@ -996,30 +996,30 @@ def get_dataset_info():
             val_class_balance_score = normalized_entropy(val_dist)
             
             
-            fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
-                        color=list(train_sample_dist.values()))
+            # fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
+            #             color=list(train_sample_dist.values()))
 
-            fig.update_layout(template='plotly_dark',
-                                title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-                                yaxis_title=f'Number of Samples', 
-                                xaxis_title=f'Class Names')
+            # fig.update_layout(template='plotly_dark',
+            #                     title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+            #                     yaxis_title=f'Number of Samples', 
+            #                     xaxis_title=f'Class Names')
 
-            fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
             
-            train_dist_fig = fig.to_dict()
+            # train_dist_fig = fig.to_dict()
             
             
-            fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
-                        color=list(train_sample_dist.values()))
+            # fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
+            #             color=list(train_sample_dist.values()))
 
-            fig.update_layout(template='plotly_dark',
-                                title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-                                yaxis_title=f'Number of Samples', 
-                                xaxis_title=f'Class Names')
+            # fig.update_layout(template='plotly_dark',
+            #                     title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+            #                     yaxis_title=f'Number of Samples', 
+            #                     xaxis_title=f'Class Names')
 
-            fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
             
-            val_dist_fig = fig.to_dict()
+            # val_dist_fig = fig.to_dict()
                                           
             res = {
                     "status": "success",
@@ -1028,10 +1028,22 @@ def get_dataset_info():
                         "class_list" : class_list,
                         "train_total_samples": train_total_samples,
                         "train_class_balance_score": train_class_balance_score,
-                        "train_dist_fig" : train_dist_fig,
+                        "train_dist_fig" : {
+                                "x": list(train_sample_dist.keys()),
+                                "y": list(train_sample_dist.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Samples",
+                                "title": "Training Data Class Distribution",
+                            },
                         "val_total_samples": val_total_samples,
                         "val_class_balance_score": val_class_balance_score,
-                        "val_dist_fig" : val_dist_fig
+                        "val_dist_fig" : {
+                                "x": list(val_sample_dist.keys()),
+                                "y": list(val_sample_dist.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Samples",
+                                "title": "Validation Data Class Distribution",
+                            }
                     }
                 }
 
@@ -1173,6 +1185,111 @@ def train_image_classification_model():
         return json.dumps(res, separators=(',', ':'), default=str)
 
 
+
+
+
+
+@app.route("/train_object_detection_model", methods=['POST'])
+def train_object_detection_model():
+    
+    logger.info(f"Get request for /train_object_detection_model")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        train_data_name =  request.form['train_data_name']
+        val_data_name =  request.form['val_data_name']
+        run_name = request.form['run_name']
+        model_family = request.form['model_family']
+        model_name = request.form['model_name']
+        training_mode = request.form['training_mode']
+        num_epochs = request.form['num_epochs']
+        batch_size = request.form['batch_size']
+        learning_rate = request.form['learning_rate']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        
+        num_epochs = int(num_epochs)
+        batch_size = int(batch_size)
+        learning_rate = float(learning_rate)
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+
+
+        run_record = mongodb["run_records"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
+        if run_record is not None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Run Name exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+        project_type = project_info['project_type']
+        
+        train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
+        train_data_path = train_data_meta['data_extracted_path']
+        
+        val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
+        val_data_path = val_data_meta['data_extracted_path']
+
+
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        # if project_type == "Image Classification":
+        #     Thread(target=ImageClassificationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+        # elif project_type == "Object Detection":
+        #     Thread(target=ObjectDetectionTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+
+        
+        training_start_time = datetime.now()
+        training_start_time_str = training_start_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+
+        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
+                                        "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                         "learning_rate" : learning_rate, "training_status" : "training"})
+
+            
+        res = {
+                "status": "success",
+                "message": "Training started successfully!"                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 

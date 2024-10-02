@@ -4,3 +4,5 @@ backend/workdir/*
 backend/.ipynb_checkpoints/*
 backend/vevn/*
 backend/virtual/*
+backend/runs/*
+*/__pycache__/*

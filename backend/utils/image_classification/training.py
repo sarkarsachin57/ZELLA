@@ -99,6 +99,16 @@ def get_model(arch_name, num_classes, pretrained=True, train_mode='finetune'):
         model = model_dict[arch_name](weights=model_weights_dict[arch_name])
     else:
         model = model_dict[arch_name](weights=None)
+        
+    
+    # If training mode is 'transfer', freeze all layers except the final layer
+    if train_mode == 'transfer':
+        for param in model.parameters():
+            param.requires_grad = False
+        if hasattr(model, 'fc'):
+            model.fc.requires_grad = True
+        elif hasattr(model, 'classifier'):
+            model.classifier[-1].requires_grad = True
 
     if num_classes <= 2:
         num_classes = 1
@@ -126,14 +136,6 @@ def get_model(arch_name, num_classes, pretrained=True, train_mode='finetune'):
         in_features = model.classifier[-1].in_features
         model.classifier[-1] = nn.Linear(in_features, num_classes)
 
-    # If training mode is 'transfer', freeze all layers except the final layer
-    if train_mode == 'transfer':
-        for param in model.parameters():
-            param.requires_grad = False
-        if hasattr(model, 'fc'):
-            model.fc.requires_grad = True
-        elif hasattr(model, 'classifier'):
-            model.classifier[-1].requires_grad = True
 
     return model
 
@@ -398,7 +400,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
             loss = criterion(outputs, labels)
             
             # Backward pass and optimize
-            loss.requires_grad = True
+            # loss.requires_grad = True
             loss.backward()
             optimizer.step()
             
@@ -415,6 +417,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
                 correct_preds += (preds == labels).sum().item()
                 
             total_samples += labels.size(0)
+            
         
         epoch_loss = running_loss / total_samples
         epoch_acc = correct_preds / total_samples
@@ -554,7 +557,7 @@ def ImageClassificationTrainingPipeline(
 
     if training_mode == "scratch":
         model = get_model(arch_name=arch_name, num_classes=num_classes, 
-                        pretrained=False, train_mode='transfer')
+                        pretrained=False, train_mode='scratch')
     elif training_mode == "finetune":
         model = get_model(arch_name=arch_name, num_classes=num_classes, 
                         pretrained=True, train_mode='finetune')
