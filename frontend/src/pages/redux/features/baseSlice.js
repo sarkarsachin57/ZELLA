@@ -6,7 +6,9 @@ const initialState ={
     dataSetList: [],
     latestProjectUrl: "",
     run_logs_list: [],
-    history: undefined
+    history: undefined,
+    datasetInfo: {},
+    sample_paths: []
 }
 
 export const baseSlice = createSlice({
@@ -32,8 +34,13 @@ export const baseSlice = createSlice({
             state.run_logs_list = action.payload
         },
         setTrainingViewDetail: (state, action) => {
-            console.log('run_logs_list action: ', action.payload)
             state.history = action.payload
+        },
+        setDatasetInfo: (state, action) => {
+            state.datasetInfo = action.payload
+        },
+        setViewSample: (state, action) => {
+            state.sample_paths = action.payload
         },
     }
 });
@@ -46,7 +53,9 @@ export const {
     appendDataSetItem,
     updateLatestProjectUrl,
     setRunLosgList,
-    setTrainingViewDetail
+    setTrainingViewDetail,
+    setDatasetInfo,
+    setViewSample
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

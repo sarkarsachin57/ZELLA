@@ -178,8 +178,9 @@ export default function DatasetTable(props) {
                         <TableCell align='center'>{row.data_type}</TableCell>
                         <TableCell align='center'>{row.data_creation_time_str}</TableCell>
                         <TableCell align='center'>
-                          {/* <CustomLink href={`/data-upload/${row._id}`} >Go to upload</CustomLink> */}
+                          <Link href={`/dataset-detail/${row._id}`}>
                             <CustomSpan>View Detail</CustomSpan>
+                            </Link>
                         </TableCell>
                       </TableRow>
                     )

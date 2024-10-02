@@ -7,7 +7,9 @@ import {
   appendDataSetItem, 
   updateLatestProjectUrl ,
   setRunLosgList,
-  setTrainingViewDetail
+  setTrainingViewDetail,
+  setDatasetInfo,
+  setViewSample
 } from '../features/baseSlice';
 
 /**
@@ -133,8 +135,41 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log('run_history: ', data.run_history)
             dispatch(setTrainingViewDetail(data.run_history));
+          } catch (error) {}
+        },
+      }),
+      getDataSetInfo: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            console.log('data_info: ', data.data_info)
+            dispatch(setDatasetInfo(data.data_info));
+          } catch (error) {}
+        },
+      }),
+      getViewSample: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            console.log('sample_paths: ', data.sample_paths)
+            dispatch(setViewSample(data.sample_paths));
           } catch (error) {}
         },
       }),
@@ -149,5 +184,7 @@ export const {
   useUpdateLatestUrlMutation,
   useTrainImageClassificationModelMutation,
   useGetRunLogsMutation,
-  useGetTrainingViewDetailMutation
+  useGetTrainingViewDetailMutation,
+  useGetDataSetInfoMutation,
+  useGetViewSampleMutation
 } = baseApi;
