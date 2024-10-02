@@ -273,7 +273,7 @@ export default function Page({params}) {
                 headCells = {headCells}
                 rows = {dataSetList}
             />
-        </CardBox>
+          </CardBox>
         </Box>
       )
 }

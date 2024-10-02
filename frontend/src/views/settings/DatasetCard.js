@@ -19,30 +19,22 @@ const CardImage = styled('img')(({ theme }) => ({
   objectPosition: 'center'
 }))
 
-const DatasetCard = props => {
-  const { children } = props
+export default function DatasetCard (props) {
+const baseUrl = `${process.env.REACT_APP_SERVER_ENDPOINT}/`;
+const { url } = props
+console.log('url: ', url)
 
   return (
     <Card className={CGroups.setting_panel}>
       <Box>
-        <CardContent sx={{ padding: '0px' }}>
+        {/* <CardContent sx={{ padding: '0px' }}> */}
           <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid item xs={12} sm={12} sx={{ height: '80%' }}>
-              <CardImage src='/images/avatars/1.png' alt='pic' />
+            <Grid item xs={12} sm={12} sx={{ height: '100%' }}>
+              <CardImage src = {baseUrl + url} alt='pic' />
             </Grid>
           </Grid>
-          <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ padding: '0 8px' }}>class name</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ padding: '0 8px' }}>file name</Typography>
-            </Grid>
-          </Grid>
-        </CardContent>
+        {/* </CardContent> */}
       </Box>
     </Card>
   )
 }
-
-export default DatasetCard
