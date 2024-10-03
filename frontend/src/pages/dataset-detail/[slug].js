@@ -126,20 +126,33 @@ export default function Page({params}) {
                 </Grid>
             </CardBox>
             <CardBox>
-                <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                    Train Dist
+                <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px'  }}>
+                    {dataset_info === undefined ? null : dataset_info.train_dist_fig.title}
                 </Typography>
-                <CustomChart
-                    chartData = {dataset_info === undefined ? null : dataset_info.train_dist_fig.data}
-                />
+                {
+                    dataset_info === undefined ?
+                        <Typography variant="button" gutterBottom sx={{ display: 'block',}}>
+                             No Data
+                        </Typography>
+                        :<CustomChart
+                            chartData = {dataset_info === undefined ? null : dataset_info.train_dist_fig}
+                        />
+                }
             </CardBox>
             <CardBox>
-                <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                    Val Dist
+                <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px' }}>
+                    {dataset_info === undefined ? null : dataset_info.val_dist_fig.title}
                 </Typography>
-                <CustomChart
-                    chartData = {dataset_info === undefined ? null : dataset_info.train_dist_fig.data}
-                />
+                {
+                    dataset_info === undefined ?
+                        <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
+                             No Data
+                        </Typography>
+                        :<CustomChart
+                            chartData = {dataset_info === undefined ? null : dataset_info.val_dist_fig}
+                        />
+                }
+                
             </CardBox>
             <ViewSampleModal
                 width={1200}

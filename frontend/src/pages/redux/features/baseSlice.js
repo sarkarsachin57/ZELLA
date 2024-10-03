@@ -17,6 +17,7 @@ export const baseSlice = createSlice({
     reducers: {
         setProjectList: (state, action) => {
             state.projectList = action.payload
+            console.log('state: projectList: ',state.projectList)
         },
         appendProjectItem: (state, action) => {
             state.projectList = [...state.projectList, action.payload]

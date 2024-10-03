@@ -33,6 +33,7 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
+            console.log('projectList: api===>', data)
             dispatch(setProjectList(data.project_list));
           } catch (error) {}
         },
@@ -65,7 +66,6 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log('datasetList: ', data.dataset_list)
             dispatch(setDataSetList(data.dataset_list));
           } catch (error) {}
         },
@@ -82,7 +82,6 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log(data.data)
             dispatch(appendDataSetItem(data.data))
           } catch (error) {}
         },
@@ -90,7 +89,6 @@ export const baseApi = createApi({
       updateLatestUrl: builder.mutation({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
-            console.log("args: ", args);
             dispatch(updateLatestProjectUrl(args))
           } catch(error) {
             throw new error;
@@ -118,7 +116,6 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log('run_history: ', data.run_history)
             dispatch(setRunLosgList(data.run_history));
           } catch (error) {}
         },
@@ -151,7 +148,6 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log('data_info: ', data.data_info)
             dispatch(setDatasetInfo(data.data_info));
           } catch (error) {}
         },
@@ -168,7 +164,6 @@ export const baseApi = createApi({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
             const { data } = await queryFulfilled;
-            console.log('sample_paths: ', data.sample_paths)
             dispatch(setViewSample(data.sample_paths));
           } catch (error) {}
         },

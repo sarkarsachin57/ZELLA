@@ -1,25 +1,21 @@
 import * as React from 'react';
+import { useEffect, useState } from 'react'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts/ChartsAxis';
 
 export default function CustomChart(props) {
-
-
-  
+    
     const { chartData } = props
-    console.log('chartData: ', chartData)
-    const x = "['plane', 'dog', 'cat', 'frog', 'horse', 'car', 'truck', 'bird', 'deer', 'ship']"
-    const y = "[5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]"
-    const jsonStringX = x.replace(/'/g, '"')
-    const JsonX = JSON.parse(jsonStringX)
-    const JsonY = JSON.parse(y)
+    console.log('chartData: ', chartData.x)
+    const [dataX, setDataX] = useState(chartData.x)
+    const [dataY, setDataY] = useState(chartData.y)
 
     const dataset = []
 
     const chartSetting = {
         yAxis: [
         {
-            label: chartData === null? 'No data' :chartData[0].hovertemplate,
+            label: chartData === null? 'No data' : chartData.ytitle,
         },
         ],
         series: [{ dataKey: 'y' }],
@@ -30,16 +26,29 @@ export default function CustomChart(props) {
         },
         },
     };
-    for (let index = 0; index < JsonY.length; index++) {
-        dataset.push({x:JsonX[index], y:JsonY[index]});
+    for (let index = 0; index < dataX.length; index++) {
+        dataset.push({x:dataX[index], y:dataY[index]});
     }
     console.log(dataset)
     
     return (
         <BarChart
+            margin={{
+                top: 30,
+                bottom: 30,
+                left: 70
+            }}
+            borderRadius={10}
             dataset={dataset}
             xAxis={[
-            { scaleType: 'band', dataKey: 'x' },
+            { 
+                scaleType: 'band', 
+                dataKey: 'x', 
+                colorMap: {
+                    type: 'ordinal',
+                    colors: ['#2b8cbe',]
+                }
+            },
             ]}
             {...chartSetting}
       />

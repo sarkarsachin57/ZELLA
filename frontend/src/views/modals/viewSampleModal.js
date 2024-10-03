@@ -102,6 +102,7 @@ export default function ViewSampleModal (props) {
           display: 'flex',
           justifyContent: 'center',
           position: 'relative',
+          flexDirection:'column'
         }}>
           <Grid container spacing={6} sx={{marginBottom:'15px'}}>
             <Grid item xs={12} sm={4}>
@@ -158,32 +159,37 @@ export default function ViewSampleModal (props) {
               </LoadingButton>
             </Grid>
           </Grid>
-        </CardContent>
-        <Grid container spacing={6}>
-          <Grid item xs={12} sm={8}>
+          <Grid container spacing={6}>
+            <Grid item xs={12} sm={12}
+              sx = {{
+                // margin: '6px',
+                textAlign:'center',
+                display: 'flex',
+                justifyContent: 'right',
+                position: 'relative',
+              }}
+            >
+              {
+                total_img_num?
+                <Pagination count={Number(total_img_num)/20} page={page_num} color="primary" onChange={handleChange}/>
+                : null
+              }
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid container spacing={6}>
             {
-              total_img_num?
-              <Pagination count={Number(total_img_num)/20} page={page_num} color="primary" onChange={handleChange}/>
-              : null
+              
+              sample_image_rul.length ?
+              sample_image_rul.map((item, index) => {
+                console.log(item)
+                return (<Grid item xs={12} sm={1.5}>
+                          <DatasetCard url = {item} />
+                        </Grid>)
+              })
+              :null
             }
           </Grid>
-        </Grid>
-        <Grid container spacing={6}>
-          {
-            
-            sample_image_rul.length ?
-            sample_image_rul.map((item, index) => {
-              console.log(item)
-              return (<Grid item xs={12} sm={1.5}>
-                        <DatasetCard url = {item} />
-                      </Grid>)
-            })
-            :null
-          }
-        </Grid>
-       
+        </CardContent>
       </DialogContent>
     </CustomModalLayout>
   )

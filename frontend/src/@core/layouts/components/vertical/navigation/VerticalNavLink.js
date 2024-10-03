@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 // ** Next Imports
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -52,12 +53,15 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
   // ** Hooks
   const router = useRouter()
   const IconTag = item.icon
-
+  const latestProjectUrl = useSelector(state => state.baseState.latestProjectUrl)
+  const [latest_pro_url , setLatestProjectUrl] = useState('')
+  console.log(latestProjectUrl)
+  useEffect(() => {
+    setLatestProjectUrl(latestProjectUrl)
+  },[latestProjectUrl])
   const isNavLinkActive = () => {
-    // const latestProjectUrl = useSelector(state => state.baseState.latestProjectUrl)
     // const [latestProjectUrl, setLatestProjectUrl] = useState(useSelector(state => state.baseState.latestProjectUrl))
 
-    // console.log(latestProjectUrl)
     if (router.pathname === item.path || handleURLQueries(router, item.path)) {
       return true
     } else {
@@ -77,8 +81,8 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
         py: '10px'
       }}
     >
-      {/* <Link passHref href={item.path === undefined ? '/' : (`${item.path==='data-upload/'?(item.path+latestProjectUrl?latestProjectUrl:''):item.path}`)}> */}
-      <Link passHref href={item.path === undefined ? '/' : `${item.path}`}>
+      <Link passHref href={item.path === undefined ? '/' : (`${item.path==='data-upload/'?(`/${item.path+(latest_pro_url === ''?'':latest_pro_url)}`):item.path}`)}>
+      {/* <Link passHref href={item.path === undefined ? '/' : `${item.path}`}> */}
         <MenuNavLink
           component={'a'}
           className={isNavLinkActive() ? 'active' : ''}

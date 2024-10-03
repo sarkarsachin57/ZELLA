@@ -27,8 +27,6 @@ const AuthMiddleware = ({ children }) => {
   const [getProjectList] = useGetProjectListMutation()
 
   const { isLoading, isFetching, isSuccess, isError } = userApi.endpoints.getMe.useQuery({
-    // skip: !cookies.authToken,
-    // refetchOnMountOrArgChange: true
   })
 
   const data = userApi.endpoints.getMe.useQueryState(null, {
@@ -37,16 +35,16 @@ const AuthMiddleware = ({ children }) => {
 
   useEffect(() => {
     const onGetProjectList = async () => {
-      if (user && user?.email) {
+      // if (token) {
         const formData = new FormData()
-        formData.append('email', user.email)
+        formData.append('email', localStorage.getItem('email'))
         try {
-          console.log("formdata")
-          await getProjectList(formData)
+          const data = await getProjectList(formData)
+          console.log("data=====>", data)
         } catch (error) {
           toast.error('Something went wrong!');
         }
-      }
+      // }
     }
 
     onGetProjectList()
