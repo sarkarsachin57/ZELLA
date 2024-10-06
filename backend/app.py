@@ -1092,7 +1092,7 @@ def get_dataset_list():
 @app.route("/get-image-classification-dataset-info", methods=['POST'])
 def get_image_classification_dataset_info():
     
-    logger.info(f"Get request for get-image-classofication-dataset-info")
+    logger.info(f"Get request for get-image-classification-dataset-info")
     
     try:
         
