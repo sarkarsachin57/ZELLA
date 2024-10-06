@@ -31,7 +31,7 @@ sys.path.append(".")
 sys.path.append("utils")
 
 from utils.image_classification.training import *
-ImageClassificationTrainingPipeline
+from utils.object_detection.training import *
 
 # Thread(target=AutoPurge, args=(6, 2*24)).start()
 
@@ -903,6 +903,192 @@ def get_dataset_list():
 
 
 
+# @app.route("/get-dataset-info", methods=['POST'])
+# def get_dataset_info():
+    
+#     logger.info(f"Get request for /get-dataset-info")
+    
+#     try:
+        
+#         email = request.form['email']
+#         project_name = request.form['project_name']
+#         data_name = request.form['data_name']
+#         show_samples = request.form['show_samples']
+
+#         logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
+            
+#         frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
+        
+#         user_data = mongodb['users'].find_one({'email' : email})
+
+#         if user_data is None:
+                
+#             res = {
+#                     "status": "fail",
+#                     "message": f"Email does not exists!"
+#                 }
+
+#             logger.info(json.dumps(res, indent=4,  default=str))
+#             return json.dumps(res, separators=(',', ':'), default=str)
+
+#         user_id = user_data["_id"]
+        
+        
+#         data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+#         if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+            
+#             split_name = request.form['split_name']
+#             class_name = request.form['class_name']
+#             page_number = request.form['page_number']
+            
+#             logger.info(f'Params - split_name : {split_name}, class_name : {class_name}, page_number : {page_number}')
+            
+#             frontend_inputs += f"\nsplit_name : {split_name}\nclass_name : {class_name}\npage_number : {page_number}"
+            
+#             samples_per_page = 20
+#             page_number = int(page_number)
+            
+#             sample_paths = [os.path.join(data_info["data_extracted_path"], split_name, class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], split_name, class_name))]
+#             number_of_samples = len(sample_paths)
+#             sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+#             res = {
+#                     "status": "success",
+#                     "number_of_samples" : number_of_samples,
+#                     "sample_paths": sample_paths,
+#                     "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+#                 }
+
+#             logger.info(json.dumps(res, indent=4,  default=str))
+#             return json.dumps(res, separators=(',', ':'), default=str)
+                      
+                
+#         if data_info["data_type"] == "Labeled":
+            
+#             train_dir = os.path.join(data_info["data_extracted_path"], "train")
+#             val_dir = os.path.join(data_info["data_extracted_path"], "val")
+
+#             assert os.listdir(train_dir) == os.listdir(val_dir)
+            
+#             class_list = os.listdir(train_dir) 
+            
+#             train_total_samples = 0
+#             train_sample_dist = {}
+#             train_sample_paths = {}
+#             for class_name in class_list:
+#                 train_sample_paths[class_name] = [os.path.join(train_dir, class_name, x) for x in os.listdir(os.path.join(train_dir, class_name))]
+#                 train_sample_dist[class_name] = len(train_sample_paths[class_name])
+#                 train_total_samples += train_sample_dist[class_name]
+                
+#             val_total_samples = 0
+#             val_sample_dist = {}
+#             val_sample_paths = {}
+#             for class_name in class_list:
+#                 val_sample_paths[class_name] = [os.path.join(val_dir, class_name, x) for x in os.listdir(os.path.join(val_dir, class_name))]
+#                 val_sample_dist[class_name] = len(val_sample_paths[class_name])
+#                 val_total_samples += val_sample_dist[class_name]
+
+#             train_dist =  np.array(list(train_sample_dist.values()))
+#             train_class_balance_score = normalized_entropy(train_dist)
+            
+#             val_dist =  np.array(list(val_sample_dist.values()))
+#             val_class_balance_score = normalized_entropy(val_dist)
+            
+            
+#             # fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
+#             #             color=list(train_sample_dist.values()))
+
+#             # fig.update_layout(template='plotly_dark',
+#             #                     title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+#             #                     yaxis_title=f'Number of Samples', 
+#             #                     xaxis_title=f'Class Names')
+
+#             # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            
+#             # train_dist_fig = fig.to_dict()
+            
+            
+#             # fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
+#             #             color=list(train_sample_dist.values()))
+
+#             # fig.update_layout(template='plotly_dark',
+#             #                     title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
+#             #                     yaxis_title=f'Number of Samples', 
+#             #                     xaxis_title=f'Class Names')
+
+#             # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
+            
+#             # val_dist_fig = fig.to_dict()
+                                          
+#             res = {
+#                     "status": "success",
+#                     "data_info": {
+#                         "split_names" : ["train", "val"],
+#                         "class_list" : class_list,
+#                         "train_total_samples": train_total_samples,
+#                         "train_class_balance_score": train_class_balance_score,
+#                         "train_dist_fig" : {
+#                                 "x": list(train_sample_dist.keys()),
+#                                 "y": list(train_sample_dist.values()),
+#                                 "xtitle": "Class Names",
+#                                 "ytitle": "Number of Samples",
+#                                 "title": "Training Data Class Distribution",
+#                             },
+#                         "val_total_samples": val_total_samples,
+#                         "val_class_balance_score": val_class_balance_score,
+#                         "val_dist_fig" : {
+#                                 "x": list(val_sample_dist.keys()),
+#                                 "y": list(val_sample_dist.values()),
+#                                 "xtitle": "Class Names",
+#                                 "ytitle": "Number of Samples",
+#                                 "title": "Validation Data Class Distribution",
+#                             }
+#                     }
+#                 }
+
+#             logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+#             return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        
+#         if data_info["data_type"] == "Unlabeled":
+            
+#             page_number = request.form['page_number']
+            
+#             sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
+#             number_of_samples = len(sample_paths)
+#             sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+#             res = {
+#                     "status": "success",
+#                     "sample_paths": sample_paths,
+#                     "number_of_samples" : number_of_samples,
+#                     "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+#                 }
+
+#             logger.info(json.dumps(res, indent=4,  default=str))
+#             return json.dumps(res, separators=(',', ':'), default=str)
+            
+            
+
+#     except Exception as e:
+                
+#         additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+#         log_exception(e, additional_info=additional_info)
+#         traceback.print_exc()
+
+#         res = {
+#                 "status": "fail",
+#                 "message": f"Somthing went wrong!"
+#             }
+
+#         logger.info(json.dumps(res, indent=4,  default=str))
+#         return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
 @app.route("/get-dataset-info", methods=['POST'])
 def get_dataset_info():
     
@@ -938,18 +1124,18 @@ def get_dataset_info():
         
         if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
             
-            split_name = request.form['split_name']
+            # split_name = request.form['split_name']
             class_name = request.form['class_name']
             page_number = request.form['page_number']
             
-            logger.info(f'Params - split_name : {split_name}, class_name : {class_name}, page_number : {page_number}')
+            logger.info(f'Params - class_name : {class_name}, page_number : {page_number}')
             
-            frontend_inputs += f"\nsplit_name : {split_name}\nclass_name : {class_name}\npage_number : {page_number}"
+            frontend_inputs += f"\nclass_name : {class_name}\npage_number : {page_number}"
             
             samples_per_page = 20
             page_number = int(page_number)
             
-            sample_paths = [os.path.join(data_info["data_extracted_path"], split_name, class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], split_name, class_name))]
+            sample_paths = [os.path.join(data_info["data_extracted_path"], class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], class_name))]
             number_of_samples = len(sample_paths)
             sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
             
@@ -966,84 +1152,34 @@ def get_dataset_info():
                 
         if data_info["data_type"] == "Labeled":
             
-            train_dir = os.path.join(data_info["data_extracted_path"], "train")
-            val_dir = os.path.join(data_info["data_extracted_path"], "val")
-
-            assert os.listdir(train_dir) == os.listdir(val_dir)
+            data_dir = data_info["data_extracted_path"]
             
-            class_list = os.listdir(train_dir) 
+            class_list = os.listdir(data_dir) 
             
-            train_total_samples = 0
-            train_sample_dist = {}
-            train_sample_paths = {}
+            total_samples = 0
+            sample_dist = {}
+            sample_paths = {}
             for class_name in class_list:
-                train_sample_paths[class_name] = [os.path.join(train_dir, class_name, x) for x in os.listdir(os.path.join(train_dir, class_name))]
-                train_sample_dist[class_name] = len(train_sample_paths[class_name])
-                train_total_samples += train_sample_dist[class_name]
+                sample_paths[class_name] = [os.path.join(data_dir, class_name, x) for x in os.listdir(os.path.join(data_dir, class_name))]
+                sample_dist[class_name] = len(sample_paths[class_name])
+                total_samples += sample_dist[class_name]
                 
-            val_total_samples = 0
-            val_sample_dist = {}
-            val_sample_paths = {}
-            for class_name in class_list:
-                val_sample_paths[class_name] = [os.path.join(val_dir, class_name, x) for x in os.listdir(os.path.join(val_dir, class_name))]
-                val_sample_dist[class_name] = len(val_sample_paths[class_name])
-                val_total_samples += val_sample_dist[class_name]
-
-            train_dist =  np.array(list(train_sample_dist.values()))
-            train_class_balance_score = normalized_entropy(train_dist)
+            dist =  np.array(list(sample_dist.values()))
+            class_balance_score = normalized_entropy(dist)
             
-            val_dist =  np.array(list(val_sample_dist.values()))
-            val_class_balance_score = normalized_entropy(val_dist)
-            
-            
-            # fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
-            #             color=list(train_sample_dist.values()))
-
-            # fig.update_layout(template='plotly_dark',
-            #                     title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-            #                     yaxis_title=f'Number of Samples', 
-            #                     xaxis_title=f'Class Names')
-
-            # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
-            
-            # train_dist_fig = fig.to_dict()
-            
-            
-            # fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
-            #             color=list(train_sample_dist.values()))
-
-            # fig.update_layout(template='plotly_dark',
-            #                     title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-            #                     yaxis_title=f'Number of Samples', 
-            #                     xaxis_title=f'Class Names')
-
-            # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
-            
-            # val_dist_fig = fig.to_dict()
-                                          
             res = {
                     "status": "success",
                     "data_info": {
-                        "split_names" : ["train", "val"],
                         "class_list" : class_list,
-                        "train_total_samples": train_total_samples,
-                        "train_class_balance_score": train_class_balance_score,
-                        "train_dist_fig" : {
-                                "x": list(train_sample_dist.keys()),
-                                "y": list(train_sample_dist.values()),
+                        "total_samples": total_samples,
+                        "class_balance_score": class_balance_score,
+                        "dist_fig" : {
+                                "x": list(sample_dist.keys()),
+                                "y": list(sample_dist.values()),
                                 "xtitle": "Class Names",
                                 "ytitle": "Number of Samples",
-                                "title": "Training Data Class Distribution",
+                                "title": "Data Class Distribution",
                             },
-                        "val_total_samples": val_total_samples,
-                        "val_class_balance_score": val_class_balance_score,
-                        "val_dist_fig" : {
-                                "x": list(val_sample_dist.keys()),
-                                "y": list(val_sample_dist.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Samples",
-                                "title": "Validation Data Class Distribution",
-                            }
                     }
                 }
 
@@ -1089,9 +1225,6 @@ def get_dataset_info():
 
 
 
-
-
-
 @app.route("/train_image_classification_model", methods=['POST'])
 def train_image_classification_model():
     
@@ -1101,17 +1234,19 @@ def train_image_classification_model():
         
         email = request.form['email']
         project_name = request.form['project_name']
-        data_name =  request.form['data_name']
+        train_data_name =  request.form['train_data_name']
+        val_data_name =  request.form['val_data_name']
         run_name = request.form['run_name']
-        arch_name = request.form['arch_name']
+        model_family = request.form['model_family']
+        model_name = request.form['model_name']
         training_mode = request.form['training_mode']
         num_epochs = request.form['num_epochs']
         batch_size = request.form['batch_size']
         learning_rate = request.form['learning_rate']
 
-        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, run_name : {run_name}, arch_name : {arch_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
             
-        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nrun_name : {run_name}\narch_name : {arch_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
         
         num_epochs = int(num_epochs)
         batch_size = int(batch_size)
@@ -1143,23 +1278,53 @@ def train_image_classification_model():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
         
-        dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
-        data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
-        data_path = data_meta['data_extracted_path']
+        # dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+        train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
+        train_data_path = train_data_meta['data_extracted_path']
+        
+        val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
+        val_data_path = val_data_meta['data_extracted_path']
+        
+        train_classes = os.listdir(train_data_path)
+        val_classes = os.listdir(val_data_path)
+        
+        # check if the classes are same
+        for class_name in train_classes:
+            if class_name not in val_classes:
+                res = {
+                        "status": "fail",
+                        "message": f"Train and Validation data classes are not same!"
+                    }
+
+                logger.info(json.dumps(res, indent=4,  default=str))
+                return json.dumps(res, separators=(',', ':'), default=str)
+            
+        
+        for class_name in val_classes:
+            if class_name not in train_classes:
+                res = {
+                        "status": "fail",
+                        "message": f"Train and Validation data classes are not same!"
+                    }
+
+                logger.info(json.dumps(res, indent=4,  default=str))
+                return json.dumps(res, separators=(',', ':'), default=str)
+            
 
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 
-        Thread(target=ImageClassificationTrainingPipeline, args=(run_name,data_name,project_name,user_id,arch_name,training_mode,batch_size,num_epochs,learning_rate,device,data_path)).start()
+        Thread(target=ImageClassificationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
 
         
         training_start_time = datetime.now()
         training_start_time_str = training_start_time.strftime('%Y-%m-%d %I:%M:%S %p')
         
 
-        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "data_name" : data_name, \
-                                        "project_name" : project_name, "user_id" : user_id, "arch_name" : arch_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
-                                         "learning_rate" : learning_rate, "training_status" : "training"})
+        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
+                                        "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                         "learning_rate" : learning_rate, "model_path" : "", "training_status" : "training"})
 
             
         res = {
@@ -1250,14 +1415,27 @@ def train_object_detection_model():
         
         val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
         val_data_path = val_data_meta['data_extracted_path']
+        
+        train_classes = json.loads(os.path.join(train_data_path, "metadata.json"))["classes"]
+        val_classes = json.loads(os.path.join(val_data_path, "metadata.json"))["classes"]
 
+        if train_classes != val_classes:
+        
+            res = {
+                    "status": "fail",
+                    "message": f"Train and Validation data classes are not same!"
+                }
 
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
         # if project_type == "Image Classification":
         #     Thread(target=ImageClassificationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
         # elif project_type == "Object Detection":
-        #     Thread(target=ObjectDetectionTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+        
+        Thread(target=ObjectDetectionTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
 
         
         training_start_time = datetime.now()
@@ -1266,7 +1444,7 @@ def train_object_detection_model():
 
         mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
                                         "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
-                                         "learning_rate" : learning_rate, "training_status" : "training"})
+                                         "learning_rate" : learning_rate, "model_path" : "", "training_status" : "training"})
 
             
         res = {

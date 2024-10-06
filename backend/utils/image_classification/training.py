@@ -191,7 +191,7 @@ architectures = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', #
                  ]
 
 
-def prepare_dataset(dataset_path, trainval_ratio=0.8, batch_size=32, num_workers=4, 
+def prepare_dataset(train_dataset_path, val_dataset_path, trainval_ratio=0.8, batch_size=32, num_workers=4, 
                     split_dataset=True, input_size=(224, 224)):
     """
     Prepares a PyTorch dataset from a folder structure for image classification.
@@ -223,34 +223,17 @@ def prepare_dataset(dataset_path, trainval_ratio=0.8, batch_size=32, num_workers
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize based on ImageNet mean/std
     ])
     
-    if split_dataset:
-        # Case 1: Dataset is already split into 'train' and 'val' directories
-        train_dir = os.path.join(dataset_path, 'train')
-        val_dir = os.path.join(dataset_path, 'val')
-        
-        # Load the datasets
-        train_dataset = datasets.ImageFolder(train_dir, transform=transform)
-        val_dataset = datasets.ImageFolder(val_dir, transform=transform)
-    else:
-        # Case 2: Non-split dataset, we'll split it into train and val sets
-        dataset = datasets.ImageFolder(dataset_path, transform=transform)
-        train_size = int(trainval_ratio * len(dataset))
-        val_size = len(dataset) - train_size
-        
-        # Randomly split the dataset
-        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+    # Load the datasets
+    train_dataset = datasets.ImageFolder(train_dataset_path, transform=transform)
+    val_dataset = datasets.ImageFolder(val_dataset_path, transform=transform)
     
     # Create DataLoaders for training and validation
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     
     # Directly access the classes attribute
-    if split_dataset:
-        num_classes = len(train_dataset.classes)
-        classnames = train_dataset.classes
-    else:
-        num_classes = len(dataset.classes)
-        classnames = dataset.classes
+    num_classes = len(train_dataset.classes)
+    classnames = train_dataset.classes
     
     print(f"Number of classes: {num_classes}")
     
@@ -259,7 +242,7 @@ def prepare_dataset(dataset_path, trainval_ratio=0.8, batch_size=32, num_workers
 
 
 
-def train_model(run_name, data_name, project_name, user_id, model, train_loader, val_loader, num_classes, classnames, device='cuda', num_epochs=10, learning_rate=0.001):
+def train_model(run_name, train_data_name, val_data_name, project_name, user_id, model, train_loader, val_loader, num_classes, classnames, device='cuda', num_epochs=10, learning_rate=0.001):
     """
     Trains a PyTorch model using the provided train and validation dataloaders.
     
@@ -333,6 +316,14 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         df.loc[len(df)] = ['Overall', total_samples, 'NA', 'NA', 'NA', 'NA', 'NA', overall_accuracy]
         
         return df
+    
+    
+    project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+    run_dir = os.path.join(project_info["project_dir"], "RUN_" + run_name + f"_{uuid.uuid4().__str__()}")
+    os.makedirs(run_dir, exist_ok=True)
+    
+    model_path = os.path.join(run_dir, "best_model.pt")
+    
 
     # Move the model to the specified device
     model = model.to(device)
@@ -359,7 +350,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         'val_acc': []
     }
 
-    mongodb["training_history"].insert_one({"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id, "history" : history, "classification_report" : "Will available after training!"})
+    mongodb["training_history"].insert_one({"run_name" : run_name, "run_dir" : run_dir, "project_name" : project_name,  "project_type" : "Image Classification", "train_data_name" : train_data_name, "val_data_name" : val_data_name, "user_id" : user_id, "model_path" : model_path, "history" : history, "classification_report" : "Will available after training!"})
     
     estimated_time = 0
     average_epoch_time = 0
@@ -369,8 +360,8 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
         
         epoch_start_time = time.time()
         
-        update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
-        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : f'Epoch {epoch+1}/{num_epochs}, Estimated time : {int(estimated_time//60)}:{int(estimated_time%60)} min'}})
+        update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
+        mongodb['run_records'].update_many(update_query, {'$set' : {"model_path" : model_path, "training_status" : f'Epoch {epoch+1}/{num_epochs}, Estimated time : {int(estimated_time//60)}:{int(estimated_time%60)} min'}})
 
         print('-' * 10)
         
@@ -482,13 +473,14 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
     
 
         
-        update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
+        update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
         mongodb['training_history'].update_many(update_query, {'$set' : {"history" : history}})
 
     
     # Load the best model weights
     if best_model_wts is not None:
         model.load_state_dict(best_model_wts)
+        torch.save(best_model_wts, )
         print(f'Best validation accuracy: {best_val_acc:.4f}')
     
     # Final evaluation on the validation set using the best model
@@ -520,7 +512,7 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
     for col in class_report.columns:
         classification_report[col] = class_report[col].tolist()
     
-    update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
+    update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
     mongodb['training_history'].update_many(update_query, {'$set' : {"history" : history, "classification_report" : classification_report}})
 
     
@@ -530,25 +522,29 @@ def train_model(run_name, data_name, project_name, user_id, model, train_loader,
 
 def ImageClassificationTrainingPipeline(
         run_name,
-        data_name,
+        train_data_name,
+        val_data_name,
         project_name,
         user_id,
-        arch_name,
+        model_family,
+        model_name,
         training_mode,
         batch_size,
         num_epochs,
         learning_rate,
         device,
-        dataset_path,
+        train_dataset_path,
+        val_dataset_path        
         ):
     
 
 
-    input_size = input_sizes.get(arch_name, (224, 224))  # Default to (224, 224) if not found
+    input_size = input_sizes.get(model_name, (224, 224))  # Default to (224, 224) if not found
 
     # If using a split dataset
     train_loader, val_loader, num_classes, classnames = prepare_dataset(
-        dataset_path=dataset_path,
+        train_dataset_path=train_dataset_path,
+        val_dataset_path=val_dataset_path,
         split_dataset=True,    # Set to True if the dataset has 'train' and 'val' directories
         batch_size=batch_size,         # Batch size
         input_size=input_size,  # Example input size for ResNet models
@@ -556,13 +552,13 @@ def ImageClassificationTrainingPipeline(
     )
 
     if training_mode == "scratch":
-        model = get_model(arch_name=arch_name, num_classes=num_classes, 
+        model = get_model(arch_name=model_name, num_classes=num_classes, 
                         pretrained=False, train_mode='scratch')
     elif training_mode == "finetune":
-        model = get_model(arch_name=arch_name, num_classes=num_classes, 
+        model = get_model(arch_name=model_name, num_classes=num_classes, 
                         pretrained=True, train_mode='finetune')
     elif training_mode == "transfer":
-        model = get_model(arch_name=arch_name, num_classes=num_classes, 
+        model = get_model(arch_name=model_name, num_classes=num_classes, 
                         pretrained=True, train_mode='transfer')
         
     model = model.to(device)
@@ -576,7 +572,8 @@ def ImageClassificationTrainingPipeline(
     # Assuming train_loader, val_loader, and model are already prepared
     trained_model, history, class_report = train_model(
         run_name=run_name,
-        data_name=data_name,
+        train_data_name=train_data_name,
+        val_data_name=val_data_name,
         project_name=project_name,
         user_id=user_id,
         model=model, 
@@ -592,7 +589,7 @@ def ImageClassificationTrainingPipeline(
 
 
     
-    update_query = {"run_name" : run_name, "data_name" : data_name, "project_name" : project_name, "user_id" : user_id}
+    update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
     mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "Completed"}})
 
     return trained_model, history, class_report
