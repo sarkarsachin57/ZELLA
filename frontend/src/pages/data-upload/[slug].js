@@ -35,6 +35,7 @@ export default function Page({params}) {
     
     useEffect(() => {
       updateLatestUrl(slug)
+      localStorage.setItem('project_id', slug)
     }, [])
     const user = useSelector(state => {
         return state.userState.user

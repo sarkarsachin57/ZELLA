@@ -38,7 +38,8 @@ import { connectSchema } from 'src/@core/schema'
 import {
   useTrainImageClassificationModelMutation,
   useGetRunLogsMutation,
-  useGetTrainingViewDetailMutation
+  useGetTrainingViewDetailMutation,
+  useGetDataSetListMutation
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
@@ -117,21 +118,17 @@ const ModelTraining = () => {
   const user = useSelector(state => {
     return state.userState.user
   })
+  console.log('user=======> ', user)
   const project_list = useSelector((state) => {
     return state.baseState.projectList
   })
+  console.log('project_list=======> ', project_list)
   const latest_project_url = useSelector((state) => {
     return state.baseState.latestProjectUrl
   })
-  console.log("latest_project_url: ", latest_project_url)
 
-  const run_logs_list = useSelector((state) => {
-    return state.baseState.run_logs_list
-  })
-  console.log('run_logs_list: ', run_logs_list)
-
-  const [email, setEmail] = useState(user.email)
-  const [project_name, setsetProjectList] = useState(project_list.find(obj => obj._id === latest_project_url).project_name)
+  const [email, setEmail] = useState(localStorage.getItem('email'))
+  const [project_name, setProjectList] = useState(project_list.length > 0 ? project_list.find(obj => obj._id === localStorage.getItem('project_id')).project_name: null)
   const [data_name, setDataName] = useState('')
   const [run_name, setRunName] = useState('')
   const [arch_name, setArchName] = useState('')
@@ -144,9 +141,14 @@ const ModelTraining = () => {
   const [isTrainModalOpen, setTrainModalSwitch] = useState(false)
   const [training_detail_infor, setTrainingDetailInfor] = useState(undefined)
 
+  const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
+  console.log('run_logs_list: ', run_logs_list)
+  console.log('project_name: ', project_name)
+
 
 
   const [ TrainImageClassificationModel ] = useTrainImageClassificationModelMutation()
+  const [ getDataSetList ] = useGetDataSetListMutation()
   const [ getRunLogs ] = useGetRunLogsMutation()
   const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
 
@@ -156,9 +158,27 @@ const ModelTraining = () => {
       if (user && user?.email) {
         const formData = new FormData()
         formData.append('email', user.email)
+        console.log('email: ',user.email)
+        formData.append('project_name', project_name)
+        console.log('project_name: ',project_name)
+        try {
+          const data =  await getRunLogs(formData)
+          setRunLosgList(data.data.run_history)
+          console.log('data: ',data.data)
+        } catch (error) {
+          toast.error('Something went wrong!');
+        }
+      }
+    }
+    const onGetDataSetList = async () => {
+      if (user && user?.email) {
+        const formData = new FormData()
+        formData.append('email', user.email)
         formData.append('project_name', project_name)
         try {
-          await getRunLogs(formData)
+          const data = await getDataSetList(formData)
+          console.log('datalist: ', data)
+          setDatasetList(data.data.dataset_list)
         } catch (error) {
           toast.error('Something went wrong!');
         }
@@ -166,7 +186,11 @@ const ModelTraining = () => {
     }
 
     onGetRunLogs()
-  }, []);
+    onGetDataSetList()
+  }, [project_name]);
+  useEffect(() => {
+    setProjectList(project_list.length > 0 ? project_list.find(obj => obj._id === localStorage.getItem('project_id')).project_name: null)
+  }, [project_list]);
 
   // Check the connection validation ** QmQ
   const validate = () => {

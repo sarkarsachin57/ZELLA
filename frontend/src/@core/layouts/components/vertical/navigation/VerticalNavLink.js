@@ -81,7 +81,7 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
         py: '10px'
       }}
     >
-      <Link passHref href={item.path === undefined ? '/' : (`${item.path==='data-upload/'?(`/${item.path+(latest_pro_url === ''?'':latest_pro_url)}`):item.path}`)}>
+      <Link passHref href={item.path === undefined ? '/' : (`${item.path==='data-upload/'?(`/${item.path+(latest_pro_url === ''?localStorage.getItem('project_id'):latest_pro_url)}`):item.path}`)}>
       {/* <Link passHref href={item.path === undefined ? '/' : `${item.path}`}> */}
         <MenuNavLink
           component={'a'}

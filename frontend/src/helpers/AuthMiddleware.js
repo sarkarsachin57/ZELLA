@@ -40,7 +40,6 @@ const AuthMiddleware = ({ children }) => {
         formData.append('email', localStorage.getItem('email'))
         try {
           const data = await getProjectList(formData)
-          console.log("data=====>", data)
         } catch (error) {
           toast.error('Something went wrong!');
         }
