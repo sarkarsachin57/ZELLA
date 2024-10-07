@@ -190,7 +190,7 @@ const CreateProject = () => {
           </Grid>
           <Grid item xs={12} sm={6} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
-              <InputLabel id='select_model'> {'Select Model'} </InputLabel>
+              <InputLabel id='projectType'> {'Select Project Type'} </InputLabel>
               <Select
                 value={projectType}
                 onChange={e =>
