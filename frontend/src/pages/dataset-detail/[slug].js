@@ -90,27 +90,14 @@ export default function Page({params}) {
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
                     <Grid item xs={12} sm={3}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
-                            Train Sample: {dataset_info === undefined ? null : dataset_info.train_total_samples}
+                            Train Sample: {dataset_info === undefined ? null : dataset_info.total_samples}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
                              Class Balance
                         </Typography>
-                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.train_class_balance_score} />
-                    </Grid>
-                </Grid>
-                <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
-                    <Grid item xs={12} sm={3}>
-                        <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                            Val Sample: {dataset_info === undefined ? null : dataset_info.val_total_samples}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                             Val Balance
-                        </Typography>
-                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.val_class_balance_score} />
+                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.class_balance_score} />
                     </Grid>
                     <Grid item xs={12} sm={3}>
                         <LoadingButton
@@ -127,7 +114,7 @@ export default function Page({params}) {
             </CardBox>
             <CardBox>
                 <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px'  }}>
-                    {dataset_info === undefined ? null : dataset_info.train_dist_fig.title}
+                    {dataset_info === undefined ? null : dataset_info.dist_fig.title}
                 </Typography>
                 {
                     dataset_info === undefined ?
@@ -135,24 +122,9 @@ export default function Page({params}) {
                              No Data
                         </Typography>
                         :<CustomChart
-                            chartData = {dataset_info === undefined ? null : dataset_info.train_dist_fig}
+                            chartData = {dataset_info === undefined ? null : dataset_info.dist_fig}
                         />
                 }
-            </CardBox>
-            <CardBox>
-                <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px' }}>
-                    {dataset_info === undefined ? null : dataset_info.val_dist_fig.title}
-                </Typography>
-                {
-                    dataset_info === undefined ?
-                        <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                             No Data
-                        </Typography>
-                        :<CustomChart
-                            chartData = {dataset_info === undefined ? null : dataset_info.val_dist_fig}
-                        />
-                }
-                
             </CardBox>
             <ViewSampleModal
                 width={1200}
@@ -161,7 +133,6 @@ export default function Page({params}) {
                 email = {user.email}
                 project_name = {projectList.find(obj => obj._id === latestProjectUrl).project_name}
                 data_name = {dataSetList.find(obj => obj._id === slug).data_name}
-                split_data = {dataset_info === undefined ? null : dataset_info.split_names}
                 class_data = {dataset_info === undefined ? null : dataset_info.class_list}
                 getViewSample = {getViewSample}
             />

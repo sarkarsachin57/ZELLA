@@ -174,9 +174,11 @@ export default function ModelTrainingTable(props) {
                         <TableCell component='th' id={labelId} scope='row' padding='none'>
                           {index+1}
                         </TableCell>
-                        <TableCell align='center'>{row.data_name}</TableCell>
+                        <TableCell align='center'>{row.val_data_name}</TableCell>
+                        <TableCell align='center'>{row.val_data_name}</TableCell>
                         <TableCell align='center'>{row.run_name}</TableCell>
-                        <TableCell align='center'>{row.arch_name}</TableCell>
+                        <TableCell align='center'>{row.model_family}</TableCell>
+                        <TableCell align='center'>{row.model_name}</TableCell>
                         <TableCell align='center'>{row.training_mode}</TableCell>
                         <TableCell align='center'>{row.num_epochs}</TableCell>
                         <TableCell align='center'>{row.batch_size}</TableCell>

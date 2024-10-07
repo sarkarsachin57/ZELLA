@@ -30,12 +30,10 @@ export default function ViewSampleModal (props) {
     email,
     project_name,
     data_name,
-    split_data,
     class_data,
     getViewSample
   } = props
 
-  const [ split_name, setSplitName ] = useState('');
   const [ class_name, setClassName ] = useState('');
   const [ sample_image_rul, setSampleImageUrl ] = useState([]);
   const [ total_img_num, setTotalImgNum ] = useState('');
@@ -43,11 +41,6 @@ export default function ViewSampleModal (props) {
   const [ page_num, setPageNum ] = useState(1);
 
   const validate = () => {
-    if (!split_name) {
-      toast.error('Please select the Split Name')
-
-      return false
-    }
     if (!class_name) {
       toast.error('Please select the Class Name')
 
@@ -68,7 +61,6 @@ export default function ViewSampleModal (props) {
       formData.append('project_name', project_name)
       formData.append('data_name', data_name)
       formData.append('show_samples', '1')
-      formData.append('split_name', split_name)
       formData.append('class_name', class_name)
       formData.append('page_number', page_num)
       try {
@@ -107,26 +99,6 @@ export default function ViewSampleModal (props) {
           <Grid container spacing={6} sx={{marginBottom:'15px'}}>
             <Grid item xs={12} sm={4}>
               <FormControl fullWidth>
-                <InputLabel id='split_name'> {'Split Name'} </InputLabel>
-                <Select
-                  value={split_name}
-                  onChange={e =>
-                    setSplitName( e.target.value )
-                  }
-                  id='split_name'
-                  labelId='split_name'
-                  input={<OutlinedInput label='Split Name' id='Split Name' />}
-                >
-                  {
-                    split_data ===null? '' :split_data.map((item, index) =>{
-                      return <MenuItem value={item}> {item} </MenuItem>
-                    })
-                  }
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
                 <InputLabel id='class_name'> {'Class Name'} </InputLabel>
                 <Select
                   value={class_name}
@@ -145,7 +117,7 @@ export default function ViewSampleModal (props) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={6}>
             </Grid>
             <Grid item xs={12} sm={2}>
               <LoadingButton

@@ -20,6 +20,7 @@ import { TRUST_MODE, TRUST_METHOD } from 'src/constants'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 /**
  * @file is responsible for sidebar menu
@@ -61,6 +62,11 @@ const offlineNavItemList = [
     title: 'Model Training',
     icon: PlayArrowIcon,
     path: '/modelTraining'
+  },
+  {
+    title: 'Object Detection',
+    icon: ManageSearchIcon,
+    path: '/object-detection'
   },
   {
     title: 'Model evaluation',

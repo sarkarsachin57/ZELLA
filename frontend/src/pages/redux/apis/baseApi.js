@@ -139,7 +139,7 @@ export const baseApi = createApi({
       getDataSetInfo: builder.mutation({
         query(data) {
           return {
-            url: 'get-dataset-info',
+            url: 'get-image-classification-dataset-info',
             method: 'POST',
             body: data
           }
@@ -155,7 +155,7 @@ export const baseApi = createApi({
       getViewSample: builder.mutation({
         query(data) {
           return {
-            url: 'get-dataset-info',
+            url: 'get-image-classification-dataset-info',
             method: 'POST',
             body: data
           }

@@ -8,26 +8,14 @@ import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import MovieFilterIcon from '@mui/icons-material/MovieFilter'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import OutlinedInput from '@mui/material/OutlinedInput'
-import RadioButtonCheckedRoundedIcon from '@mui/icons-material/RadioButtonCheckedRounded'
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import Paper from '@mui/material/Paper'
-import TablePagination from '@mui/material/TablePagination'
 import { toast } from 'react-toastify'
-import { v4 as uuid } from 'uuid'
 
-import FileInput from 'src/views/commons/FileInput'
 import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
@@ -42,22 +30,18 @@ import {
   useGetDataSetListMutation
 } from 'src/pages/redux/apis/baseApi'
 
-const ModelTraining = () => {
-  const model_dict_list = ['ResNet','VGGNet','DenseNet','MobileNet','EfficientNet','ShuffleNet','MNasNet','SqueezeNet','Others',]
-  const model_dict = {
-    'ResNet': ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'],
-    'VGGNet': ['vgg11', 'vgg13', 'vgg16', 'vgg19'],
-    'DenseNet': ['densenet121', 'densenet169', 'densenet201'],
-    'MobileNet': ['mobilenet_v2', 'mobilenet_v3_large', 'mobilenet_v3_small'],
-    'EfficientNet': ['efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3', 
-                     'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7'],
-    'ShuffleNet': ['shufflenet_v2_x0_5', 'shufflenet_v2_x1_0'],
-    'MNasNet': ['mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3'],
-    'SqueezeNet': ['squeezenet1_0', 'squeezenet1_1'],
-    'Others': ['googlenet', 'alexnet']
-  }
-  const key = 'ResNet';
-  console.log("dddd=======> ", model_dict[model_family]);
+const ObjectDetection = () => {
+  const yolo_dict_list = ['YOLOv3','YOLOv5','YOLOv8','YOLOv9','YOLOv10','YOLOv11','RT-DETR']
+  const yolo_model_dict = {
+    'YOLOv3': ['yolov3', 'yolov3-ultralytics', 'yolov3u'],
+    'YOLOv5': ['yolov5nu', 'yolov5su', 'yolov5mu', 'yolov5lu', 'yolov5xu', 
+               'yolov5n6u', 'yolov5s6u', 'yolov5m6u', 'yolov5l6u', 'yolov5x6u'],
+    'YOLOv8': ['yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x'],
+    'YOLOv9': ['yolov9t', 'yolov9s', 'yolov9m', 'yolov9c', 'yolov9e'],
+    'YOLOv10': ['yolov10n', 'yolov10s', 'yolov10m', 'yolov10b', 'yolov10l', 'yolov10x'],
+    'YOLOv11': ['yolov11n', 'yolov11s', 'yolov11m', 'yolov11l', 'yolov11x'],
+    'RT-DETR': ['rtdetr-l', 'rtdetr-x']
+}
   const training_mode_list = ['scratch', 'finetune', 'transfer']
   const headCells = [
     {
@@ -160,8 +144,8 @@ const ModelTraining = () => {
   const [train_data_name, setTrainDataName] = useState('')
   const [val_data_name, setValDataName] = useState('')
   const [run_name, setRunName] = useState('')
-  const [model_family, setModelFamily] = useState('')
-  const [model_name, setModelName] = useState('')
+  const [model_family, setModelFamily] = useState('YOLOv8')
+  const [model_name, setModelName] = useState('yolov8s')
   const [training_mode, setTrainingMode] = useState('')
   const [num_epochs, setNumEpochs] = useState('10')
   const [batch_size, setBatchSize] = useState('32')
@@ -335,9 +319,9 @@ const ModelTraining = () => {
         btnTitle={'Start'}
         btnAction={onInsertSubmitHandler}
         schema={connectSchema}
-        headerIcon={<PlayArrowIcon />}
+        headerIcon={<ManageSearchIcon />}
         isLoading={isLoading}
-        headerTitle='Model Training'
+        headerTitle='Object Detection'
         select_tracking_mode={true}
       >
         <Grid container spacing={6}>
@@ -384,7 +368,7 @@ const ModelTraining = () => {
                 labelId='model_family'
                 input={<OutlinedInput label='Model Family' id='Model Family' />}
               >
-                {model_dict_list.map(item =>{
+                {yolo_dict_list.map(item =>{
                   return (<MenuItem value={item}> {item} </MenuItem>)
                 })}
               </Select>
@@ -400,7 +384,7 @@ const ModelTraining = () => {
                 labelId='model_name'
                 input={<OutlinedInput label='Model Name' id='Model Name' />}
               >
-                {model_family === ''? '': model_dict[model_family].map(item =>{
+                {model_family === ''? '': yolo_model_dict[model_family].map(item =>{
                   return (<MenuItem value={item}> {item} </MenuItem>)
                 })}
               </Select>
@@ -486,4 +470,4 @@ const ModelTraining = () => {
   )
 }
 
-export default ModelTraining
+export default ObjectDetection
