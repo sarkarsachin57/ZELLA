@@ -147,7 +147,8 @@ const ModelTraining = () => {
       id: 'training_status',
       numeric: true,
       disablePadding: false,
-      label: 'Training Status'
+      label: 'Training Status',
+      minWidth: 190
     },
     {
       id: 'detail',
@@ -298,31 +299,29 @@ const ModelTraining = () => {
       formData.append('batch_size', batch_size)
       formData.append('learning_rate', learning_rate)
       setIsLoading(true)
-
-      try {
-        if( project_type === 'Image Classification'){
-          const res = await trainImageClassificationModel(formData)
-        }
-        else{
-          const res = await trainObjectDetectionModel(formData)
-        }
-        setIsLoading(false)
-        console.log(res.data)
-        if(res.data.status === "fail"){
-          toast.error(res.data.message)
-        }
-        else{
-          toast.success(res.data.message)
-          setDataName('')
-          setRunName('')
-          setArchName('')
-          setTrainingMode('')
-          setNumEpochs('10')
-          setBatchSize('32')
-          setLearningRate('0.01')
-        }
-      } catch (error) {
-        toast.error('Something went wrong!');
+      const res = {}
+      if( project_type === 'Image Classification'){
+        res = await trainImageClassificationModel(formData)
+      }
+      else{
+        res = await trainObjectDetectionModel(formData)
+      }
+      setIsLoading(false)
+      console.log(res.data)
+      if(res.data.status === "fail"){
+        toast.error(res.data.message)
+      }
+      else{
+        toast.success(res.data.message)
+        setTrainDataName('')
+        setValDataName('')
+        setRunName('')
+        setModelFamily('')
+        setModelName('')
+        setTrainingMode('')
+        setNumEpochs('10')
+        setBatchSize('32')
+        setLearningRate('0.01')
       }
     }
   }
@@ -333,20 +332,15 @@ const ModelTraining = () => {
     formData.append('project_name', project_name)
     formData.append('run_name', data)
 
-    try {
-      const res = await getTrainingViewDetail(formData)
-      console.log(res)
-      setTrainingDetailInfor(res.data)
-      console.log('training_detail_infor: ', training_detail_infor)
+    const res = await getTrainingViewDetail(formData)
+    console.log(res)
+    setTrainingDetailInfor(res.data)
+    console.log('training_detail_infor: ', training_detail_infor)
 
-      if(res.data.status === "fail"){
-        toast.error(res.data.message)
-      }
-      handleTrainDetailModalOpen()
-      
-    } catch (error) {
-      toast.error('Something went wrong!');
+    if(res.data.status === "fail"){
+      toast.error(res.data.message)
     }
+    handleTrainDetailModalOpen()
   }
 
 
