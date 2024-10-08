@@ -214,7 +214,13 @@ def prepare_dataset(train_dataset_path, val_dataset_path, trainval_ratio=0.8, ba
     from torchvision import datasets
     from torch.utils.data import DataLoader, Dataset, random_split
 
-
+    for x in os.listdir(train_dataset_path):
+        if ".ipynb_checkpoints" in x:
+            shutil.rmtree(os.path.join(train_dataset_path, x))
+            
+    for x in os.listdir(val_dataset_path):
+        if ".ipynb_checkpoints" in x:
+            shutil.rmtree(os.path.join(val_dataset_path, x))
     
     # Define transformations for the dataset
     transform = transforms.Compose([
