@@ -1092,7 +1092,7 @@ def get_dataset_list():
 @app.route("/get-image-classification-dataset-info", methods=['POST'])
 def get_image_classification_dataset_info():
     
-    logger.info(f"Get request for get-image-classification-dataset-info")
+    logger.info(f"Get request for /get-image-classification-dataset-info")
     
     try:
         
@@ -1132,7 +1132,7 @@ def get_image_classification_dataset_info():
             
             frontend_inputs += f"\nclass_name : {class_name}\npage_number : {page_number}"
             
-            samples_per_page = 20
+            samples_per_page = 24
             page_number = int(page_number)
             
             sample_paths = [os.path.join(data_info["data_extracted_path"], class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], class_name))]
@@ -1165,7 +1165,7 @@ def get_image_classification_dataset_info():
                 total_samples += sample_dist[class_name]
                 
             dist =  np.array(list(sample_dist.values()))
-            class_balance_score = normalized_entropy(dist)
+            class_balance_score = class_distribution_score(dist)
             
             res = {
                     "status": "success",
@@ -1220,6 +1220,167 @@ def get_image_classification_dataset_info():
 
         logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+@app.route("/get-object-detection-dataset-info", methods=['POST'])
+def get_object_detection_dataset_info():
+    
+    logger.info(f"Get request for /get-object-detection-dataset-info")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name = request.form['data_name']
+        show_samples = request.form['show_samples']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+            
+            # split_name = request.form['split_name']
+            # class_name = request.form['class_name']
+            page_number = request.form['page_number']
+            
+            logger.info(f'Params - page_number : {page_number}')
+            
+            frontend_inputs += f"\npage_number : {page_number}"
+            
+            samples_per_page = 24
+            page_number = int(page_number)
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], "images", x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], "images"))]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "number_of_samples" : number_of_samples,
+                    "sample_paths": sample_paths,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+                      
+                
+        if data_info["data_type"] == "Labeled":
+            
+            data_dir = data_info["data_extracted_path"]
+            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+            
+            class_list = metadata["classes"]
+            
+                        
+            all_class_instances = []
+            all_class_images = []
+            for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
+                annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
+                all_class_instances += annotations["class_ids"]
+                all_class_images += list(set(annotations["class_ids"]))
+
+            class_ids, image_counts = np.unique(all_class_images, return_counts=True)
+            image_count_dict = {}
+            for class_id, image_count in zip(class_ids, image_counts):
+                image_count_dict[metadata["classes"][class_id]] = image_count
+
+            class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
+            ins_count_dict = {}
+            for class_id, ins_count in zip(class_ids, ins_counts):
+                ins_count_dict[metadata["classes"][class_id]] = ins_count
+                
+                        
+            total_images = image_counts.sum()
+            total_instances = ins_counts.sum()
+            
+            image_wise_class_balance_score = class_distribution_score(image_counts)
+            instances_wise_class_balance_score = class_distribution_score(ins_counts)
+            
+            
+            res = {
+                    "status": "success",
+                    "data_info": {
+                        "class_list" : class_list,
+                        "total_images": total_images,
+                        "total_instances": total_instances,
+                        "image_wise_class_balance_score": image_wise_class_balance_score,
+                        "instances_wise_class_balance_score" : instances_wise_class_balance_score,
+                        "image_dist_fig" : {
+                                "x": list(image_count_dict.keys()),
+                                "y": list(image_count_dict.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Images",
+                                "title": "Data Class Distribution",
+                            },
+                        "instance_dist_fig" : {
+                                "x": list(ins_count_dict.keys()),
+                                "y": list(ins_count_dict.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Instances",
+                                "title": "Data Class Distribution",
+                            },
+                    }
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        
+        if data_info["data_type"] == "Unlabeled":
+            
+            page_number = request.form['page_number']
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "sample_paths": sample_paths,
+                    "number_of_samples" : number_of_samples,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+            
+            
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
 
 
 

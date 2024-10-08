@@ -552,7 +552,7 @@ logger.info("Check 8")
 
 
 
-def normalized_entropy(dist):
+def class_distribution_score(dist):
     # Calculate proportions for each class
     total = np.sum(dist)
     proportions = dist / total
