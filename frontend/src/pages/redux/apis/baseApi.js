@@ -21,6 +21,9 @@ export const baseApi = createApi({
     reducerPath: 'baseApi',
     baseQuery: customFetchBase,
     endpoints: (builder)=>({
+/**
+ * 👇 @file handles project api
+ */
       getProjectList: builder.mutation({
         query(data) {
           return {
@@ -54,6 +57,9 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+/**
+ * 👇 @file handles upload dataset api
+ */
       getDataSetList: builder.mutation({
         query(data) {
           return {
@@ -86,6 +92,41 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getDataSetInfo: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-image-classification-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setDatasetInfo(data.data_info));
+          } catch (error) {}
+        },
+      }),
+      getViewSample: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-image-classification-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setViewSample(data.sample_paths));
+          } catch (error) {}
+        },
+      }),
+/**
+ * 👇 @file handles url
+ */
       updateLatestUrl: builder.mutation({
         async onQueryStarted(args, { dispatch, queryFulfilled }) {
           try {
@@ -95,6 +136,9 @@ export const baseApi = createApi({
           }
         }
       }),
+/**
+ * 👇 @file handles model training api
+ */
       trainImageClassificationModel: builder.mutation({
         query(data) {
           return {
@@ -136,38 +180,16 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
-      getDataSetInfo: builder.mutation({
+      trainObjectDetectionModel: builder.mutation({
         query(data) {
           return {
-            url: 'get-image-classification-dataset-info',
+            url: 'train_object_detection_model',
             method: 'POST',
             body: data
           }
         },
-        transformResponse: result => result,
-        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-          try {
-            const { data } = await queryFulfilled;
-            dispatch(setDatasetInfo(data.data_info));
-          } catch (error) {}
-        },
       }),
-      getViewSample: builder.mutation({
-        query(data) {
-          return {
-            url: 'get-image-classification-dataset-info',
-            method: 'POST',
-            body: data
-          }
-        },
-        transformResponse: result => result,
-        async onQueryStarted(args, { dispatch, queryFulfilled }) {
-          try {
-            const { data } = await queryFulfilled;
-            dispatch(setViewSample(data.sample_paths));
-          } catch (error) {}
-        },
-      }),
+      
     }),
 });
 
@@ -181,5 +203,6 @@ export const {
   useGetRunLogsMutation,
   useGetTrainingViewDetailMutation,
   useGetDataSetInfoMutation,
-  useGetViewSampleMutation
+  useGetViewSampleMutation,
+  useTrainObjectDetectionModelMutation
 } = baseApi;

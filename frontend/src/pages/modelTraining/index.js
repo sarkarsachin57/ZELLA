@@ -39,25 +39,39 @@ import {
   useTrainImageClassificationModelMutation,
   useGetRunLogsMutation,
   useGetTrainingViewDetailMutation,
-  useGetDataSetListMutation
+  useGetDataSetListMutation,
+  useTrainObjectDetectionModelMutation
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
-  const model_dict_list = ['ResNet','VGGNet','DenseNet','MobileNet','EfficientNet','ShuffleNet','MNasNet','SqueezeNet','Others',]
-  const model_dict = {
-    'ResNet': ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'],
-    'VGGNet': ['vgg11', 'vgg13', 'vgg16', 'vgg19'],
-    'DenseNet': ['densenet121', 'densenet169', 'densenet201'],
-    'MobileNet': ['mobilenet_v2', 'mobilenet_v3_large', 'mobilenet_v3_small'],
-    'EfficientNet': ['efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3', 
-                     'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7'],
-    'ShuffleNet': ['shufflenet_v2_x0_5', 'shufflenet_v2_x1_0'],
-    'MNasNet': ['mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3'],
-    'SqueezeNet': ['squeezenet1_0', 'squeezenet1_1'],
-    'Others': ['googlenet', 'alexnet']
+  const model_family_list = {
+    'Image Classification': ['ResNet','VGGNet','DenseNet','MobileNet','EfficientNet','ShuffleNet','MNasNet','SqueezeNet','Others'],
+    'Object Detection': ['YOLOv3','YOLOv5','YOLOv8','YOLOv9','YOLOv10','YOLOv11','RT-DETR']
   }
-  const key = 'ResNet';
-  console.log("dddd=======> ", model_dict[model_family]);
+  const model_name_list = {
+    'Image Classification': {
+      'ResNet': ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'],
+      'VGGNet': ['vgg11', 'vgg13', 'vgg16', 'vgg19'],
+      'DenseNet': ['densenet121', 'densenet169', 'densenet201'],
+      'MobileNet': ['mobilenet_v2', 'mobilenet_v3_large', 'mobilenet_v3_small'],
+      'EfficientNet': ['efficientnet_b0', 'efficientnet_b1', 'efficientnet_b2', 'efficientnet_b3', 
+                       'efficientnet_b4', 'efficientnet_b5', 'efficientnet_b6', 'efficientnet_b7'],
+      'ShuffleNet': ['shufflenet_v2_x0_5', 'shufflenet_v2_x1_0'],
+      'MNasNet': ['mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3'],
+      'SqueezeNet': ['squeezenet1_0', 'squeezenet1_1'],
+      'Others': ['googlenet', 'alexnet']
+    },
+    'Object Detection': {
+      'YOLOv3': ['yolov3', 'yolov3-ultralytics', 'yolov3u'],
+      'YOLOv5': ['yolov5nu', 'yolov5su', 'yolov5mu', 'yolov5lu', 'yolov5xu', 
+                 'yolov5n6u', 'yolov5s6u', 'yolov5m6u', 'yolov5l6u', 'yolov5x6u'],
+      'YOLOv8': ['yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x'],
+      'YOLOv9': ['yolov9t', 'yolov9s', 'yolov9m', 'yolov9c', 'yolov9e'],
+      'YOLOv10': ['yolov10n', 'yolov10s', 'yolov10m', 'yolov10b', 'yolov10l', 'yolov10x'],
+      'YOLOv11': ['yolov11n', 'yolov11s', 'yolov11m', 'yolov11l', 'yolov11x'],
+      'RT-DETR': ['rtdetr-l', 'rtdetr-x']
+    }
+  }
   const training_mode_list = ['scratch', 'finetune', 'transfer']
   const headCells = [
     {
@@ -157,6 +171,7 @@ const ModelTraining = () => {
 
   const [email, setEmail] = useState(localStorage.getItem('email'))
   const [project_name, setProjectList] = useState(project_list.length > 0 ? project_list.find(obj => obj._id === localStorage.getItem('project_id')).project_name: null)
+  const [project_type, setProjectType] = useState(project_list.length > 0 ? project_list.find(obj => obj._id === localStorage.getItem('project_id')).project_type: null)
   const [train_data_name, setTrainDataName] = useState('')
   const [val_data_name, setValDataName] = useState('')
   const [run_name, setRunName] = useState('')
@@ -177,12 +192,13 @@ const ModelTraining = () => {
 
 
 
-  const [ TrainImageClassificationModel ] = useTrainImageClassificationModelMutation()
+  const [ trainImageClassificationModel ] = useTrainImageClassificationModelMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
   const [ getRunLogs ] = useGetRunLogsMutation()
   const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
+  const [ trainObjectDetectionModel ] = useTrainObjectDetectionModelMutation()
 
-
+  
   useEffect(() => {
     const onGetRunLogs = async () => {
       if (user && user?.email) {
@@ -284,9 +300,14 @@ const ModelTraining = () => {
       setIsLoading(true)
 
       try {
-        const res = await TrainImageClassificationModel(formData)
+        if( project_type === 'Image Classification'){
+          const res = await trainImageClassificationModel(formData)
+        }
+        else{
+          const res = await trainObjectDetectionModel(formData)
+        }
         setIsLoading(false)
-        console.log(res)
+        console.log(res.data)
         if(res.data.status === "fail"){
           toast.error(res.data.message)
         }
@@ -384,9 +405,11 @@ const ModelTraining = () => {
                 labelId='model_family'
                 input={<OutlinedInput label='Model Family' id='Model Family' />}
               >
-                {model_dict_list.map(item =>{
-                  return (<MenuItem value={item}> {item} </MenuItem>)
-                })}
+                {
+                  project_type && model_family_list[project_type] ? model_family_list[project_type].map(item =>{
+                    return (<MenuItem value={item}> {item} </MenuItem>)
+                  }) : null
+                }
               </Select>
             </FormControl>
           </Grid>
@@ -400,9 +423,12 @@ const ModelTraining = () => {
                 labelId='model_name'
                 input={<OutlinedInput label='Model Name' id='Model Name' />}
               >
-                {model_family === ''? '': model_dict[model_family].map(item =>{
-                  return (<MenuItem value={item}> {item} </MenuItem>)
-                })}
+                {
+                  project_type && model_family && model_name_list[project_type] && model_name_list[project_type][model_family] ?
+                  model_name_list[project_type][model_family].map(item => (
+                    <MenuItem value={item} key={item}> {item} </MenuItem>
+                  )) : null
+                }
               </Select>
             </FormControl>
           </Grid>
