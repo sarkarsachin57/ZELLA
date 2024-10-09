@@ -13,9 +13,9 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import CardBox from 'src/views/settings/CardBox'
 import CustomChart from 'src/@core/components/chart/customChart'
 import { LoadingButton } from 'src/@core/components/button/LoadingButton'
-import ViewSampleModal from 'src/views/modals/viewSampleModal'
+import ViewObjectSampleModal from 'src/views/modals/viewObjectSampleModal'
 
-import { useGetDataSetInfoMutation, useGetViewSampleMutation } from 'src/pages/redux/apis/baseApi'
+import { useGetObjectDataSetInfoMutation, useGetObjectViewSampleMutation } from 'src/pages/redux/apis/baseApi'
 import CGroups from '../../../styles/pages/settings.module.scss'
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
@@ -35,8 +35,8 @@ export default function Page({params}) {
     const [dataset_info, setDatasetInfor] = useState(undefined)
     const [isViewSampleOpen, setViewSampleSwitch] = useState(false)
 
-    const [ getDataSetInfo ] = useGetDataSetInfoMutation()
-    const [ getViewSample ] = useGetViewSampleMutation()
+    const [ getObjectDataSetInfo ] = useGetObjectDataSetInfoMutation()
+    const [ getObjectViewSample ] = useGetObjectViewSampleMutation()
     
     const router = useRouter();
     const { slug } = router.query;
@@ -65,8 +65,8 @@ export default function Page({params}) {
             formData.append('data_name', dataSetList.find(obj => obj._id === slug).data_name)
             formData.append('show_samples', '0')
             try {
-              const res = await getDataSetInfo(formData)
-              console.log(res.data.data_info)
+              const res = await getObjectDataSetInfo(formData)
+              console.log('object-dateset-inof: ', res.data.data_info)
               setDatasetInfor(res.data.data_info)
             } catch (error) {
               toast.error('Something went wrong!');
@@ -89,14 +89,27 @@ export default function Page({params}) {
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
                     <Grid item xs={12} sm={3}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
-                            Train Sample: {dataset_info === undefined ? null : dataset_info.total_samples}
+                            Total Images: {dataset_info === undefined ? null : dataset_info.total_images}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                             Class Balance
+                             Image Balance
                         </Typography>
-                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.class_balance_score} />
+                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} />
+                    </Grid>
+                </Grid>
+                <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
+                    <Grid item xs={12} sm={3}>
+                        <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
+                            Total Instances: {dataset_info === undefined ? null : dataset_info.total_instances}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
+                            Instances Balance
+                        </Typography>
+                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} />
                     </Grid>
                     <Grid item xs={12} sm={3}>
                         <LoadingButton
@@ -113,7 +126,7 @@ export default function Page({params}) {
             </CardBox>
             <CardBox>
                 <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px'  }}>
-                    {dataset_info === undefined ? null : dataset_info.dist_fig.title}
+                    {dataset_info === undefined ? null : dataset_info.image_dist_fig.title}
                 </Typography>
                 {
                     dataset_info === undefined ?
@@ -121,11 +134,23 @@ export default function Page({params}) {
                              No Data
                         </Typography>
                         :<CustomChart
-                            chartData = {dataset_info === undefined ? null : dataset_info.dist_fig}
+                            chartData = {dataset_info === undefined ? null : dataset_info.image_dist_fig}
+                        />
+                }
+                <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px'  }}>
+                    {dataset_info === undefined ? null : dataset_info.instance_dist_fig.title}
+                </Typography>
+                {
+                    dataset_info === undefined ?
+                        <Typography variant="button" gutterBottom sx={{ display: 'block',}}>
+                             No Data
+                        </Typography>
+                        :<CustomChart
+                            chartData = {dataset_info === undefined ? null : dataset_info.instance_dist_fig}
                         />
                 }
             </CardBox>
-            <ViewSampleModal
+            <ViewObjectSampleModal
                 width={1200}
                 isOpen={isViewSampleOpen}
                 onHandleModalClose = {handleViewSampleClose}
@@ -133,7 +158,7 @@ export default function Page({params}) {
                 project_name = {projectList.find(obj => obj._id === latestProjectUrl).project_name}
                 data_name = {dataSetList.find(obj => obj._id === slug).data_name}
                 class_data = {dataset_info === undefined ? null : dataset_info.class_list}
-                getViewSample = {getViewSample}
+                getObjectViewSample = {getObjectViewSample}
             />
         </Box>
     )
