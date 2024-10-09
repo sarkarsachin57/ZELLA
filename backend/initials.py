@@ -554,6 +554,10 @@ logger.info("Check 8")
 
 def class_distribution_score(dist):
     # Calculate proportions for each class
+    
+    if len(dist) == 1:
+        return 100
+    
     total = np.sum(dist)
     proportions = dist / total
     
