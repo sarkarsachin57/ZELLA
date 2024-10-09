@@ -1577,8 +1577,8 @@ def train_object_detection_model():
         val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
         val_data_path = val_data_meta['data_extracted_path']
         
-        train_classes = json.loads(os.path.join(train_data_path, "metadata.json"))["classes"]
-        val_classes = json.loads(os.path.join(val_data_path, "metadata.json"))["classes"]
+        train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
+        val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
 
         if train_classes != val_classes:
         
