@@ -17,8 +17,8 @@ const AppBarContent = props => {
   const project_ID = useSelector((state) => {
     return state.baseState.latestProjectUrl
   })
-  const [projectName, setProjectName] = useState(projectList.length > 0 ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_name:'')
-  const [projectType, setProjectType] = useState(projectList.length > 0 ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_type:'')
+  const [projectName, setProjectName] = useState(projectList.length && projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_name ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_name:'')
+  const [projectType, setProjectType] = useState(projectList.length && projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_type ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_type:'')
   useEffect(() => {
     setProjectName(projectList.length > 0 ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_name:'')
     setProjectType(projectList.length > 0 ? projectList.find(obj => obj._id === localStorage.getItem('project_id')).project_type:'')
