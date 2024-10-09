@@ -1122,6 +1122,18 @@ def get_image_classification_dataset_info():
         
         data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
         
+        
+        if data_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        
         if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
             
             # split_name = request.form['split_name']
@@ -1256,6 +1268,16 @@ def get_object_detection_dataset_info():
         
         
         data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        if data_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
         
         if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
             
