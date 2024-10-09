@@ -57,7 +57,7 @@ export default function Page({params}) {
     console.log('dataSetList: ', dataSetList)
 
     useEffect(() => {
-        const onGetDataSetInfo = async () => {
+        const onGetObjectDataSetInfo = async () => {
           if (user && user?.email) {
             const formData = new FormData()
             formData.append('email', user.email)
@@ -74,7 +74,7 @@ export default function Page({params}) {
           }
         }
     
-        onGetDataSetInfo()
+        onGetObjectDataSetInfo()
     }, []);
     const handleViewSampleOpen = () => {
         setViewSampleSwitch(true);

@@ -12,6 +12,7 @@ import TableRow from '@mui/material/TableRow'
 import TableSortLabel from '@mui/material/TableSortLabel'
 import Paper from '@mui/material/Paper'
 import { visuallyHidden } from '@mui/utils'
+import DownloadIcon from '@mui/icons-material/Download'
 import Link from 'next/link'
 import { colors } from '@mui/material'
 
@@ -191,6 +192,11 @@ export default function ModelTrainingTable(props) {
                               onClick={() => viewDetailHandler(row.run_name)}
                             >View Detail</CustomSpan>
                           {/* </Link> */}
+                        </TableCell>
+                        <TableCell align='center'>
+                            <CustomSpan
+                              // onClick={() => viewDetailHandler(row.run_name)}
+                            ><DownloadIcon /></CustomSpan>
                         </TableCell>
                       </TableRow>
                     )

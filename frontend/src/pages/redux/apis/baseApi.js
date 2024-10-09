@@ -108,6 +108,22 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getObjectDataSetInfo: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-object-detection-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setDatasetInfo(data.data_info));
+          } catch (error) {}
+        },
+      }),
       getViewSample: builder.mutation({
         query(data) {
           return {
@@ -203,6 +219,7 @@ export const {
   useGetRunLogsMutation,
   useGetTrainingViewDetailMutation,
   useGetDataSetInfoMutation,
+  useGetObjectDataSetInfoMutation,
   useGetViewSampleMutation,
   useTrainObjectDetectionModelMutation
 } = baseApi;

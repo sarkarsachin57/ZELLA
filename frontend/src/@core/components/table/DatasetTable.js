@@ -44,6 +44,7 @@ function getComparator(order, orderBy) {
 }
 
 function EnhancedTableHead(props) {
+  
   const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, headCells } = props
 
   const createSortHandler = property => event => {
@@ -99,6 +100,11 @@ export default function DatasetTable(props) {
 
   const { headCells, rows } = props
 
+  const projectTypeLink = {
+    'Image Classification': 'dataset-detail',
+    'Object Detection': 'object-dataset-detail',
+  }
+  
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
     setOrder(isAsc ? 'desc' : 'asc')
@@ -178,9 +184,9 @@ export default function DatasetTable(props) {
                         <TableCell align='center'>{row.data_type}</TableCell>
                         <TableCell align='center'>{row.data_creation_time_str}</TableCell>
                         <TableCell align='center'>
-                          <Link href={`/dataset-detail/${row._id}`}>
+                          <Link href={`/${projectTypeLink[row.project_type]}/${row._id}`}>
                             <CustomSpan>View Detail</CustomSpan>
-                            </Link>
+                          </Link>
                         </TableCell>
                       </TableRow>
                     )

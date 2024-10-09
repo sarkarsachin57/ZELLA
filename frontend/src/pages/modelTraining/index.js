@@ -156,6 +156,12 @@ const ModelTraining = () => {
       disablePadding: false,
       label: 'Detail'
     },
+    {
+      id: 'download',
+      numeric: true,
+      disablePadding: false,
+      label: 'Download'
+    },
   ]
   // ============ Define the states <start> ============= **QmQ
   const user = useSelector(state => {
@@ -199,24 +205,23 @@ const ModelTraining = () => {
   const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
   const [ trainObjectDetectionModel ] = useTrainObjectDetectionModelMutation()
 
-  
-  useEffect(() => {
-    const onGetRunLogs = async () => {
-      if (user && user?.email) {
-        const formData = new FormData()
-        formData.append('email', user.email)
-        console.log('email: ',user.email)
-        formData.append('project_name', project_name)
-        console.log('project_name: ',project_name)
-        try {
-          const data =  await getRunLogs(formData)
-          setRunLosgList(data.data.run_history)
-          console.log('data: ',data.data)
-        } catch (error) {
-          toast.error('Something went wrong!');
-        }
+  const onGetRunLogs = async () => {
+    if (user && user?.email) {
+      const formData = new FormData()
+      formData.append('email', user.email)
+      console.log('email: ',user.email)
+      formData.append('project_name', project_name)
+      console.log('project_name: ',project_name)
+      try {
+        const data =  await getRunLogs(formData)
+        setRunLosgList(data.data.run_history)
+        console.log('data: ',data.data)
+      } catch (error) {
+        toast.error('Something went wrong!');
       }
     }
+  }
+  useEffect(() => {
     const onGetDataSetList = async () => {
       if (user && user?.email) {
         const formData = new FormData()
@@ -322,6 +327,7 @@ const ModelTraining = () => {
         setNumEpochs('10')
         setBatchSize('32')
         setLearningRate('0.01')
+        onGetRunLogs()
       }
     }
   }
