@@ -64,11 +64,6 @@ const offlineNavItemList = [
     path: '/modelTraining'
   },
   {
-    title: 'Object Detection',
-    icon: ManageSearchIcon,
-    path: '/object-detection'
-  },
-  {
     title: 'Model evaluation',
     icon: StarBorderIcon,
     path: '/modelEvaluation'
