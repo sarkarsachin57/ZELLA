@@ -1776,6 +1776,123 @@ def get_detailed_training_history():
 
 
 
+
+
+
+
+@app.route("/get_single_sample_visualization", methods=['POST'])
+def get_single_sample_visualization():
+    
+    logger.info(f"Get request for /get_single_sample_visualization")
+    
+    try:
+        
+        sample_path = request.form['sample_path']
+        project_name = request.form['project_name']
+        email = request.form['email']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, sample_path : {sample_path}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nsample_path : {sample_path}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({"user_id" : user_id, "project_name" : project_name})
+
+        if project_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Project does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        project_type = project_info["project_type"]
+
+        if project_type == "Object Detection":
+            metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
+            annotation = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".json")).read())
+            image = cv2.imread(sample_path)
+            for box, class_id in zip(annotation['bboxes'], annotation['class_ids']):
+
+                startX, startY, endX, endY = box
+                
+                bg_color = get_color_from_id(class_id+1)
+                text_color = isLightOrDark(bg_color)
+                class_name = metadata["classes"][class_id]
+
+                cv2.rectangle(image, (startX, startY), (endX, endY), bg_color, 1)
+                draw_bb_text(image,f" {class_name} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, bg_color)
+
+            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, os.path.basename(sample_path))
+            cv2.imwrite(save_path, image)
+        
+        if project_type == "Image Classification":
+            classname = os.path.basename(os.path.dirname(sample_path))
+            image = cv2.imread(sample_path)
+            cv2.putText(image, classname, (10, 10), cv2.FONT_HERSHEY_DUPLEX, 0.3, (255, 255, 255), 1)
+            
+            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, os.path.basename(sample_path))
+            
+            cv2.imwrite(save_path, image)
+
+        
+        res = {
+                "status": "success",   
+                "show_path" : save_path
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @app.route("/get-errors-logs")
 def get_error_logs():
     
