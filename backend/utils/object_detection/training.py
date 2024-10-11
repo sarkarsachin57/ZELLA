@@ -240,8 +240,8 @@ def ObjectDetectionTrainingPipeline(run_name,
         }
 
         class_report["Classes"] += ["Average"]
-        class_report["number of Images"] += [int(np.sum([image_count_dict[x] for x in class_list]))]
-        class_report["number of Instances"] += [int(np.sum([ins_count_dict[x] for x in class_list]))]
+        class_report["number_images"] += [int(np.sum([image_count_dict[x] for x in class_list]))]
+        class_report["number_instances"] += [int(np.sum([ins_count_dict[x] for x in class_list]))]
         class_report["Precision"] += [round(float(results.box.mp), 3)]
         class_report["Recall"] += [round(float(results.box.mr), 3)]
         class_report["MAP"] += [round(float(results.box.map50), 3)]
