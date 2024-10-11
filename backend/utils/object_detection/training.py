@@ -232,8 +232,8 @@ def ObjectDetectionTrainingPipeline(run_name,
         class_list = [str(results.names[i]) for i in range(len(results.names))]
         class_report = {
             "Classes" : class_list.copy(),
-            "number of Images" : [int(image_count_dict[x]) for x in class_list],
-            "number of Instances" : [int(ins_count_dict[x]) for x in class_list],
+            "number_images" : [int(image_count_dict[x]) for x in class_list],
+            "number_instances" : [int(ins_count_dict[x]) for x in class_list],
             "Precision" : np.round(results.box.p, 3).tolist(),
             "Recall" : np.round(results.box.r, 3).tolist(),
             "MAP" : np.round(results.box.ap50, 3).tolist(),
