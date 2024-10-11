@@ -145,7 +145,7 @@ def ObjectDetectionTrainingPipeline(run_name,
     
 
             def on_train_epoch_start(self, trainer):
-                self.model_path = trainer.best
+                self.model_path = str(trainer.best)
                 self.epoch = trainer.epoch + 1
                 self.epochs = trainer.epochs
                 self.epoch_start_time = time.time()
@@ -197,7 +197,7 @@ def ObjectDetectionTrainingPipeline(run_name,
                 # with open(self.log_file, "a") as f:
                 #     f.writelines(text)
 
-        callback = UltralyticsModelTrainingCallback(run_name, train_data_name, val_data_name, project_name, user_id)
+        callback = UltralyticsModelTrainingCallback(run_name, run_dir, train_data_name, val_data_name, project_name, user_id)
 
         model.add_callback("on_train_epoch_start", callback.on_train_epoch_start)
         model.add_callback("on_train_epoch_end", callback.on_train_epoch_end)

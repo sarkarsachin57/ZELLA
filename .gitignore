@@ -6,3 +6,5 @@ backend/vevn/*
 backend/virtual/*
 backend/runs/*
 */__pycache__/*
+backend/yolo11n.pt
+backend/training_od_logs.txt
