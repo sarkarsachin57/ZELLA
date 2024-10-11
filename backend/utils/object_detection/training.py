@@ -229,11 +229,11 @@ def ObjectDetectionTrainingPipeline(run_name,
         for class_id, ins_count in zip(class_ids, ins_counts):
             ins_count_dict[val_metadata["classes"][class_id]] = ins_count
             
-        class_list = [results.names[i] for i in range(len(results.names))]
+        class_list = [str(results.names[i]) for i in range(len(results.names))]
         class_report = {
             "Classes" : class_list.copy(),
-            "number of Images" : [image_count_dict[x] for x in class_list],
-            "number of Instances" : [ins_count_dict[x] for x in class_list],
+            "number of Images" : [int(image_count_dict[x]) for x in class_list],
+            "number of Instances" : [int(ins_count_dict[x]) for x in class_list],
             "Precision" : np.round(results.box.p, 3).tolist(),
             "Recall" : np.round(results.box.r, 3).tolist(),
             "MAP" : np.round(results.box.ap50, 3).tolist(),
@@ -242,9 +242,9 @@ def ObjectDetectionTrainingPipeline(run_name,
         class_report["Classes"] += ["Average"]
         class_report["number of Images"] += [int(np.sum([image_count_dict[x] for x in class_list]))]
         class_report["number of Instances"] += [int(np.sum([ins_count_dict[x] for x in class_list]))]
-        class_report["Precision"] += [round(results.box.mp, 3)]
-        class_report["Recall"] += [round(results.box.mr, 3)]
-        class_report["MAP"] += [round(results.box.map50, 3)]
+        class_report["Precision"] += [round(float(results.box.mp), 3)]
+        class_report["Recall"] += [round(float(results.box.mr), 3)]
+        class_report["MAP"] += [round(float(results.box.map50), 3)]
         
         update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
         mongodb['training_history'].update_many(update_query, {'$set' : {"classification_report" : class_report}})
