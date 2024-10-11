@@ -13,20 +13,21 @@ export default async function handler(req, res) {
 
   try {
     const absolutePath = path.join(process.cwd(), 'backend', filePath); // Adjust this to match your backend directory structure
-    console.log("file Path : ", absolutePath)
-    if (!fs.existsSync(absolutePath)) {
+    const modifiedPath = absolutePath.replace('/frontend', '')
+    console.log("file Path : ", modifiedPath)
+    if (!fs.existsSync(modifiedPath)) {
       return res.status(404).json({ error: 'File not found.' });
     }
 
-    const stat = fs.statSync(absolutePath);
-    const mimeType = mime.lookup(absolutePath);  // Get the correct mime type
+    const stat = fs.statSync(modifiedPath);
+    const mimeType = mime.lookup(modifiedPath);  // Get the correct mime type
 
     // Set headers to trigger the file download
     res.setHeader('Content-Length', stat.size);
     res.setHeader('Content-Type', mimeType || 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename=${path.basename(filePath)}`);
 
-    const fileStream = fs.createReadStream(absolutePath);
+    const fileStream = fs.createReadStream(modifiedPath);
     fileStream.pipe(res);
   } catch (error) {
     res.status(500).json({ error: 'Error downloading the file.' });
