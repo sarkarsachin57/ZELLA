@@ -15,7 +15,7 @@ import FormControl from '@mui/material/FormControl'
 import DotsVertical from 'mdi-material-ui/DotsVertical'
 import Typography from '@mui/material/Typography'
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
-import WifiRoundedIcon from '@mui/icons-material/WifiRounded'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded'
 import { LoadingButton } from 'src/@core/components/button/LoadingButton'
 
@@ -41,7 +41,7 @@ const SettingPanelLayout = props => {
               {children}
             </Grid>
             <Grid item xs={12} sm={2} >
-              <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+              <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                 <Grid item xs={12} sm={12}>
                   <LoadingButton
                     variant='contained'
@@ -57,24 +57,14 @@ const SettingPanelLayout = props => {
               </Grid>
               {
                 _props.refreshBtn?(
-                  <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                  <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{marginTop: '30px'}} >
                     <Grid item xs={12} sm={12}>
-                      <LoadingButton
-                        variant='contained'
-                        className={CGroups.setting_button}
-                        sx={{ mt: 1, padding: '8px' }}
-                        disableElevation
-                        onClick={_props.onGetRunLogs}
-                        loading={_props.isLoading}
-                      >
-                        {_props.refreshBtn}
-                      </LoadingButton>
                       <IconButton 
                         aria-label = "refresh" 
                         color='primary'
                         onClick={_props.onGetRunLogs}
                       >
-
+                        <RefreshIcon />
                       </IconButton>
                     </Grid>
                   </Grid>

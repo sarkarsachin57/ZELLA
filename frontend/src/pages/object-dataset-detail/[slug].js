@@ -7,6 +7,7 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import Tooltip from '@mui/material/Tooltip'
 import { toast } from 'react-toastify'
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
@@ -96,7 +97,9 @@ export default function Page({params}) {
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
                              Image Balance
                         </Typography>
-                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} />
+                        <Tooltip title = {dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} placement='top-end'>
+                            <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} />
+                        </Tooltip>
                     </Grid>
                 </Grid>
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
@@ -109,7 +112,9 @@ export default function Page({params}) {
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
                             Instances Balance
                         </Typography>
-                        <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} />
+                        <Tooltip title = {dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} placement='top-end'>
+                            <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} />
+                        </Tooltip>
                     </Grid>
                     <Grid item xs={12} sm={3}>
                         <LoadingButton
