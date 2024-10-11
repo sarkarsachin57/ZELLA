@@ -194,9 +194,14 @@ export default function ModelTrainingTable(props) {
                           {/* </Link> */}
                         </TableCell>
                         <TableCell align='center'>
+                          <a href={`/api/download?filePath=${encodeURIComponent(row.model_path)}`} >
                             <CustomSpan
                               // onClick={() => viewDetailHandler(row.run_name)}
-                            ><DownloadIcon /></CustomSpan>
+                            >
+                              <DownloadIcon />
+                            </CustomSpan>
+                          </a>
+                            
                         </TableCell>
                       </TableRow>
                     )

@@ -202,6 +202,7 @@ const CreateProject = () => {
               >
                 <MenuItem value={'Image Classification'}> {'Image Classification'} </MenuItem>
                 <MenuItem value={'Object Detection'}> {'Object Detection'} </MenuItem>
+                <MenuItem value={'Semantic Segmentation'}> {'Semantic Segmentation'} </MenuItem>
               </Select>
             </FormControl>
           </Grid>

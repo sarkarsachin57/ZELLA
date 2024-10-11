@@ -146,11 +146,11 @@ export default function ClassificationTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'n_sample'} scope='row' style={{ minWidth: 120 }}>
+                  <TableCell component='th' id={'number_images'} scope='row' style={{ minWidth: 120 }}>
                   Number of Images
                   </TableCell>
 
-                  {data.n_sample?.map((item, index) => (
+                  {data.number_images?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row' align={'center'} >
                       {item}
                     </TableCell>
@@ -162,10 +162,10 @@ export default function ClassificationTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'TP'} scope='row' style={{ minWidth: 120 }}>
+                  <TableCell component='th' id={'number_instances'} scope='row' style={{ minWidth: 120 }}>
                   Number of Instances
                   </TableCell>
-                  {data.TP?.map((item, index) => (
+                  {data.number_instances?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row' align={'center'} >
                       {item}
                     </TableCell>
