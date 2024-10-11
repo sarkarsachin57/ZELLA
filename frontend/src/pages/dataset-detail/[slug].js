@@ -66,7 +66,7 @@ export default function Page({params}) {
             formData.append('show_samples', '0')
             try {
               const res = await getDataSetInfo(formData)
-              console.log(res.data.data_info)
+              console.log('image Classification infor: ',res.data.data_info)
               setDatasetInfor(res.data.data_info)
             } catch (error) {
               toast.error('Something went wrong!');

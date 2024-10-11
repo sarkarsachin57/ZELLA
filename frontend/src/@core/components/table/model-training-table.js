@@ -175,7 +175,7 @@ export default function ModelTrainingTable(props) {
                         <TableCell component='th' id={labelId} scope='row' padding='none'>
                           {index+1}
                         </TableCell>
-                        <TableCell align='center'>{row.val_data_name}</TableCell>
+                        <TableCell align='center'>{row.train_data_name}</TableCell>
                         <TableCell align='center'>{row.val_data_name}</TableCell>
                         <TableCell align='center'>{row.run_name}</TableCell>
                         <TableCell align='center'>{row.model_family}</TableCell>
