@@ -1,6 +1,7 @@
 import CGroups from '../../../styles/pages/settings.module.scss'
 
 import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux'
 import clsx from 'clsx';
 import { styled, Box, Theme } from '@mui/system';
 import ModalUnstyled from '@mui/base/ModalUnstyled';
@@ -24,6 +25,15 @@ const BackdropUnstyled = React.forwardRef((props, ref) => {
     />
   );
 });
+const CardImage = styled('img')(({ theme }) => ({
+  padding: '0px',
+  margin: '0px',
+  borderRadius: '10px',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  objectPosition: 'center'
+}))
 
 const Modal = styled(ModalUnstyled)`
   position: fixed;
@@ -50,20 +60,17 @@ const Backdrop = styled(BackdropUnstyled)`
 
 
 
-export default function VideoModal(props) {
-
+export default function SimpleImageModal(props) {
+    const baseUrl = `${process.env.REACT_APP_SERVER_ENDPOINT}/`;
+    const simpleImageUrl = useSelector((state) => {
+      return state.baseState.simpleImageUrl
+    })
     const {
       isOpen = false,
       onHandleModalClose,
-      videoInfo = {},
-      // onHandleModalOpen,
-      onHandleSubmit,
-      btnName="DONE",
-      title,
-    //   width = 500,
     } = props;
     const style = (theme) => ({
-    //   width: width,
+      width: '1000px',
       bgcolor: theme.palette.mode === 'dark' ? '#0A1929' : 'white',
       border: '2px solid currentColor',
       padding: '16px 24px 24px 24px',
@@ -74,41 +81,21 @@ export default function VideoModal(props) {
 
     return (
         <div>
+          <Modal
+              aria-labelledby="unstyled-modal-title"
+              aria-describedby="unstyled-modal-description"
+              open={isOpen}
+              onClose={onHandleModalClose}
+              BackdropComponent={Backdrop}
 
-        <Modal
-            aria-labelledby="unstyled-modal-title"
-            aria-describedby="unstyled-modal-description"
-            open={isOpen}
-            onClose={onHandleModalClose}
-            BackdropComponent={Backdrop}
-
-        >
-            <Box sx={style}>
-                <Box sx={{textAlign: 'center'}}>
-                    <Typography sx={{color: 'white'}}>
-                        { videoInfo.file_name }
-                    </Typography>
-                    <IconButton aria-label="close"
-                        onClick={onHandleModalClose}
-                        sx={{ position: 'absolute', right: 8, top: 8,}}
-                    >
-                    <CloseIcon />
-                    </IconButton>
-                </Box>
-                <CardMedia
-                    sx={{ marginTop: '32px', borderRadius: '8px'}}
-                    component="video"
-                    // className={ CGroups.cardMedia }
-                    src={`http://localhost:5000/${videoInfo.file_path}`}
-                    // src="http://localhost:5000/saved-videos/343473f346da/343473f346da_22-02-2023_16-52-18.avi"
-                    autoPlay
-                    allow="autoPlay"
-                    controls
-                    // image={"/videos/222.webm?autoplay=1&mute"}
-                    alt="camera video stream"
-                />
-            </Box>
-        </Modal>
+          >
+              <Box sx={style}>
+                  <CardImage 
+                    src = {baseUrl + simpleImageUrl} 
+                    alt='pic' 
+                  />
+              </Box>
+          </Modal>
         </div>
     );
 }

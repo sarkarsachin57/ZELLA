@@ -8,7 +8,8 @@ const initialState ={
     run_logs_list: [],
     history: undefined,
     datasetInfo: {},
-    sample_paths: []
+    sample_paths: [],
+    simpleImageUrl: ''
 }
 
 export const baseSlice = createSlice({
@@ -43,6 +44,9 @@ export const baseSlice = createSlice({
         setViewSample: (state, action) => {
             state.sample_paths = action.payload
         },
+        setSimpleImageUrl: (state, action) => {
+            state.simpleImageUrl = action.payload
+        },
     }
 });
 
@@ -56,7 +60,8 @@ export const {
     setRunLosgList,
     setTrainingViewDetail,
     setDatasetInfo,
-    setViewSample
+    setViewSample,
+    setSimpleImageUrl
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

@@ -16,7 +16,11 @@ import CustomChart from 'src/@core/components/chart/customChart'
 import { LoadingButton } from 'src/@core/components/button/LoadingButton'
 import ViewObjectSampleModal from 'src/views/modals/viewObjectSampleModal'
 
-import { useGetObjectDataSetInfoMutation, useGetObjectViewSampleMutation } from 'src/pages/redux/apis/baseApi'
+import { 
+    useGetObjectDataSetInfoMutation, 
+    useGetObjectViewSampleMutation, 
+    useGetSimpleImageUrlMutation,
+} from 'src/pages/redux/apis/baseApi'
 import CGroups from '../../../styles/pages/settings.module.scss'
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
@@ -38,6 +42,7 @@ export default function Page({params}) {
 
     const [ getObjectDataSetInfo ] = useGetObjectDataSetInfoMutation()
     const [ getObjectViewSample ] = useGetObjectViewSampleMutation()
+    const [ getSimpleImageUrl ] = useGetSimpleImageUrlMutation()
     
     const router = useRouter();
     const { slug } = router.query;
@@ -164,6 +169,7 @@ export default function Page({params}) {
                 data_name = {dataSetList.find(obj => obj._id === slug).data_name}
                 class_data = {dataset_info === undefined ? null : dataset_info.class_list}
                 getObjectViewSample = {getObjectViewSample}
+                getSimpleImageUrl = {getSimpleImageUrl}
             />
         </Box>
     )

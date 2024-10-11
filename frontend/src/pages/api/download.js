@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   try {
     const absolutePath = path.join(process.cwd(), 'backend', filePath); // Adjust this to match your backend directory structure
     const modifiedPath = absolutePath.replace('/frontend', '')
+    // const modifiedPath = `${process.env.REACT_APP_SERVER_ENDPOINT}/` + filePath
     console.log("file Path : ", modifiedPath)
     if (!fs.existsSync(modifiedPath)) {
       return res.status(404).json({ error: 'File not found.' });

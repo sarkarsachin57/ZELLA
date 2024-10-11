@@ -19,7 +19,7 @@ import Pagination from '@mui/material/Pagination';
 import DatasetCard from 'src/views/settings/DatasetCard'
 import { LoadingButton } from 'src/@core/components/button/LoadingButton'
 import CGroups from '../../../styles/pages/settings.module.scss'
-
+import SimpleImageModal from './SimpleImageModal'
 
 export default function ViewObjectSampleModal (props) {
   const {
@@ -31,10 +31,11 @@ export default function ViewObjectSampleModal (props) {
     project_name,
     data_name,
     class_data,
-    getObjectViewSample
+    getObjectViewSample,
+    getSimpleImageUrl
   } = props
 
-  const [ class_name, setClassName ] = useState('');
+  const [ isChildModalOpen, setIsChildModalOpen ] = useState(false);
   const [ sample_image_rul, setSampleImageUrl ] = useState([]);
   const [ total_img_num, setTotalImgNum ] = useState('');
 
@@ -74,6 +75,14 @@ export default function ViewObjectSampleModal (props) {
     setPageNum(value);
     handleViewSample()
   };
+  
+  const handleSimpleImageOpen = () => {
+    setIsChildModalOpen(true);
+  }
+
+  const handleSimpleImageClose = () => {
+    setIsChildModalOpen(false);
+  }
   return (
     <CustomModalLayout
       width = {width}
@@ -118,13 +127,23 @@ export default function ViewObjectSampleModal (props) {
               sample_image_rul.map((item, index) => {
                 console.log(item)
                 return (<Grid item xs={12} sm={1.5}>
-                          <DatasetCard url = {item} />
+                          <DatasetCard 
+                            url = {item} 
+                            getSimpleImageUrl = {getSimpleImageUrl}
+                            email={email}
+                            project_name={project_name}
+                            handleSimpleImageOpen={handleSimpleImageOpen}
+                          />
                         </Grid>)
               })
               :null
             }
           </Grid>
         </CardContent>
+        <SimpleImageModal 
+          isOpen={isChildModalOpen}
+          onHandleModalClose={handleSimpleImageClose}
+        />
       </DialogContent>
     </CustomModalLayout>
   )

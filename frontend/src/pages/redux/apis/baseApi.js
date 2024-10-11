@@ -9,7 +9,8 @@ import {
   setRunLosgList,
   setTrainingViewDetail,
   setDatasetInfo,
-  setViewSample
+  setViewSample,
+  setSimpleImageUrl
 } from '../features/baseSlice';
 
 /**
@@ -156,6 +157,22 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getSimpleImageUrl: builder.mutation({
+        query(data) {
+          return {
+            url: 'get_single_sample_visualization',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setSimpleImageUrl(data.show_path));
+          } catch (error) {}
+        },
+      }),
 /**
  * 👇 @file handles url
  */
@@ -238,5 +255,6 @@ export const {
   useGetObjectDataSetInfoMutation,
   useGetViewSampleMutation,
   useGetObjectViewSampleMutation,
-  useTrainObjectDetectionModelMutation
+  useTrainObjectDetectionModelMutation,
+  useGetSimpleImageUrlMutation
 } = baseApi;
