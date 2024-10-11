@@ -28,7 +28,8 @@ import { toast } from 'react-toastify'
 import { v4 as uuid } from 'uuid'
 
 import FileInput from 'src/views/commons/FileInput'
-import InitializeVideoModal from 'src/views/modals/dynamicVideoInitModal'
+import ImageClassModal from 'src/views/modals/ImageClassModal'
+import ObjectDetectionModal from 'src/views/modals/ObjectDetectionModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
 import ModelTrainingTable from 'src/@core/components/table/model-training-table'
@@ -191,6 +192,7 @@ const ModelTraining = () => {
   const [dataset_list, setDatasetList] = useState(useSelector(state => state.baseState.dataSetList))
   const [isLoading, setIsLoading] = useState(false)
   const [isTrainModalOpen, setTrainModalSwitch] = useState(false)
+  const [isObjectDetectionModalOpen, setObjectDetectionModalSwitch] = useState(false)
   const [training_detail_infor, setTrainingDetailInfor] = useState(undefined)
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
@@ -209,9 +211,7 @@ const ModelTraining = () => {
     if (user && user?.email) {
       const formData = new FormData()
       formData.append('email', user.email)
-      console.log('email: ',user.email)
       formData.append('project_name', project_name)
-      console.log('project_name: ',project_name)
       try {
         const data =  await getRunLogs(formData)
         setRunLosgList(data.data.run_history)
@@ -280,11 +280,18 @@ const ModelTraining = () => {
   }
 
   const handleTrainDetailModalOpen = () => {
-    setTrainModalSwitch(true);
+    if(project_type === 'Image Classification'){
+      setTrainModalSwitch(true);
+    }
+
+    else if(project_type === 'Object Detection'){
+      setObjectDetectionModalSwitch(true)
+    }
   }
 
   const handleTrainDetailModalClose = () => {
     setTrainModalSwitch(false);
+    setObjectDetectionModalSwitch(false)
   }
 
 
@@ -360,6 +367,8 @@ const ModelTraining = () => {
         isLoading={isLoading}
         headerTitle='Model Training'
         select_tracking_mode={true}
+        refreshBtn={'Refresh'}
+        onGetRunLogs={onGetRunLogs}
       >
         <Grid container spacing={6}>
           <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
@@ -501,11 +510,19 @@ const ModelTraining = () => {
           viewDetailHandler = {viewDetailHandler}
         />
       </CardBox>
-      <InitializeVideoModal
+      <ImageClassModal
         width={1200}
         isOpen={isTrainModalOpen}
         onHandleModalClose = {handleTrainDetailModalClose}
         data = {training_detail_infor}
+        projectType={project_type}
+      />
+      <ObjectDetectionModal
+        width={1200}
+        isOpen={isObjectDetectionModalOpen}
+        onHandleModalClose = {handleTrainDetailModalClose}
+        data = {training_detail_infor}
+        projectType={project_type}
       />
 
     </Box>

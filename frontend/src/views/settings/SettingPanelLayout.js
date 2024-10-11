@@ -40,17 +40,46 @@ const SettingPanelLayout = props => {
             <Grid item xs={12} sm={10}>
               {children}
             </Grid>
-            <Grid item xs={12} sm={2}>
-              <LoadingButton
-                variant='contained'
-                className={CGroups.setting_button}
-                sx={{ mt: 1, padding: '8px' }}
-                disableElevation
-                onClick={_props.btnAction}
-                loading={_props.isLoading}
-              >
-                {_props.btnTitle}
-              </LoadingButton>
+            <Grid item xs={12} sm={2} >
+              <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                <Grid item xs={12} sm={12}>
+                  <LoadingButton
+                    variant='contained'
+                    className={CGroups.setting_button}
+                    sx={{ mt: 1, padding: '8px' }}
+                    disableElevation
+                    onClick={_props.btnAction}
+                    loading={_props.isLoading}
+                  >
+                    {_props.btnTitle}
+                  </LoadingButton>
+                </Grid>
+              </Grid>
+              {
+                _props.refreshBtn?(
+                  <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                    <Grid item xs={12} sm={12}>
+                      <LoadingButton
+                        variant='contained'
+                        className={CGroups.setting_button}
+                        sx={{ mt: 1, padding: '8px' }}
+                        disableElevation
+                        onClick={_props.onGetRunLogs}
+                        loading={_props.isLoading}
+                      >
+                        {_props.refreshBtn}
+                      </LoadingButton>
+                      <IconButton 
+                        aria-label = "refresh" 
+                        color='primary'
+                        onClick={_props.onGetRunLogs}
+                      >
+
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                ): null
+              }
             </Grid>
           </Grid>
         </CardContent>

@@ -10,11 +10,11 @@ import Typography from '@mui/material/Typography';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import DescriptionIcon from '@mui/icons-material/Description';
 
-import HistoryTable from 'src/@core/components/table/history-table'
+import HistoryTable from 'src/@core/components/table/object-detection-history-table'
 import ClassificationTable from 'src/@core/components/table/classification-table'
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 
-export default function InitializeModal (props) {
+export default function ObjectDetectionModal (props) {
   const {
     width,
     isOpen,

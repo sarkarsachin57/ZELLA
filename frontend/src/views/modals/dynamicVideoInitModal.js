@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 
-const NoSSRIntializeModal = dynamic(() => import("./InitializeVideoModal"), {
+const NoSSRIntializeModal = dynamic(() => import("./ImageClassModal"), {
   ssr: false,
 });
 
