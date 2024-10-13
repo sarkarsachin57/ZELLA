@@ -15,7 +15,7 @@ pip install Flask==2.0.3 Flask-Cors==3.0.10 Flask-JSGlue==0.3.1 flask-ngrok==0.0
 pip install ftfy regex
 pip install git+https://github.com/openai/CLIP.git
 pip install apricot-select inplace-abn timm visdom
-
+pip install segmentation-models-pytorch
 
 '''
 
