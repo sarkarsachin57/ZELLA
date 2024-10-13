@@ -486,7 +486,7 @@ def train_model(run_name, train_data_name, val_data_name, project_name, user_id,
     # Load the best model weights
     if best_model_wts is not None:
         model.load_state_dict(best_model_wts)
-        torch.save(best_model_wts, )
+        torch.save(best_model_wts, model_path)
         print(f'Best validation accuracy: {best_val_acc:.4f}')
     
     # Final evaluation on the validation set using the best model

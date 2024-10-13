@@ -249,3 +249,7 @@ def ObjectDetectionTrainingPipeline(run_name,
         update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
         mongodb['training_history'].update_many(update_query, {'$set' : {"classification_report" : class_report}})
 
+        
+        update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
+        mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "completed!"}})
+

@@ -32,6 +32,8 @@ sys.path.append("utils")
 
 from utils.image_classification.training import *
 from utils.object_detection.training import *
+from utils.semantic_segmentation.training import * 
+
 
 # Thread(target=AutoPurge, args=(6, 2*24)).start()
 
@@ -1652,6 +1654,119 @@ def train_object_detection_model():
         logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
+
+
+@app.route("/train_semantic_segmentation_model", methods=['POST'])
+def train_semantic_segmentation_model():
+    
+    logger.info(f"Get request for /train_semantic_segmentation_model")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        train_data_name =  request.form['train_data_name']
+        val_data_name =  request.form['val_data_name']
+        run_name = request.form['run_name']
+        model_family = request.form['model_family']
+        model_name = request.form['model_name']
+        training_mode = request.form['training_mode']
+        num_epochs = request.form['num_epochs']
+        batch_size = request.form['batch_size']
+        learning_rate = request.form['learning_rate']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        
+        num_epochs = int(num_epochs)
+        batch_size = int(batch_size)
+        learning_rate = float(learning_rate)
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+
+
+        run_record = mongodb["run_records"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
+        if run_record is not None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Run Name exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+        project_type = project_info['project_type']
+        
+        train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
+        train_data_path = train_data_meta['data_extracted_path']
+        
+        val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
+        val_data_path = val_data_meta['data_extracted_path']
+        
+        train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
+        val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+
+        if train_classes != val_classes:
+        
+            res = {
+                    "status": "fail",
+                    "message": f"Train and Validation data classes are not same!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        
+        Thread(target=SemanticSegmentationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+
+        
+        training_start_time = datetime.now()
+        training_start_time_str = training_start_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+
+        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
+                                        "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                         "learning_rate" : learning_rate, "model_path" : "", "training_status" : "training"})
+
+            
+        res = {
+                "status": "success",
+                "message": "Training started successfully!"                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
