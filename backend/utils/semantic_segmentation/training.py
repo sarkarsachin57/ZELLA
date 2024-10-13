@@ -9,6 +9,7 @@ def SemanticSegmentationTrainingPipeline(run_name,
                                     val_data_name,
                                     project_name,
                                     user_id,
+                                    model_arch,
                                     model_family,
                                     model_name,
                                     training_mode,
@@ -341,7 +342,7 @@ def SemanticSegmentationTrainingPipeline(run_name,
         num_classes = 1
     
     model = smp.create_model(
-                arch=model_family,                     # name of the architecture, e.g. 'Unet'/ 'FPN' / etc. Case INsensitive!
+                arch=model_arch,                     # name of the architecture, e.g. 'Unet'/ 'FPN' / etc. Case INsensitive!
                 encoder_name=model_name,
                 encoder_weights=None if training_mode == "scratch" else "imagenet",
                 in_channels=3,

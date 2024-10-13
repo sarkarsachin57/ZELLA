@@ -1668,6 +1668,7 @@ def train_semantic_segmentation_model():
         train_data_name =  request.form['train_data_name']
         val_data_name =  request.form['val_data_name']
         run_name = request.form['run_name']
+        model_arch = request.form['model_arch']
         model_family = request.form['model_family']
         model_name = request.form['model_name']
         training_mode = request.form['training_mode']
@@ -1675,9 +1676,9 @@ def train_semantic_segmentation_model():
         batch_size = request.form['batch_size']
         learning_rate = request.form['learning_rate']
 
-        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_arch : {model_arch}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
             
-        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_arch : {model_arch}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
         
         num_epochs = int(num_epochs)
         batch_size = int(batch_size)
@@ -1734,7 +1735,7 @@ def train_semantic_segmentation_model():
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
         
-        Thread(target=SemanticSegmentationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+        Thread(target=SemanticSegmentationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_arch,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
 
         
         training_start_time = datetime.now()
@@ -1742,7 +1743,7 @@ def train_semantic_segmentation_model():
         
 
         mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
-                                        "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                        "project_name" : project_name, "user_id" : user_id, "model_arch" : model_arch, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
                                          "learning_rate" : learning_rate, "model_path" : "", "training_status" : "training"})
 
             
