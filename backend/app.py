@@ -1409,6 +1409,169 @@ def get_object_detection_dataset_info():
 
 
 
+@app.route("/get-semantic-segmentation-dataset-info", methods=['POST'])
+def get_semantic_segmentation_dataset_info():
+    
+    logger.info(f"Get request for /get-semantic-segmentation-dataset-info")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name = request.form['data_name']
+        show_samples = request.form['show_samples']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        if data_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+            
+            # split_name = request.form['split_name']
+            # class_name = request.form['class_name']
+            page_number = request.form['page_number']
+            
+            logger.info(f'Params - page_number : {page_number}')
+            
+            frontend_inputs += f"\npage_number : {page_number}"
+            
+            samples_per_page = 24
+            page_number = int(page_number)
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], "images", x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], "images"))]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "number_of_samples" : number_of_samples,
+                    "sample_paths": sample_paths,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+                      
+                
+        if data_info["data_type"] == "Labeled":
+            
+            data_dir = data_info["data_extracted_path"]
+            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+            
+            class_list = metadata["classes"]
+            
+            ann_dir = os.path.join(data_dir, "annotations")
+            image_class_dist = {class_name : 0 for class_name in metadata["classes"]}
+            pixel_class_dist = {class_name : 0 for class_name in metadata["classes"]}
+            for ann_file in tqdm(os.listdir(ann_dir)):
+                ann_path = os.path.join(ann_dir, ann_file)
+                class_ids, class_counts = np.unique(segmap, return_counts=True)
+                for class_id, class_count in zip(class_ids, class_counts):
+                    class_name = metadata["classes"][int(class_id)]
+                    image_class_dist[class_name] += 1
+                    pixel_class_dist[class_name] += int(class_count)
+                            
+                        
+            total_images = len(os.listdir(os.path.join(data_dir, "images")))
+            total_pixels = sum(list(pixel_class_dist.values()))
+            
+            image_wise_class_balance_score = class_distribution_score(np.array([image_class_dist[class_name] for class_name in class_list]))
+            pixel_wise_class_balance_score = class_distribution_score(np.array([pixel_class_dist[class_name] for class_name in class_list]))
+
+            
+            res = {
+                    "status": "success",
+                    "data_info": {
+                        "class_list" : class_list,
+                        "total_images": total_images,
+                        "total_pixels": total_pixels,
+                        "image_wise_class_balance_score": image_wise_class_balance_score,
+                        "pixel_wise_class_balance_score" : pixel_wise_class_balance_score,
+                        "image_dist_fig" : {
+                                "x": list(image_class_dist.keys()),
+                                "y": list(image_class_dist.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Images",
+                                "title": "Data Class Distribution",
+                            },
+                        "pixels_dist_fig" : {
+                                "x": list(pixel_class_dist.keys()),
+                                "y": list(pixel_class_dist.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Instances",
+                                "title": "Data Class Distribution",
+                            },
+                    }
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        
+        if data_info["data_type"] == "Unlabeled":
+            
+            page_number = request.form['page_number']
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "sample_paths": sample_paths,
+                    "number_of_samples" : number_of_samples,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+            
+            
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
 
 @app.route("/train_image_classification_model", methods=['POST'])
 def train_image_classification_model():
@@ -1964,6 +2127,26 @@ def get_single_sample_visualization():
             image = cv2.imread(sample_path)
             cv2.putText(image, classname, (10, 10), cv2.FONT_HERSHEY_DUPLEX, 0.3, (255, 255, 255), 1)
             
+            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, os.path.basename(sample_path))
+            
+            cv2.imwrite(save_path, image)
+            
+        if project_type == "Semantic Segmentation":
+            ann_path =  os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".npy")
+            image = cv2.imread(sample_path)
+            segmap = np.load(ann_path)
+            
+            segmap_vis = np.zeros_like(image)
+            for class_id, class_name in enumerate(metadata["classes"]):
+                color = get_color_from_id(class_id+1) 
+                segmap_vis[segmap.astype(int) == class_id] = color
+
+            alpha = 0.5
+            beta = 1 - alpha
+            dst = cv2.addWeighted(image, alpha, segmap_vis, beta, 0.0)
+
             save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
