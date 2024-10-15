@@ -241,7 +241,7 @@ export const baseApi = createApi({
       trainSemanticSegmentationModel: builder.mutation({
         query(data) {
           return {
-            url: 'train_object_detection_model',
+            url: 'train_semantic_segmentation_model',
             method: 'POST',
             body: data
           }
