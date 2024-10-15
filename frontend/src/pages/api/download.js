@@ -13,6 +13,8 @@ export default async function handler(req, res) {
 
   try {
     const absolutePath = path.join(process.cwd(), 'backend', filePath); // Adjust this to match your backend directory structure
+    console.log("absolutePath: ", absolutePath)
+    // const modifiedPath = absolutePath
     const modifiedPath = absolutePath.replace('/frontend', '')
     // const modifiedPath = `${process.env.REACT_APP_SERVER_ENDPOINT}/` + filePath
     console.log("file Path : ", modifiedPath)
