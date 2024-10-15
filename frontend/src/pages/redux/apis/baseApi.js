@@ -238,6 +238,15 @@ export const baseApi = createApi({
           }
         },
       }),
+      trainSemanticSegmentationModel: builder.mutation({
+        query(data) {
+          return {
+            url: 'train_object_detection_model',
+            method: 'POST',
+            body: data
+          }
+        },
+      }),
       
     }),
 });
@@ -256,5 +265,6 @@ export const {
   useGetViewSampleMutation,
   useGetObjectViewSampleMutation,
   useTrainObjectDetectionModelMutation,
+  useTrainSemanticSegmentationModelMutation,
   useGetSimpleImageUrlMutation
 } = baseApi;

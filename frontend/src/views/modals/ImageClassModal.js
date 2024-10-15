@@ -12,6 +12,13 @@ import DescriptionIcon from '@mui/icons-material/Description';
 
 import HistoryTable from 'src/@core/components/table/history-table'
 import ClassificationTable from 'src/@core/components/table/classification-table'
+
+import ObjectHistoryTable from 'src/@core/components/table/object-detection-history-table'
+import ObjectClassificationTable from 'src/@core/components/table/object-detection-classification-table'
+
+import SegmentationHistoryTable from 'src/@core/components/table/segmentation-history-table'
+import SegmentationClassificationTable from 'src/@core/components/table/segmentation-classification-table'
+
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 
 export default function ImageClassModal (props) {
@@ -21,11 +28,20 @@ export default function ImageClassModal (props) {
     isLoading,
     onHandleModalClose,
     data,
+    projectType,
     ...rest
   } = props
-  console.log('data: ', data)
-  
-  
+  console.log('project_type: ', projectType)
+  const HistoryType = {
+    "Image Classification":<HistoryTable data = { data === undefined ? [] : data.history } />,
+    "Object Detection":<ObjectHistoryTable data = { data === undefined ? [] : data.history } />,
+    "Semantic Segmentation":<SegmentationHistoryTable data = { data === undefined ? [] : data.history } />,
+  }
+  const ClassificationType = {
+    "Image Classification":<ClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
+    "Object Detection":<ObjectClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
+    "Semantic Segmentation":<SegmentationClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
+  }
   const ref = useRef(null)
   const videoRef = useRef(null)
 
@@ -58,9 +74,10 @@ export default function ImageClassModal (props) {
           justifyContent: 'center',
           position: 'relative',
         }}>
-          <HistoryTable
-            data = { data === undefined ? [] : data.history }
-          />
+          {
+            projectType??HistoryType[projectType]?
+            (HistoryType[projectType]): null
+          }
         </CardContent>
         <SettingPanelHeader icon={<DescriptionIcon />} title={'Classification Report'} />
         <CardContent
@@ -71,11 +88,10 @@ export default function ImageClassModal (props) {
           justifyContent: 'center',
           position: 'relative',
         }}>
-          <Box sx={{textAlign: 'center'}}>
-            <ClassificationTable 
-              data =  {data === undefined ? [] : data.classification_report}
-            />
-          </Box>
+          {
+            projectType??ClassificationTable[projectType]?
+            (ClassificationType[projectType]): null
+          }
         </CardContent>
       </DialogContent>
     </CustomModalLayout>

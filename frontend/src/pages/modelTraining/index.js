@@ -29,7 +29,6 @@ import { v4 as uuid } from 'uuid'
 
 import FileInput from 'src/views/commons/FileInput'
 import ImageClassModal from 'src/views/modals/ImageClassModal'
-import ObjectDetectionModal from 'src/views/modals/ObjectDetectionModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
 import ModelTrainingTable from 'src/@core/components/table/model-training-table'
@@ -41,14 +40,44 @@ import {
   useGetRunLogsMutation,
   useGetTrainingViewDetailMutation,
   useGetDataSetListMutation,
-  useTrainObjectDetectionModelMutation
+  useTrainObjectDetectionModelMutation,
+  useTrainSemanticSegmentationModelMutation
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
+  const defaultValues = {
+    'Image Classification':{
+      'num_epochs' : 10,
+      'batch_size' : 32,
+      'learning_rate' : 0.01
+    },
+    'Object Detection':{
+      'num_epochs' : 10,
+      'batch_size' : 32,
+      'learning_rate' : 0.01
+    },
+    'Semantic Segmentation':{
+      'num_epochs' : 3,
+      'batch_size' : 2,
+      'learning_rate' : 0.0001
+    }
+  }
   const model_family_list = {
     'Image Classification': ['ResNet','VGGNet','DenseNet','MobileNet','EfficientNet','ShuffleNet','MNasNet','SqueezeNet','Others'],
-    'Object Detection': ['YOLOv3','YOLOv5','YOLOv8','YOLOv9','YOLOv10','YOLOv11','RT-DETR']
+    'Object Detection': ['YOLOv3','YOLOv5','YOLOv8','YOLOv9','YOLOv10','YOLOv11','RT-DETR'],
+    'Semantic Segmentation': ["ResNet", "ResNeSt", "GERNet", "SE-Net", "DenseNet", "Inception", "EfficientNet", "MobileNet", "VGG", "MixVisualTransformer", "MobileOne", "DPN"]
   }
+  const model_archs = [
+    "UNet",
+    "UNetPlusPlus",
+    "FPN",
+    "PSPNet",
+    "DeepLabV3",
+    "DeepLabV3Plus",
+    "LinkNet",
+    "MANet",
+    "PAN"
+]
   const model_name_list = {
     'Image Classification': {
       'ResNet': ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'],
@@ -71,6 +100,95 @@ const ModelTraining = () => {
       'YOLOv10': ['yolov10n', 'yolov10s', 'yolov10m', 'yolov10b', 'yolov10l', 'yolov10x'],
       'YOLOv11': ['yolov11n', 'yolov11s', 'yolov11m', 'yolov11l', 'yolov11x'],
       'RT-DETR': ['rtdetr-l', 'rtdetr-x']
+    },
+    'Semantic Segmentation': {
+      "ResNet": ["resnet18", "resnet34", "resnet50", "resnet101", "resnet152"],
+      "ResNeSt": [
+          "timm-resnest14d", 
+          "timm-resnest26d", 
+          "timm-resnest50d", 
+          "timm-resnest101e", 
+          "timm-resnest200e", 
+          "timm-resnest269e", 
+          "timm-resnest50d_4s2x40d", 
+          "timm-resnest50d_1s4x24d"
+      ],
+      "GERNet": [
+          "timm-gernet_s", 
+          "timm-gernet_m", 
+          "timm-gernet_l"
+      ],
+      "SE-Net": [
+          "senet154", 
+          "se_resnet50", 
+          "se_resnet101", 
+          "se_resnet152", 
+          "se_resnext50_32x4d", 
+          "se_resnext101_32x4d"
+      ],
+      "DenseNet": [
+          "densenet121", 
+          "densenet169", 
+          "densenet201", 
+          "densenet161"
+      ],
+      "Inception": [
+          "inceptionresnetv2", 
+          "inceptionv4", 
+          "xception"
+      ],
+      "EfficientNet": [
+          "efficientnet-b0", 
+          "efficientnet-b1", 
+          "efficientnet-b2", 
+          "efficientnet-b3", 
+          "efficientnet-b4", 
+          "efficientnet-b5", 
+          "efficientnet-b6", 
+          "efficientnet-b7"
+      ],
+      "MobileNet": [
+          "mobilenet_v2", 
+          "timm-mobilenetv3_large_075", 
+          "timm-mobilenetv3_large_100", 
+          "timm-mobilenetv3_large_minimal_100", 
+          "timm-mobilenetv3_small_075", 
+          "timm-mobilenetv3_small_100", 
+          "timm-mobilenetv3_small_minimal_100"
+      ],
+      "VGG": [
+          "vgg11", 
+          "vgg11_bn", 
+          "vgg13", 
+          "vgg13_bn", 
+          "vgg16", 
+          "vgg16_bn", 
+          "vgg19", 
+          "vgg19_bn"
+      ],
+      "MixVisualTransformer": [
+          "mit_b0", 
+          "mit_b1", 
+          "mit_b2", 
+          "mit_b3", 
+          "mit_b4", 
+          "mit_b5"
+      ],
+      "MobileOne": [
+          "mobileone_s0", 
+          "mobileone_s1", 
+          "mobileone_s2", 
+          "mobileone_s3", 
+          "mobileone_s4"
+      ],
+      "DPN": [
+          "dpn68", 
+          "dpn68b", 
+          "dpn92", 
+          "dpn98", 
+          "dpn107", 
+          "dpn131"
+      ]
     }
   }
   const training_mode_list = ['scratch', 'finetune', 'transfer']
@@ -183,16 +301,16 @@ const ModelTraining = () => {
   const [train_data_name, setTrainDataName] = useState('')
   const [val_data_name, setValDataName] = useState('')
   const [run_name, setRunName] = useState('')
+  const [model_arch, setModelArchs] = useState('')
   const [model_family, setModelFamily] = useState('')
   const [model_name, setModelName] = useState('')
   const [training_mode, setTrainingMode] = useState('')
-  const [num_epochs, setNumEpochs] = useState('10')
-  const [batch_size, setBatchSize] = useState('32')
-  const [learning_rate, setLearningRate] = useState('0.01')
+  const [num_epochs, setNumEpochs] = useState(project_type && defaultValues[project_type] ? defaultValues[project_type].num_epochs: null)
+  const [batch_size, setBatchSize] = useState(project_type && defaultValues[project_type] ? defaultValues[project_type].batch_size: null)
+  const [learning_rate, setLearningRate] = useState(project_type && defaultValues[project_type] ? defaultValues[project_type].learning_rate: null)
   const [dataset_list, setDatasetList] = useState(useSelector(state => state.baseState.dataSetList))
   const [isLoading, setIsLoading] = useState(false)
   const [isTrainModalOpen, setTrainModalSwitch] = useState(false)
-  const [isObjectDetectionModalOpen, setObjectDetectionModalSwitch] = useState(false)
   const [training_detail_infor, setTrainingDetailInfor] = useState(undefined)
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
@@ -206,7 +324,8 @@ const ModelTraining = () => {
   const [ getRunLogs ] = useGetRunLogsMutation()
   const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
   const [ trainObjectDetectionModel ] = useTrainObjectDetectionModelMutation()
-
+  const [ trainSemanticSegmentationModel ] = useTrainSemanticSegmentationModelMutation()
+  
   const onGetRunLogs = async () => {
     if (user && user?.email) {
       const formData = new FormData()
@@ -276,22 +395,24 @@ const ModelTraining = () => {
 
       return false
     }
+    if (!model_arch) {
+      if(project_type&&project_type==='Semantic Segmentation'){
+        toast.error('Please select the Model Archs')
+
+        return false
+      }
+      else return true
+      
+    }
     return true
   }
 
   const handleTrainDetailModalOpen = () => {
-    if(project_type === 'Image Classification'){
       setTrainModalSwitch(true);
-    }
-
-    else if(project_type === 'Object Detection'){
-      setObjectDetectionModalSwitch(true)
-    }
   }
-
+  
   const handleTrainDetailModalClose = () => {
     setTrainModalSwitch(false);
-    setObjectDetectionModalSwitch(false)
   }
 
 
@@ -315,8 +436,12 @@ const ModelTraining = () => {
       if( project_type === 'Image Classification'){
         res = await trainImageClassificationModel(formData)
       }
-      else{
+      else if(project_type === 'Object Detection'){
         res = await trainObjectDetectionModel(formData)
+      }
+      else if(project_type === 'Semantic Segmentation'){
+        formData.append('model_arch', model_arch)
+        res = await trainSemanticSegmentationModel(formData)
       }
       setIsLoading(false)
       console.log(res.data)
@@ -403,16 +528,36 @@ const ModelTraining = () => {
               </Select>
             </FormControl>
           </Grid>
-          
-          <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
+          {
+            project_type&&project_type==="Semantic Segmentation"?
+            (<Grid item xs={12} sm={project_type&&project_type==="Semantic Segmentation"?2:3} sx={{ textAlign: 'left' }}>
+              <FormControl fullWidth>
+                <InputLabel id='model_arch'> {'M Archs'} </InputLabel>
+                <Select
+                  value={model_arch}
+                  onChange={e => setModelArchs(e.target.value)}
+                  id='model_arch'
+                  labelId='model_arch'
+                  input={<OutlinedInput label='M Archs' id='M Archs' />}
+                >
+                  {
+                    model_archs.map(item =>{
+                      return (<MenuItem value={item}> {item} </MenuItem>)
+                    })
+                  }
+                </Select>
+              </FormControl>
+            </Grid>):null
+          }
+          <Grid item xs={12} sm={project_type&&project_type==="Semantic Segmentation"?2:3} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
-              <InputLabel id='model_family'> {'Model Family'} </InputLabel>
+              <InputLabel id='model_family'> {'M Family'} </InputLabel>
               <Select
                 value={model_family}
                 onChange={e => setModelFamily(e.target.value)}
                 id='model_family'
                 labelId='model_family'
-                input={<OutlinedInput label='Model Family' id='Model Family' />}
+                input={<OutlinedInput label='M Family' id='M Family' />}
               >
                 {
                   project_type && model_family_list[project_type] ? model_family_list[project_type].map(item =>{
@@ -422,15 +567,15 @@ const ModelTraining = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
+          <Grid item xs={12} sm={project_type&&project_type==="Semantic Segmentation"?2:3} sx={{ textAlign: 'left' }}>
             <FormControl fullWidth>
-              <InputLabel id='model_name'> {'Model Name'} </InputLabel>
+              <InputLabel id='model_name'> {'M Name'} </InputLabel>
               <Select
                 value={model_name}
                 onChange={e => setModelName(e.target.value)}
                 id='model_name'
                 labelId='model_name'
-                input={<OutlinedInput label='Model Name' id='Model Name' />}
+                input={<OutlinedInput label='M Name' id='M Name' />}
               >
                 {
                   project_type && model_family && model_name_list[project_type] && model_name_list[project_type][model_family] ?
@@ -517,14 +662,6 @@ const ModelTraining = () => {
         data = {training_detail_infor}
         projectType={project_type}
       />
-      <ObjectDetectionModal
-        width={1200}
-        isOpen={isObjectDetectionModalOpen}
-        onHandleModalClose = {handleTrainDetailModalClose}
-        data = {training_detail_infor}
-        projectType={project_type}
-      />
-
     </Box>
   )
 }
