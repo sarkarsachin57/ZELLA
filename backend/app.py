@@ -1213,7 +1213,7 @@ def get_image_classification_dataset_info():
                     "status": "success",
                     "sample_paths": sample_paths,
                     "number_of_samples" : number_of_samples,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                    "number_of_pages" : math.ceil(number_of_samples/samples_per_page)
                 }
 
             logger.info(json.dumps(res, indent=4,  default=str))
@@ -1302,7 +1302,7 @@ def get_object_detection_dataset_info():
                     "status": "success",
                     "number_of_samples" : number_of_samples,
                     "sample_paths": sample_paths,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                    "number_of_pages" : math.ceil(number_of_samples/samples_per_page)
                 }
 
             logger.info(json.dumps(res, indent=4,  default=str))
@@ -1473,7 +1473,7 @@ def get_semantic_segmentation_dataset_info():
                     "status": "success",
                     "number_of_samples" : number_of_samples,
                     "sample_paths": sample_paths,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                    "number_of_pages" : math.ceil(number_of_samples/samples_per_page)
                 }
 
             logger.info(json.dumps(res, indent=4,  default=str))
@@ -2139,7 +2139,7 @@ def get_single_sample_visualization():
         if project_type == "Semantic Segmentation":
             
             metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
-            ann_path =  os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".npy")
+            ann_path = os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".npy")
             image = cv2.imread(sample_path)
             segmap = np.load(ann_path)
             
@@ -2156,7 +2156,7 @@ def get_single_sample_visualization():
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             
-            cv2.imwrite(save_path, image)
+            cv2.imwrite(save_path, dst)
 
         
         res = {
