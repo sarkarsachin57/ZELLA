@@ -1488,10 +1488,12 @@ def get_semantic_segmentation_dataset_info():
             class_list = metadata["classes"]
             
             ann_dir = os.path.join(data_dir, "annotations")
+            
             image_class_dist = {class_name : 0 for class_name in metadata["classes"]}
             pixel_class_dist = {class_name : 0 for class_name in metadata["classes"]}
             for ann_file in tqdm(os.listdir(ann_dir)):
                 ann_path = os.path.join(ann_dir, ann_file)
+                segmap = np.load(ann_path)
                 class_ids, class_counts = np.unique(segmap, return_counts=True)
                 for class_id, class_count in zip(class_ids, class_counts):
                     class_name = metadata["classes"][int(class_id)]
