@@ -2125,6 +2125,7 @@ def get_single_sample_visualization():
             cv2.imwrite(save_path, image)
         
         if project_type == "Image Classification":
+            
             classname = os.path.basename(os.path.dirname(sample_path))
             image = cv2.imread(sample_path)
             cv2.putText(image, classname, (10, 10), cv2.FONT_HERSHEY_DUPLEX, 0.3, (255, 255, 255), 1)
@@ -2136,6 +2137,8 @@ def get_single_sample_visualization():
             cv2.imwrite(save_path, image)
             
         if project_type == "Semantic Segmentation":
+            
+            metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
             ann_path =  os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".npy")
             image = cv2.imread(sample_path)
             segmap = np.load(ann_path)
