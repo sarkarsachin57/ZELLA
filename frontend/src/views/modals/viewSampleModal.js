@@ -57,7 +57,7 @@ export default function ViewSampleModal (props) {
     
     return true
   }
-  const handleViewSample = async () => {
+  const handleViewSample = async (value) => {
     if (validate()) {
       const formData = new FormData()
       formData.append('email', email)
@@ -65,7 +65,7 @@ export default function ViewSampleModal (props) {
       formData.append('data_name', data_name)
       formData.append('show_samples', '1')
       formData.append('class_name', class_name)
-      formData.append('page_number', page_num)
+      formData.append('page_number', value)
       try {
         const res = await getViewSample(formData)
         setSampleImageUrl(res.data.sample_paths)
@@ -77,7 +77,7 @@ export default function ViewSampleModal (props) {
   }
   const handleChange = (event, value) => {
     setPageNum(value);
-    handleViewSample()
+    handleViewSample(value);
   };
   const handleSimpleImageOpen = () => {
     setIsChildModalOpen(true);
@@ -135,7 +135,7 @@ export default function ViewSampleModal (props) {
                   className={CGroups.setting_button}
                   sx={{ mt: 1, padding: '8px' }}
                   disableElevation
-                  onClick={handleViewSample}
+                  onClick={(e) => handleViewSample(1)}
               >
                   View Samples
               </LoadingButton>

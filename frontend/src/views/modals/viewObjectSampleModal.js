@@ -52,16 +52,16 @@ export default function ViewObjectSampleModal (props) {
     return true
   }
   useEffect(() => {
-    handleViewSample()
+    handleViewSample(1)
   }, []);
-  const handleViewSample = async () => {
+  const handleViewSample = async (value) => {
     if (validate()) {
       const formData = new FormData()
       formData.append('email', email)
       formData.append('project_name', project_name)
       formData.append('data_name', data_name)
       formData.append('show_samples', '1')
-      formData.append('page_number', page_num)
+      formData.append('page_number', value)
       try {
         const res = await getObjectViewSample(formData)
         setSampleImageUrl(res.data.sample_paths)
@@ -73,7 +73,7 @@ export default function ViewObjectSampleModal (props) {
   }
   const handleChange = (event, value) => {
     setPageNum(value);
-    handleViewSample()
+    handleViewSample(value)
   };
   
   const handleSimpleImageOpen = () => {
