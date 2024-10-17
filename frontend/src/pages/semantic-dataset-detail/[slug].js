@@ -14,7 +14,7 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import CardBox from 'src/views/settings/CardBox'
 import CustomChart from 'src/@core/components/chart/customChart'
 import { LoadingButton } from 'src/@core/components/button/LoadingButton'
-import ViewObjectSampleModal from 'src/views/modals/viewObjectSampleModal'
+import ViewSegmenticSampleModal from 'src/views/modals/viewSegmenticSampleModal'
 
 import { 
     useGetSemanticDataSetInfoMutation, 
@@ -160,7 +160,7 @@ export default function Page({params}) {
                         />
                 }
             </CardBox>
-            <ViewObjectSampleModal
+            <ViewSegmenticSampleModal
                 width={'90%'}
                 isOpen={isViewSampleOpen}
                 onHandleModalClose = {handleViewSampleClose}

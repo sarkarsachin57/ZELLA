@@ -31,7 +31,7 @@ export default function ViewObjectSampleModal (props) {
     project_name,
     data_name,
     class_data,
-    getObjectViewSample,
+    getsemanticViewSample,
     getSimpleImageUrl
   } = props
 
@@ -63,7 +63,7 @@ export default function ViewObjectSampleModal (props) {
       formData.append('show_samples', '1')
       formData.append('page_number', page_num)
       try {
-        const res = await getObjectViewSample(formData)
+        const res = await getsemanticViewSample(formData)
         setSampleImageUrl(res.data.sample_paths)
         setTotalImgNum(res.data.number_of_samples)
       } catch (error) {
