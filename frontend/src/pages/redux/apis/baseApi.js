@@ -125,6 +125,22 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getSemanticDataSetInfo: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-semantic-segmentation-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setDatasetInfo(data.data_info));
+          } catch (error) {}
+        },
+      }),
       getViewSample: builder.mutation({
         query(data) {
           return {
@@ -262,6 +278,7 @@ export const {
   useGetTrainingViewDetailMutation,
   useGetDataSetInfoMutation,
   useGetObjectDataSetInfoMutation,
+  useGetSemanticDataSetInfoMutation,
   useGetViewSampleMutation,
   useGetObjectViewSampleMutation,
   useTrainObjectDetectionModelMutation,

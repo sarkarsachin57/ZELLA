@@ -103,6 +103,7 @@ export default function DatasetTable(props) {
   const projectTypeLink = {
     'Image Classification': 'dataset-detail',
     'Object Detection': 'object-dataset-detail',
+    'Semantic Segmentation': 'semantic-dataset-detail',
   }
   
   const handleRequestSort = (event, property) => {
