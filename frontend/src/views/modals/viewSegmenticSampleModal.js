@@ -115,7 +115,7 @@ export default function ViewObjectSampleModal (props) {
             >
               {
                 total_img_num?
-                <Pagination count={Math.floor(Number(total_img_num)/24)} page={page_num} color="primary" onChange={handleChange}/>
+                <Pagination count={Math.floor(Number(total_img_num)/24)+1} page={page_num} color="primary" onChange={handleChange}/>
                 : null
               }
             </Grid>
