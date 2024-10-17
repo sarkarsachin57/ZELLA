@@ -131,7 +131,7 @@ export default function Page({params}) {
                 }
             </CardBox>
             <ViewSampleModal
-                width={1200}
+                width={'90%'}
                 isOpen={isViewSampleOpen}
                 onHandleModalClose = {handleViewSampleClose}
                 email = {user.email}
