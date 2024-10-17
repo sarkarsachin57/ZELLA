@@ -18,7 +18,7 @@ import ViewObjectSampleModal from 'src/views/modals/viewObjectSampleModal'
 
 import { 
     useGetSemanticDataSetInfoMutation, 
-    useGetObjectViewSampleMutation, 
+    useGetsemanticViewSampleMutation, 
     useGetSimpleImageUrlMutation,
 } from 'src/pages/redux/apis/baseApi'
 import CGroups from '../../../styles/pages/settings.module.scss'
@@ -41,7 +41,7 @@ export default function Page({params}) {
     const [isViewSampleOpen, setViewSampleSwitch] = useState(false)
 
     const [ getSemanticDataSetInfo ] = useGetSemanticDataSetInfoMutation()
-    const [ getObjectViewSample ] = useGetObjectViewSampleMutation()
+    const [ getsemanticViewSample ] = useGetsemanticViewSampleMutation()
     const [ getSimpleImageUrl ] = useGetSimpleImageUrlMutation()
     
     const router = useRouter();
@@ -91,7 +91,7 @@ export default function Page({params}) {
     }
     return (
         <Box className={CGroups.settings_layout}>
-            {/* <CardBox>
+            <CardBox>
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
                     <Grid item xs={12} sm={3}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
@@ -100,7 +100,7 @@ export default function Page({params}) {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                             Image Balance
+                            Image Wise Class Balance Score
                         </Typography>
                         <Tooltip title = {dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} placement='top-end'>
                             <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.image_wise_class_balance_score} />
@@ -110,15 +110,15 @@ export default function Page({params}) {
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
                     <Grid item xs={12} sm={3}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
-                            Total Instances: {dataset_info === undefined ? null : dataset_info.total_instances}
+                            Total Pixels: {dataset_info === undefined ? null : dataset_info.total_pixels}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block' }}>
-                            Instances Balance
+                            Pixel Wise Class Balance Score
                         </Typography>
-                        <Tooltip title = {dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} placement='top-end'>
-                            <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.instances_wise_class_balance_score} />
+                        <Tooltip title = {dataset_info === undefined ? null : dataset_info.pixel_wise_class_balance_score} placement='top-end'>
+                            <BorderLinearProgress variant="determinate" value={dataset_info === undefined ? null : dataset_info.pixel_wise_class_balance_score} />
                         </Tooltip>
                     </Grid>
                     <Grid item xs={12} sm={3}>
@@ -148,7 +148,7 @@ export default function Page({params}) {
                         />
                 }
                 <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '20px'  }}>
-                    {dataset_info === undefined ? null : dataset_info.instance_dist_fig.title}
+                    {dataset_info === undefined ? null : dataset_info.pixels_dist_fig.title}
                 </Typography>
                 {
                     dataset_info === undefined ?
@@ -156,11 +156,11 @@ export default function Page({params}) {
                              No Data
                         </Typography>
                         :<CustomChart
-                            chartData = {dataset_info === undefined ? null : dataset_info.instance_dist_fig}
+                            chartData = {dataset_info === undefined ? null : dataset_info.pixels_dist_fig}
                         />
                 }
-            </CardBox> */}
-            {/* <ViewObjectSampleModal
+            </CardBox>
+            <ViewObjectSampleModal
                 width={1200}
                 isOpen={isViewSampleOpen}
                 onHandleModalClose = {handleViewSampleClose}
@@ -168,9 +168,9 @@ export default function Page({params}) {
                 project_name = {projectList.find(obj => obj._id === latestProjectUrl).project_name}
                 data_name = {dataSetList.find(obj => obj._id === slug).data_name}
                 class_data = {dataset_info === undefined ? null : dataset_info.class_list}
-                getObjectViewSample = {getObjectViewSample}
+                getsemanticViewSample = {getsemanticViewSample}
                 getSimpleImageUrl = {getSimpleImageUrl}
-            /> */}
+            />
         </Box>
     )
 }

@@ -173,6 +173,22 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getsemanticViewSample: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-object-detection-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setViewSample(data.sample_paths));
+          } catch (error) {}
+        },
+      }),
       getSimpleImageUrl: builder.mutation({
         query(data) {
           return {
@@ -281,6 +297,7 @@ export const {
   useGetSemanticDataSetInfoMutation,
   useGetViewSampleMutation,
   useGetObjectViewSampleMutation,
+  useGetsemanticViewSampleMutation,
   useTrainObjectDetectionModelMutation,
   useTrainSemanticSegmentationModelMutation,
   useGetSimpleImageUrlMutation
