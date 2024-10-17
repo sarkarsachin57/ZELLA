@@ -33,6 +33,9 @@ const Modal = styled(ModalUnstyled)`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  // max-height: 85%;
+  
 `;
 
 const Backdrop = styled(BackdropUnstyled)`
@@ -45,8 +48,6 @@ const Backdrop = styled(BackdropUnstyled)`
   background-color: rgba(100, 100, 100, 0.5);
   -webkit-tap-highlight-color: transparent;
 `;
-
-
 
 export default function CustomModalUnstyled(props) {
     const { children } = props;
