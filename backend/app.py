@@ -1327,14 +1327,13 @@ def get_object_detection_dataset_info():
             class_ids, image_counts = np.unique(all_class_images, return_counts=True)
             image_count_dict = {}
             for class_id, image_count in zip(class_ids, image_counts):
-                image_count_dict[metadata["classes"][class_id]] = image_count
+                image_count_dict[metadata["classes"][class_id]] = int(image_count)
 
             class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
             ins_count_dict = {}
             for class_id, ins_count in zip(class_ids, ins_counts):
-                ins_count_dict[metadata["classes"][class_id]] = ins_count
+                ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
                 
-                        
             total_images = image_counts.sum()
             total_instances = ins_counts.sum()
             
