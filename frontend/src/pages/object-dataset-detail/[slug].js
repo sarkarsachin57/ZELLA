@@ -72,7 +72,7 @@ export default function Page({params}) {
             formData.append('show_samples', '0')
             try {
               const res = await getObjectDataSetInfo(formData)
-              console.log('object-dateset-inof: ', res.data.data_info)
+              console.log('object-dateset-inof: ', res.data)
               setDatasetInfor(res.data.data_info)
             } catch (error) {
               toast.error('Something went wrong!');

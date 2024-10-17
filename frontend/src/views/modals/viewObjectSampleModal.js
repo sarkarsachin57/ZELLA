@@ -64,6 +64,7 @@ export default function ViewObjectSampleModal (props) {
       formData.append('page_number', value)
       try {
         const res = await getObjectViewSample(formData)
+        
         setSampleImageUrl(res.data.sample_paths)
         setTotalImgNum(res.data.number_of_samples)
       } catch (error) {

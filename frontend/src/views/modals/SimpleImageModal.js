@@ -70,7 +70,7 @@ export default function SimpleImageModal(props) {
       onHandleModalClose,
     } = props;
     const style = (theme) => ({
-      width: '90%',
+      width: '80%',
       bgcolor: theme.palette.mode === 'dark' ? '#0A1929' : 'white',
       border: '2px solid currentColor',
       padding: '16px 24px 24px 24px',
