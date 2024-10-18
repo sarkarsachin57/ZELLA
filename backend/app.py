@@ -1408,6 +1408,181 @@ def get_object_detection_dataset_info():
 
 
 
+
+
+
+@app.route("/get-instance-segmentation-dataset-info", methods=['POST'])
+def get_instance_segmentation_dataset_info():
+    
+    logger.info(f"Get request for /get-instance-segmentation-dataset-info")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name = request.form['data_name']
+        show_samples = request.form['show_samples']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        if data_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+            
+            # split_name = request.form['split_name']
+            # class_name = request.form['class_name']
+            page_number = request.form['page_number']
+            
+            logger.info(f'Params - page_number : {page_number}')
+            
+            frontend_inputs += f"\npage_number : {page_number}"
+            
+            samples_per_page = 24
+            page_number = int(page_number)
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], "images", x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], "images"))]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "number_of_samples" : number_of_samples,
+                    "sample_paths": sample_paths,
+                    "number_of_pages" : math.ceil(number_of_samples/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+                      
+                
+        if data_info["data_type"] == "Labeled":
+            
+            data_dir = data_info["data_extracted_path"]
+            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+            
+            class_list = metadata["classes"]
+            
+                        
+            all_class_instances = []
+            all_class_images = []
+            for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
+                annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
+                all_class_instances += annotations["class_ids"]
+                all_class_images += list(set(annotations["class_ids"]))
+
+            class_ids, image_counts = np.unique(all_class_images, return_counts=True)
+            image_count_dict = {}
+            for class_id, image_count in zip(class_ids, image_counts):
+                image_count_dict[metadata["classes"][class_id]] = int(image_count)
+
+            class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
+            ins_count_dict = {}
+            for class_id, ins_count in zip(class_ids, ins_counts):
+                ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
+                
+            total_images = image_counts.sum()
+            total_instances = ins_counts.sum()
+            
+            image_wise_class_balance_score = class_distribution_score(image_counts)
+            instances_wise_class_balance_score = class_distribution_score(ins_counts)
+            
+            
+            res = {
+                    "status": "success",
+                    "data_info": {
+                        "class_list" : class_list,
+                        "total_images": total_images,
+                        "total_instances": total_instances,
+                        "image_wise_class_balance_score": image_wise_class_balance_score,
+                        "instances_wise_class_balance_score" : instances_wise_class_balance_score,
+                        "image_dist_fig" : {
+                                "x": list(image_count_dict.keys()),
+                                "y": list(image_count_dict.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Images",
+                                "title": "Data Class Distribution",
+                            },
+                        "instance_dist_fig" : {
+                                "x": list(ins_count_dict.keys()),
+                                "y": list(ins_count_dict.values()),
+                                "xtitle": "Class Names",
+                                "ytitle": "Number of Instances",
+                                "title": "Data Class Distribution",
+                            },
+                    }
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        
+        if data_info["data_type"] == "Unlabeled":
+            
+            page_number = request.form['page_number']
+            
+            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
+            number_of_samples = len(sample_paths)
+            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
+            
+            res = {
+                    "status": "success",
+                    "sample_paths": sample_paths,
+                    "number_of_samples" : number_of_samples,
+                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+            
+            
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
 @app.route("/get-semantic-segmentation-dataset-info", methods=['POST'])
 def get_semantic_segmentation_dataset_info():
     
@@ -1820,6 +1995,125 @@ def train_object_detection_model():
 
 
 
+
+@app.route("/train_instance_segmentation_model", methods=['POST'])
+def train_instance_segmentation_model():
+    
+    logger.info(f"Get request for /train_instance_segmentation_model")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        train_data_name =  request.form['train_data_name']
+        val_data_name =  request.form['val_data_name']
+        run_name = request.form['run_name']
+        model_family = request.form['model_family']
+        model_name = request.form['model_name']
+        training_mode = request.form['training_mode']
+        num_epochs = request.form['num_epochs']
+        batch_size = request.form['batch_size']
+        learning_rate = request.form['learning_rate']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, train_data_name : {train_data_name}, val_data_name : {val_data_name}, run_name : {run_name}, model_family : {model_family}, model_name : {model_name}, training_mode : {training_mode}, num_epochs : {num_epochs}, batch_size : {batch_size}, learning_rate : {learning_rate}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ntrain_data_name : {train_data_name}\nval_data_name : {val_data_name}\nrun_name : {run_name}\nmodel_family : {model_family}\nmodel_name : {model_name}\ntraining_mode : {training_mode}\nnum_epochs : {num_epochs}\nbatch_size : {batch_size}\nlearning_rate : {learning_rate}"
+        
+        num_epochs = int(num_epochs)
+        batch_size = int(batch_size)
+        learning_rate = float(learning_rate)
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+
+
+        run_record = mongodb["run_records"].find_one({"run_name" : run_name, "project_name" : project_name, "user_id" : user_id})
+        if run_record is not None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Run Name exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+        project_type = project_info['project_type']
+        
+        train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
+        train_data_path = train_data_meta['data_extracted_path']
+        
+        val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : val_data_name})
+        val_data_path = val_data_meta['data_extracted_path']
+        
+        train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
+        val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+
+        if train_classes != val_classes:
+        
+            res = {
+                    "status": "fail",
+                    "message": f"Train and Validation data classes are not same!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        # if project_type == "Image Classification":
+        #     Thread(target=ImageClassificationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+        # elif project_type == "Object Detection":
+        
+        Thread(target=ObjectDetectionTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+
+        
+        training_start_time = datetime.now()
+        training_start_time_str = training_start_time.strftime('%Y-%m-%d %I:%M:%S %p')
+        
+
+        mongodb['run_records'].insert_one({"_id" : uuid.uuid4().__str__(), "training_start_time" : training_start_time, "training_start_time_str" : training_start_time_str, "run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, \
+                                        "project_name" : project_name, "user_id" : user_id, "model_family" : model_family, "model_name" : model_name, "training_mode" : training_mode, "batch_size" : batch_size, "num_epochs" : num_epochs, \
+                                         "learning_rate" : learning_rate, "model_path" : "", "training_status" : "training"})
+
+            
+        res = {
+                "status": "success",
+                "message": "Training started successfully!"                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
 @app.route("/train_semantic_segmentation_model", methods=['POST'])
 def train_semantic_segmentation_model():
     
@@ -2156,7 +2450,48 @@ def get_single_sample_visualization():
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             
             cv2.imwrite(save_path, dst)
+            
+        
+        
+        if project_type == "Instance Segmentation":
+            metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
+            annotation = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".json")).read())
+            image = cv2.imread(sample_path)
+            overlay = image.copy()
+            opacity = 0.5  
+            for segment, class_id in zip(annotation['segments'], annotation['class_ids']):
 
+                
+                fill_color = get_color_from_id(class_id+1)
+                text_color = isLightOrDark(fill_color)
+                class_name = metadata["classes"][class_id]  
+                            
+                xvals = []
+                yvals = []
+                
+                            
+                for idx, val in enumerate(segment):
+                    if idx % 2 == 0:
+                        xvals.append(val)
+                    else:
+                        yvals.append(val)
+                        
+                
+                roi_array = [(xval, yval) for xval, yval in zip(xvals, yvals)]
+                roi_points = np.array(roi_array, dtype=np.int32)
+                cv2.fillPoly(overlay, [roi_points], fill_color)
+
+
+                # cv2.rectangle(image, (startX, startY), (endX, endY), bg_color, 1)
+                # draw_bb_text(image,f" {class_name} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, bg_color)
+            
+            cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
+
+            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, os.path.basename(sample_path))
+            cv2.imwrite(save_path, image)
+        
         
         res = {
                 "status": "success",   
