@@ -8,32 +8,18 @@ import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import MovieFilterIcon from '@mui/icons-material/MovieFilter'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import OutlinedInput from '@mui/material/OutlinedInput'
-import RadioButtonCheckedRoundedIcon from '@mui/icons-material/RadioButtonCheckedRounded'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import Paper from '@mui/material/Paper'
-import TablePagination from '@mui/material/TablePagination'
 import { toast } from 'react-toastify'
-import { v4 as uuid } from 'uuid'
-
-import FileInput from 'src/views/commons/FileInput'
-import ImageClassModal from 'src/views/modals/ImageClassModal'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
 import ModelTrainingTable from 'src/@core/components/table/model-training-table'
+import ImageClassModal from 'src/views/modals/ImageClassModal'
 
-// import BasicModal from 'src/views/modals/CustomModalLayout'
 import { connectSchema } from 'src/@core/schema'
 import {
   useTrainImageClassificationModelMutation,
@@ -41,7 +27,8 @@ import {
   useGetTrainingViewDetailMutation,
   useGetDataSetListMutation,
   useTrainObjectDetectionModelMutation,
-  useTrainSemanticSegmentationModelMutation
+  useTrainSemanticSegmentationModelMutation,
+  useTrainInstanceSegmentationModelMutation
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelTraining = () => {
@@ -60,12 +47,18 @@ const ModelTraining = () => {
       'num_epochs' : 3,
       'batch_size' : 2,
       'learning_rate' : 0.0001
+    },
+    'Instance Segmentation':{
+      'num_epochs' : 10,
+      'batch_size' : 32,
+      'learning_rate' : 0.01
     }
   }
   const model_family_list = {
     'Image Classification': ['ResNet','VGGNet','DenseNet','MobileNet','EfficientNet','ShuffleNet','MNasNet','SqueezeNet','Others'],
     'Object Detection': ['YOLOv3','YOLOv5','YOLOv8','YOLOv9','YOLOv10','YOLOv11','RT-DETR'],
-    'Semantic Segmentation': ["ResNet", "ResNeSt", "GERNet", "SE-Net", "DenseNet", "Inception", "EfficientNet", "MobileNet", "VGG", "MixVisualTransformer", "MobileOne", "DPN"]
+    'Semantic Segmentation': ["ResNet", "ResNeSt", "GERNet", "SE-Net", "DenseNet", "Inception", "EfficientNet", "MobileNet", "VGG", "MixVisualTransformer", "MobileOne", "DPN"],
+    'Instance Segmentation': ["YOLOv8", "YOLOv9", "YOLOv11"]
   }
   const model_archs = [
     "UNet",
@@ -188,6 +181,26 @@ const ModelTraining = () => {
           "dpn98", 
           "dpn107", 
           "dpn131"
+      ]
+    },
+    'Instance Segmentation': {
+      "YOLOv8": [
+          "yolov8n-seg.pt",
+          "yolov8s-seg.pt",
+          "yolov8m-seg.pt",
+          "yolov8l-seg.pt",
+          "yolov8x-seg.pt"
+      ],
+      "YOLOv9": [
+          "YOLOv9c-seg",
+          "YOLOv9e-seg"
+      ],
+      "YOLOv11": [
+          "yolov11n-seg.pt",
+          "yolov11s-seg.pt",
+          "yolov11m-seg.pt",
+          "yolov11l-seg.pt",
+          "yolov11x-seg.pt"
       ]
     }
   }
@@ -317,14 +330,13 @@ const ModelTraining = () => {
   console.log('run_logs_list: ', run_logs_list)
   console.log('project_name: ', project_name)
 
-
-
   const [ trainImageClassificationModel ] = useTrainImageClassificationModelMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
   const [ getRunLogs ] = useGetRunLogsMutation()
   const [ getTrainingViewDetail ] = useGetTrainingViewDetailMutation()
   const [ trainObjectDetectionModel ] = useTrainObjectDetectionModelMutation()
   const [ trainSemanticSegmentationModel ] = useTrainSemanticSegmentationModelMutation()
+  const [ trainInstanceSegmentationModel ] = useTrainInstanceSegmentationModelMutation()
   
   const onGetRunLogs = async () => {
     if (user && user?.email) {
@@ -442,6 +454,9 @@ const ModelTraining = () => {
       else if(project_type === 'Semantic Segmentation'){
         formData.append('model_arch', model_arch)
         res = await trainSemanticSegmentationModel(formData)
+      }
+      else if(project_type === 'Instance Segmentation'){
+        res = await trainInstanceSegmentationModel(formData)
       }
       setIsLoading(false)
       console.log(res.data)

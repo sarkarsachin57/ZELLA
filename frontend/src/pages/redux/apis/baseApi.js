@@ -141,6 +141,22 @@ export const baseApi = createApi({
           } catch (error) {}
         },
       }),
+      getInstanceDataSetInfo: builder.mutation({
+        query(data) {
+          return {
+            url: 'get-instance-segmentation-dataset-info',
+            method: 'POST',
+            body: data
+          }
+        },
+        transformResponse: result => result,
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setDatasetInfo(data.data_info));
+          } catch (error) {}
+        },
+      }),
       getViewSample: builder.mutation({
         query(data) {
           return {
@@ -279,6 +295,15 @@ export const baseApi = createApi({
           }
         },
       }),
+      trainInstanceSegmentationModel: builder.mutation({
+        query(data) {
+          return {
+            url: 'train_instance_segmentation_model',
+            method: 'POST',
+            body: data
+          }
+        },
+      }),
       
     }),
 });
@@ -295,10 +320,12 @@ export const {
   useGetDataSetInfoMutation,
   useGetObjectDataSetInfoMutation,
   useGetSemanticDataSetInfoMutation,
+  useGetInstanceDataSetInfoMutation,
   useGetViewSampleMutation,
   useGetObjectViewSampleMutation,
   useGetsemanticViewSampleMutation,
   useTrainObjectDetectionModelMutation,
   useTrainSemanticSegmentationModelMutation,
+  useTrainInstanceSegmentationModelMutation,
   useGetSimpleImageUrlMutation
 } = baseApi;

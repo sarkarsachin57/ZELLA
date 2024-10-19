@@ -104,6 +104,7 @@ export default function DatasetTable(props) {
     'Image Classification': 'dataset-detail',
     'Object Detection': 'object-dataset-detail',
     'Semantic Segmentation': 'semantic-dataset-detail',
+    'Instance Segmentation': 'instance-dataset-detail',
   }
   
   const handleRequestSort = (event, property) => {
