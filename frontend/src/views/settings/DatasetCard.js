@@ -17,7 +17,7 @@ const CardImage = styled('img')(({ theme }) => ({
   width: '100%',
   height: '100%',
   objectFit: 'cover',
-  objectPosition: 'center'
+  objectPosition: 'center',
 }))
 
 export default function DatasetCard (props) {
@@ -50,7 +50,7 @@ export default function DatasetCard (props) {
       <Box>
         {/* <CardContent sx={{ padding: '0px' }}> */}
           <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-            <Grid item xs={12} sm={12} sx={{ height: '100%' }}>
+            <Grid item xs={12} sm={12} sx={{ width: '100%', height: '100px', position: 'relative', overflow: 'hidden' }}>
               <CardImage 
                 src = {baseUrl + url} 
                 alt='pic' 

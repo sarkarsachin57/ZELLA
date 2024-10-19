@@ -19,6 +19,9 @@ import ObjectClassificationTable from 'src/@core/components/table/object-detecti
 import SegmentationHistoryTable from 'src/@core/components/table/segmentation-history-table'
 import SegmentationClassificationTable from 'src/@core/components/table/segmentation-classification-table'
 
+import InstanceHistoryTable from 'src/@core/components/table/instance-history-table'
+import InstanceClassificationTable from 'src/@core/components/table/instance-classification-table'
+
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 
 export default function ImageClassModal (props) {
@@ -36,11 +39,13 @@ export default function ImageClassModal (props) {
     "Image Classification":<HistoryTable data = { data === undefined ? [] : data.history } />,
     "Object Detection":<ObjectHistoryTable data = { data === undefined ? [] : data.history } />,
     "Semantic Segmentation":<SegmentationHistoryTable data = { data === undefined ? [] : data.history } />,
+    "Instance Segmentation":<InstanceHistoryTable data = { data === undefined ? [] : data.history } />,
   }
   const ClassificationType = {
     "Image Classification":<ClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
     "Object Detection":<ObjectClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
     "Semantic Segmentation":<SegmentationClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
+    "Instance Segmentation":<InstanceClassificationTable basicData =  {data === undefined ? [] : data.classification_report}/>,
   }
   const ref = useRef(null)
   const videoRef = useRef(null)

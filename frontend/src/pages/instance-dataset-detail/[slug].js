@@ -110,7 +110,7 @@ export default function Page({params}) {
                 <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
                     <Grid item xs={12} sm={3}>
                         <Typography variant="button" gutterBottom sx={{ display: 'block', marginTop: '2px' }}>
-                            Total Instance: {dataset_info === undefined ? null : dataset_info.total_pixels}
+                            Total Instance: {dataset_info === undefined ? null : dataset_info.total_instances}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
