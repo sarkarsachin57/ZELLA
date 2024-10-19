@@ -3,7 +3,7 @@ from initials import *
 
 
 
-def ObjectDetectionTrainingPipeline(run_name,
+def InstanceSegmentationTrainingPipeline(run_name,
                                     train_data_name,
                                     val_data_name,
                                     project_name,

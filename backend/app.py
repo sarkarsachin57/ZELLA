@@ -33,6 +33,7 @@ sys.path.append("utils")
 from utils.image_classification.training import *
 from utils.object_detection.training import *
 from utils.semantic_segmentation.training import * 
+from utils.instance_segmentation.training import *
 
 
 # Thread(target=AutoPurge, args=(6, 2*24)).start()
@@ -2077,7 +2078,7 @@ def train_instance_segmentation_model():
         #     Thread(target=ImageClassificationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
         # elif project_type == "Object Detection":
         
-        Thread(target=ObjectDetectionTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
+        Thread(target=InstanceSegmentationTrainingPipeline, args=(run_name,train_data_name,val_data_name,project_name,user_id,model_family,model_name,training_mode,batch_size,num_epochs,learning_rate,device,train_data_path,val_data_path)).start()
 
         
         training_start_time = datetime.now()
