@@ -33,7 +33,6 @@ const Modal = styled(ModalUnstyled)`
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
   // max-height: 85%;
   
 `;
@@ -96,22 +95,6 @@ export default function CustomModalUnstyled(props) {
                   </IconButton>
                 </Box>
                 {children}
-                {/* <LoadingButton
-                    variant='contained'
-                    className={CGroups.setting_button}
-                    sx={{  
-                      width: 100,
-                      mt: 1
-                    }}
-                    disableElevation
-                    onClick={(e) => onHandleSubmit(e)}
-                    loading={isLoading}
-                  >
-                    {btnName}
-                  </LoadingButton> */}
-                {/* <Button autoFocus onClick={onHandleSubmit} sx={{backgroundColor: '#39B677', width: '80%', color: 'white'}}>
-                    {btnName}
-                </Button> */}
             </Box>
         </Modal>
 

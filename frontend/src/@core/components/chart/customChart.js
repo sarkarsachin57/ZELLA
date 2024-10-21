@@ -6,7 +6,6 @@ import { axisClasses } from '@mui/x-charts/ChartsAxis';
 export default function CustomChart(props) {
     
     const { chartData } = props
-    console.log('chartData: ', chartData.x)
     const [dataX, setDataX] = useState(chartData.x)
     const [dataY, setDataY] = useState(chartData.y)
 
@@ -29,7 +28,6 @@ export default function CustomChart(props) {
     for (let index = 0; index < dataX.length; index++) {
         dataset.push({x:dataX[index], y:dataY[index]});
     }
-    console.log(dataset)
     
     return (
         <BarChart
@@ -51,6 +49,6 @@ export default function CustomChart(props) {
             },
             ]}
             {...chartSetting}
-      />
+        />
     );
 }

@@ -93,10 +93,10 @@ export default function SegmentationClassificationTable(props) {
       label: 'Class Name'
     },
     {
-      id: 'FN',
+      id: 'TP',
       numeric: true,
       disablePadding: false,
-      label: 'FN',
+      label: 'TP'
     },
     {
       id: 'FP',
@@ -105,16 +105,10 @@ export default function SegmentationClassificationTable(props) {
       label: 'FP',
     },
     {
-        id: 'IoU',
-        numeric: true,
-        disablePadding: false,
-        label: 'IOU'
-    },
-    {
-      id: 'TP',
+      id: 'FN',
       numeric: true,
       disablePadding: false,
-      label: 'TP'
+      label: 'FN',
     },
     {
         id: 'precision',
@@ -128,6 +122,12 @@ export default function SegmentationClassificationTable(props) {
       disablePadding: false,
       label: 'recall'
     },
+    {
+      id: 'IoU',
+      numeric: true,
+      disablePadding: false,
+      label: 'IOU'
+  },
   ]
 
   const [order, setOrder] = useState('asc')

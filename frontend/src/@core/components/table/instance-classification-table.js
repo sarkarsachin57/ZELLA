@@ -93,10 +93,16 @@ export default function SegmentationClassificationTable(props) {
       label: 'Class Name'
     },
     {
-      id: 'MAP',
+      id: 'number_images',
       numeric: true,
       disablePadding: false,
-      label: 'MAP',
+      label: 'Image Number'
+    },
+    {
+      id: 'number_instances',
+      numeric: true,
+      disablePadding: false,
+      label: 'Instance Number'
     },
     {
       id: 'Precision',
@@ -105,23 +111,17 @@ export default function SegmentationClassificationTable(props) {
       label: 'Precision',
     },
     {
-        id: 'Recall',
-        numeric: true,
-        disablePadding: false,
-        label: 'Recall'
-    },
-    {
-      id: 'number_images',
+      id: 'Recall',
       numeric: true,
       disablePadding: false,
-      label: 'Image Number'
+      label: 'Recall'
     },
     {
-        id: 'number_instances',
-        numeric: true,
-        disablePadding: false,
-        label: 'Instance Number'
-      },
+      id: 'MAP',
+      numeric: true,
+      disablePadding: false,
+      label: 'MAP',
+    },
   ]
 
   const [order, setOrder] = useState('asc')
@@ -220,11 +220,11 @@ export default function SegmentationClassificationTable(props) {
                           {index+1}
                         </TableCell>
                         <TableCell align='center'>{row.Classes}</TableCell>
-                        <TableCell align='center'>{row.MAP}</TableCell>
-                        <TableCell align='center'>{row.Precision}</TableCell>
-                        <TableCell align='center'>{row.Recall}</TableCell>
                         <TableCell align='center'>{row.number_images}</TableCell>
                         <TableCell align='center'>{row.number_instances}</TableCell>
+                        <TableCell align='center'>{row.Precision}</TableCell>
+                        <TableCell align='center'>{row.Recall}</TableCell>
+                        <TableCell align='center'>{row.MAP}</TableCell>
                       </TableRow>
                     )
                   })
