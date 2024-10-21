@@ -2519,11 +2519,440 @@ def get_single_sample_visualization():
 
 
 
+@app.route("/filter_noisy_samples", methods=['POST'])
+def filter_noisy_samples():
+    
+    logger.info(f"Get request for /filter_noisy_samples")
+    
+    try:
+        
+        data_name = request.form['data_name']
+        filtered_data_name = request.form['filtered_data_name']
+        project_name = request.form['project_name']
+        email = request.form['email']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, filtered_data_name : {filtered_data_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nfiltered_data_name : {filtered_data_name}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({"user_id" : user_id, "project_name" : project_name})
+
+        if project_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Project does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        filtered_data_info = mongodb["datasets"].find({"user_id" : user_id, "project_name" : project_name, "data_name" : filtered_data_name})
+        if filtered_data_info is not None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Filtered Data {filtered_data_name} exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        dataset_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : data_name})
+        if dataset_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Data Name - {data_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        def NoiseFiltering(dataset_info, user_id, project_name, project_info, data_name, filtered_data_name):
+            
+            data_path = dataset_info["data_extracted_path"]
+            
+            project_type = project_info["project_type"]
+                    
+            project_dir = os.path.join("workdir", user_id, project_name)
+            os.makedirs(project_dir, exist_ok=True)
+            
+            data_id = str(uuid.uuid4())[:8]
+                
+            extracted_path = os.path.join(project_dir, f"data_{data_id}_extracted")
+            
+            zipfile_path = os.path.join(project_dir, f"data_{data_id}_zipfile.zip")
+            
+            
+            data_creation_time = datetime.now()
+            data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+            
+            noisy_filtering_info = {
+                                "_id" : user_id+"_"+project_name+"_"+data_name+"_"+filtered_data_name,
+                                "data_name" : data_name, 
+                                "filtered_data_name" : filtered_data_name, 
+                                "project_name" : project_name,
+                                "user_id" : user_id, 
+                                "project_type" : project_type, 
+                                "process_start_time" : data_creation_time, 
+                                "process_start_time_str" : data_creation_time_str,
+                                "total_number_of_samples" : 0, 
+                                "noisy_samples_filtered" : 0, 
+                                "current_progress" : 0,
+                                "process_status" : f"Copying data from {data_name} to {filtered_data_name}",
+                                "path_to_zipfile" : zipfile_path
+                            }
+            
+            mongodb["noisy_filtering"].insert_one(noisy_filtering_info)
+            
+            shutil.copytree(data_path, extracted_path)   
+            
+            
+            
+            data_meta = {
+                "_id" : user_id+"_"+project_name+"_"+data_id,
+                "data_id" : data_id,
+                "project_name" : project_name,
+                "user_id" : user_id,
+                "data_name" : filtered_data_name,
+                "data_type" : dataset_info["data_type"],
+                "project_type" : project_type,
+                "data_zip_path" : "Data Created via Noisy Image Filtering",
+                "data_extracted_path" : extracted_path,
+                "data_creation_time" : data_creation_time,
+                "data_creation_time_str" : data_creation_time_str,
+            }
+            
+            mongodb["datasets"].insert_one(data_meta)
+            
+            
+            noisy_classes = ['clean', 'noisy']  
+            
+            from torchvision import models
+            from torchvision import transforms
+
+            preprocess = transforms.Compose([
+                transforms.Resize((282, 500)),  
+                transforms.ToTensor(),  
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  
+            ])
+
+            model = models.resnet50(pretrained=False)
+            model.fc = torch.nn.Linear(in_features=2048, out_features=2)
+
+            # Path to the checkpoint
+            checkpoint_path = os.path.join('files', 'voc_model.pth')
+
+            checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+
+            if 'model_state_dict' in checkpoint:
+                print("Loading model from full checkpoint...")
+                model.load_state_dict(checkpoint['model_state_dict'])
+            else:
+                print("Loading model from state_dict file...")
+                model.load_state_dict(checkpoint)
+
+            model.eval() 
+
+            # Function to make predictions
+            def predict_image(image_path, model):
+                image = Image.open(image_path).convert('RGB')
+                input_tensor = preprocess(image)
+                input_batch = input_tensor.unsqueeze(0)  
+
+                with torch.no_grad():
+                    output = model(input_batch)
+                probabilities = torch.nn.functional.softmax(output[0], dim=0)
+                predicted_class = probabilities.argmax().item()  # 0 for clean, 1 for noisy
+
+                return predicted_class
+            
+            noisy_samples_filtered = 0
+            
+            
+                        
+            update_query = {"data_name" : data_name, 
+                            "filtered_data_name" : filtered_data_name, 
+                            "project_name" : project_name,
+                            "user_id" : user_id}
+
+            if project_type == "Object Detection":
+                
+                image_folder = os.path.join(extracted_path, "images")
+                annotation_folder = os.path.join(extracted_path, "annotations")
+                image_list = os.listdir(image_folder)
+                number_of_images = len(image_list)
+                update_interval = number_of_images // 100
+                img_iter = 0
+                for idx, image_file in enumerate(image_list):
+                    image_path = os.path.join(image_folder, image_file)
+                    predicted_class = predict_image(image_path, model)
+                    if predicted_class == 1:
+                        noisy_samples_filtered += 1
+                        # remove noisy image and annotation
+                        os.remove(image_path)
+                        os.remove(os.path.join(annotation_folder, image_file[:-4]+".json"))
+                        
+                    if idx % update_interval == 0:
+                        
+                        noisy_filtering_info = {
+                                        "total_number_of_samples" : number_of_images, 
+                                        "noisy_samples_filtered" : noisy_samples_filtered, 
+                                        "current_progress" : round((img_iter/number_of_images)*100),
+                                        "process_status" : f"{round((img_iter/number_of_images)*100)}% Completed"
+                                    }
+                        
+                        mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+
+                    img_iter += 1
+
+                
+                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+
+                noisy_filtering_info = {
+                                "total_number_of_samples" : number_of_images, 
+                                "noisy_samples_filtered" : noisy_samples_filtered, 
+                                "current_progress" : 100,
+                                "process_status" : f"Completed!"
+                            }
+                
+                mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+                    
+                    
+                
+            
+            if project_type == "Image Classification":
+                
+                folders = os.listdir(extracted_path)
+                number_of_images = np.sum([len(os.listdir(os.path.join(extracted_path, folder))) for folder in folders])
+                update_interval = number_of_images // 100
+                
+                img_iter = 0
+                
+                for folder in folders:
+                    
+                    image_folder = os.path.join(extracted_path, folder)
+                    image_list = os.listdir(image_folder)
+                    
+                    for idx, image_file in enumerate(image_list):
+                        image_path = os.path.join(image_folder, image_file)
+                        predicted_class = predict_image(image_path, model)
+                        if predicted_class == 1:
+                            noisy_samples_filtered += 1
+                            # remove noisy image and annotation
+                            os.remove(image_path)
+                            
+                        if img_iter % update_interval == 0:
+                            
+                            noisy_filtering_info = {
+                                            "total_number_of_samples" : number_of_images, 
+                                            "noisy_samples_filtered" : noisy_samples_filtered, 
+                                            "current_progress" : round((img_iter/number_of_images)*100),
+                                            "process_status" : f"{round((img_iter/number_of_images)*100)}% Completed"
+                                        }
+                            
+                            mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+
+                        img_iter += 1
+
+                    
+                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+
+                noisy_filtering_info = {
+                                "total_number_of_samples" : number_of_images, 
+                                "noisy_samples_filtered" : noisy_samples_filtered, 
+                                "current_progress" : 100,
+                                "process_status" : f"Completed!"
+                            }
+                
+                mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+                
+            if project_type == "Semantic Segmentation":
+                
+                
+                image_folder = os.path.join(extracted_path, "images")
+                annotation_folder = os.path.join(extracted_path, "annotations")
+                image_list = os.listdir(image_folder)
+                number_of_images = len(image_list)
+                update_interval = number_of_images // 100
+                img_iter = 0
+                for idx, image_file in enumerate(image_list):
+                    image_path = os.path.join(image_folder, image_file)
+                    predicted_class = predict_image(image_path, model)
+                    if predicted_class == 1:
+                        noisy_samples_filtered += 1
+                        # remove noisy image and annotation
+                        os.remove(image_path)
+                        os.remove(os.path.join(annotation_folder, image_file[:-4]+".json"))
+                        
+                    if idx % update_interval == 0:
+                        
+                        noisy_filtering_info = {
+                                        "total_number_of_samples" : number_of_images, 
+                                        "noisy_samples_filtered" : noisy_samples_filtered, 
+                                        "current_progress" : round((img_iter/number_of_images)*100),
+                                        "process_status" : f"{round((img_iter/number_of_images)*100)}% Completed"
+                                    }
+                        
+                        mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+
+                    img_iter += 1
+
+                    
+                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+
+                noisy_filtering_info = {
+                                "total_number_of_samples" : number_of_images, 
+                                "noisy_samples_filtered" : noisy_samples_filtered, 
+                                "current_progress" : 100,
+                                "process_status" : f"Completed!"
+                            }
+                
+                mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+                
+            if project_type == "Instance Segmentation":
+            
+                
+                
+                image_folder = os.path.join(extracted_path, "images")
+                annotation_folder = os.path.join(extracted_path, "annotations")
+                image_list = os.listdir(image_folder)
+                number_of_images = len(image_list)
+                update_interval = number_of_images // 100
+                img_iter = 0
+                for idx, image_file in enumerate(image_list):
+                    image_path = os.path.join(image_folder, image_file)
+                    predicted_class = predict_image(image_path, model)
+                    if predicted_class == 1:
+                        noisy_samples_filtered += 1
+                        # remove noisy image and annotation
+                        os.remove(image_path)
+                        os.remove(os.path.join(annotation_folder, image_file[:-4]+".json"))
+                        
+                    if idx % update_interval == 0:
+                        
+                        noisy_filtering_info = {
+                                        "total_number_of_samples" : number_of_images, 
+                                        "noisy_samples_filtered" : noisy_samples_filtered, 
+                                        "current_progress" : round((img_iter/number_of_images)*100),
+                                        "process_status" : f"{round((img_iter/number_of_images)*100)}% Completed"
+                                    }
+                        
+                        mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+
+                    img_iter += 1
+
+                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+
+                noisy_filtering_info = {
+                                "total_number_of_samples" : number_of_images, 
+                                "noisy_samples_filtered" : noisy_samples_filtered, 
+                                "current_progress" : 100,
+                                "process_status" : f"Completed!"
+                            }
+                
+                mongodb['noisy_filtering'].update_many(update_query, {'$set' : noisy_filtering_info})
+                
+        Thread(target=NoiseFiltering, args=(dataset_info, user_id, project_name, project_info, data_name, filtered_data_name)).start()
+        
+        
+        res = {
+                "status": "success",   
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
 
 
+
+
+
+
+
+@app.route("/get_noise_filtering_logs", methods=['POST'])
+def get_noise_filtering_logs():
+    
+    logger.info(f"Get request for /get_noise_filtering_logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["noisy_filtering"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "run_history": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
