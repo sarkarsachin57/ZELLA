@@ -40,22 +40,6 @@ export default function HistoryTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'train_iou'} scope='row' style={{ minWidth: 120 }}>
-                    Train IOU
-                  </TableCell>
-
-                  {data.train_iou?.map((item, index) => (
-                    <TableCell component='th' key={index} scope='row'>
-                      {item}
-                    </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}  
-                </TableRow>
-                <TableRow
-                  hover
-                  role='checkbox'
-                  tabIndex={-1}
-                  sx={{ cursor: 'pointer' }}
-                >
                   <TableCell component='th' id={'train_loss'} scope='row' style={{ minWidth: 120 }}>
                     Train Loss
                   </TableCell>
@@ -72,15 +56,31 @@ export default function HistoryTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'val_class_average_iou'} scope='row' style={{ minWidth: 120 }}>
-                  Val Class Average IOU
+                  <TableCell component='th' id={'train_iou'} scope='row' style={{ minWidth: 120 }}>
+                    Train IOU
                   </TableCell>
 
-                  {data.val_class_average_iou?.map((item, index) => (
+                  {data.train_iou?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row'>
                       {item}
                     </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}
+                  )) || <TableCell>No Data Available</TableCell>}  
+                </TableRow>
+                <TableRow
+                  hover
+                  role='checkbox'
+                  tabIndex={-1}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell component='th' id={'val_loss'} scope='row' style={{ minWidth: 120 }}>
+                  Val Loss
+                  </TableCell>
+
+                  {data.val_loss?.map((item, index) => (
+                    <TableCell component='th' key={index} scope='row'>
+                      {item}
+                    </TableCell>
+                  )) || <TableCell>No Data Available</TableCell>}  {/* Fallback if train_loss is null/undefined */}
                 </TableRow>
                 <TableRow
                   hover
@@ -104,17 +104,16 @@ export default function HistoryTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'val_loss'} scope='row' style={{ minWidth: 120 }}>
-                  Val Loss
+                  <TableCell component='th' id={'val_class_average_iou'} scope='row' style={{ minWidth: 120 }}>
+                  Val Class Average IOU
                   </TableCell>
 
-                  {data.val_loss?.map((item, index) => (
+                  {data.val_class_average_iou?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row'>
                       {item}
                     </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}  {/* Fallback if train_loss is null/undefined */}
+                  )) || <TableCell>No Data Available</TableCell>}
                 </TableRow>
-                
               </TableBody>
           </Table>
         </TableContainer>

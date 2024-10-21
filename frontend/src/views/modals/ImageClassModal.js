@@ -34,7 +34,6 @@ export default function ImageClassModal (props) {
     projectType,
     ...rest
   } = props
-  console.log('project_type: ', projectType)
   const HistoryType = {
     "Image Classification":<HistoryTable data = { data === undefined ? [] : data.history } />,
     "Object Detection":<ObjectHistoryTable data = { data === undefined ? [] : data.history } />,
@@ -47,16 +46,11 @@ export default function ImageClassModal (props) {
     "Semantic Segmentation":<SegmentationClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
     "Instance Segmentation":<InstanceClassificationTable basicData =  {data === undefined ? [] : data.classification_report}/>,
   }
-  const ref = useRef(null)
-  const videoRef = useRef(null)
-
-  const [ points, setPoints ] = useState([]);
-  const [ trackerRect, setTrackerRec ] = useState({})
-  const [dim, setDim] = useState({width: 500, height: 281});
-  const [targetName, setTargetName] = useState('');
-  const [frame, setFrame ] = useState(null)
-  const [captureTime, setCaptureTime] = useState(-1)
-  const [ROIList, setROIList] = useState([])
+  const historyChartData = []
+  if(projectType) {
+    
+  }
+  
 
   return (
     <CustomModalLayout
@@ -69,7 +63,12 @@ export default function ImageClassModal (props) {
       // onHandleSubmit={ onHandleSubmitWithData }
     >
 
-      <DialogContent>
+      <DialogContent
+        sx={{
+          overflowY: 'auto',
+          maxHeight: '80vh'
+        }}    
+      >
         <SettingPanelHeader icon={<WorkHistoryIcon />} title={'History'} />
         <CardContent
         sx = {{

@@ -40,15 +40,15 @@ export default function HistoryTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'MAP'} scope='row' style={{ minWidth: 120 }}>
-                    MAP
+                  <TableCell component='th' id={'seg_loss'} scope='row' style={{ minWidth: 120 }}>
+                  Seg Loss
                   </TableCell>
 
-                  {data.MAP?.map((item, index) => (
+                  {data.seg_loss?.map((item, index) => (
                     <TableCell component='th' key={index} scope='row'>
                       {item}
                     </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}  
+                  )) || <TableCell>No Data Available</TableCell>}
                 </TableRow>
                 <TableRow
                   hover
@@ -88,22 +88,6 @@ export default function HistoryTable(props) {
                   tabIndex={-1}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell component='th' id={'seg_loss'} scope='row' style={{ minWidth: 120 }}>
-                  Seg Loss
-                  </TableCell>
-
-                  {data.seg_loss?.map((item, index) => (
-                    <TableCell component='th' key={index} scope='row'>
-                      {item}
-                    </TableCell>
-                  )) || <TableCell>No Data Available</TableCell>}
-                </TableRow>
-                <TableRow
-                  hover
-                  role='checkbox'
-                  tabIndex={-1}
-                  sx={{ cursor: 'pointer' }}
-                >
                   <TableCell component='th' id={'recalls'} scope='row' style={{ minWidth: 120 }}>
                   Recall
                   </TableCell>
@@ -114,7 +98,22 @@ export default function HistoryTable(props) {
                     </TableCell>
                   )) || <TableCell>No Data Available</TableCell>}  {/* Fallback if train_loss is null/undefined */}
                 </TableRow>
-                
+                <TableRow
+                  hover
+                  role='checkbox'
+                  tabIndex={-1}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell component='th' id={'MAP'} scope='row' style={{ minWidth: 120 }}>
+                    MAP
+                  </TableCell>
+
+                  {data.MAP?.map((item, index) => (
+                    <TableCell component='th' key={index} scope='row'>
+                      {item}
+                    </TableCell>
+                  )) || <TableCell>No Data Available</TableCell>}  
+                </TableRow>
               </TableBody>
           </Table>
         </TableContainer>
