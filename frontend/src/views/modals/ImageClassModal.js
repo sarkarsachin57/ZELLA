@@ -34,6 +34,7 @@ export default function ImageClassModal (props) {
     projectType,
     ...rest
   } = props
+  console.log('data: ', data)
   const HistoryType = {
     "Image Classification":<HistoryTable data = { data === undefined ? [] : data.history } />,
     "Object Detection":<ObjectHistoryTable data = { data === undefined ? [] : data.history } />,
@@ -48,9 +49,19 @@ export default function ImageClassModal (props) {
   }
   const historyChartData1 = {}
   const historyChartData2 = {}
+  const classesChartData3 = {}
+  const classesChartData4 = {}
   if(projectType) {
+    const xAxis1 = []
+    const series1 = []
+    const xAxis2 = []
+    const series2 = []
+    const xAxis3 = []
+    const series3 = []
+    const xAxis4 = []
+    const series4 = []
     if(projectType === 'Instance Segmentation') {
-      const series1 = [
+      series1 = [
         {
           data: data === undefined ? [] : data.history.class_loss,
           label: "Class Loss"
@@ -60,14 +71,13 @@ export default function ImageClassModal (props) {
           label: "Seg Loss"
         }
       ]
-      
-      const xAxis1 = [
+      xAxis1 = [
         {
           scaleType: 'point',
           data: data === undefined ? [] : data.history.epochs,
         }
       ]
-      const series2 = [
+      series2 = [
         {
           data: data === undefined ? [] : data.history.precision,
           label: "Precision"
@@ -81,19 +91,144 @@ export default function ImageClassModal (props) {
           label: "MAP"
         }
       ]
-      
-      const xAxis2 = [
+      xAxis2 = [
         {
           scaleType: 'point',
           data: data === undefined ? [] : data.history.epochs,
         }
       ]
+      series3 = [
+        {
+          data: data === undefined ? [] : data.classification_report.number_images,
+          label: "Number Images"
+        },
+        {
+          data: data === undefined ? [] : data.classification_report.number_instances,
+          label: "Number Instances"
+        },
+      ]
+      xAxis3 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : data.classification_report.Classes,
+        }
+      ]
+      series4 = [
+        {
+          data: data === undefined ? [] : data.classification_report.Precision,
+          label: "Precision"
+        },
+        {
+          data: data === undefined ? [] : data.classification_report.Recall,
+          label: "Recall"
+        },
+        {
+          data: data === undefined ? [] : data.classification_report.MAP,
+          label: "MAP"
+        }
+      ]
+      xAxis4 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : data.classification_report.Classes,
+        }
+      ]
     }
-    else {
-      const xAxis1 = []
-      const series1 = []
-      const xAxis2 = []
-      const series2 = []
+    else if(projectType === 'Semantic Segmentation'){
+      const semanticChartData = {
+        class_name: [],
+        FN: [],
+        FP: [],
+        IOU: [],
+        TP: [],
+        precision: [],
+        recall: [],
+      }
+      data !== undefined ?data.classification_report.map((item, index)=>{
+          semanticChartData.class_name[index]= data.classification_report[index].class_name
+          semanticChartData.FN[index]= data.classification_report[index].FN
+          semanticChartData.FP[index]= data.classification_report[index].FP
+          semanticChartData.IOU[index]= data.classification_report[index].IoU
+          semanticChartData.TP[index]= data.classification_report[index].TP
+          semanticChartData.precision[index]= data.classification_report[index].precision
+          semanticChartData.recall[index]= data.classification_report[index].recall
+      }):[]
+      series1 = [
+        {
+          data: data === undefined ? [] : data.history.train_loss,
+          label: "Train Loss"
+        },
+        {
+          data: data === undefined ? [] : data.history.val_loss,
+          label: "Val Loss"
+        }
+      ]
+      xAxis1 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : data.history.epochs,
+        }
+      ]
+      series2 = [
+        {
+          data: data === undefined ? [] : data.history.train_iou,
+          label: "Train IOU"
+        },
+        {
+          data: data === undefined ? [] : data.history.val_iou,
+          label: "Val IOU"
+        },
+        {
+          data: data === undefined ? [] : data.history.val_class_average_iou,
+          label: "Average IOU"
+        }
+      ]
+      xAxis2 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : data.history.epochs,
+        }
+      ]
+      series3 = [
+        {
+          data: data === undefined ? [] : semanticChartData.FN,
+          label: "FN"
+        },
+        {
+          data: data === undefined ? [] : semanticChartData.FP,
+          label: "FP"
+        },
+        {
+          data: data === undefined ? [] : semanticChartData.TP,
+          label: "TP"
+        },
+        {
+          data: data === undefined ? [] : semanticChartData.TP,
+          label: "IOU"
+        },
+      ]
+      xAxis3 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : semanticChartData.class_name,
+        }
+      ]
+      series4 = [
+        {
+          data: data === undefined ? [] : semanticChartData.precision,
+          label: "Precision"
+        },
+        {
+          data: data === undefined ? [] : semanticChartData.recall,
+          label: "Recall"
+        },
+      ]
+      xAxis4 = [
+        {
+          scaleType: 'point',
+          data: data === undefined ? [] : semanticChartData.class_name,
+        }
+      ]
     }
     
     historyChartData1 = {
@@ -103,6 +238,14 @@ export default function ImageClassModal (props) {
     historyChartData2 = {
       xAxis: xAxis2,
       series: series2,
+    }
+    classesChartData3 = {
+      xAxis: xAxis3,
+      series: series3,
+    }
+    classesChartData4 = {
+      xAxis: xAxis4,
+      series: series4,
     }
   }
   console.log("historyChartData: ", historyChartData1)
@@ -149,12 +292,18 @@ export default function ImageClassModal (props) {
           position: 'relative',
         }}>
           {Array.isArray(historyChartData1.xAxis) && historyChartData1.xAxis.length > 0 ? (
-            <TrainingResultChart historyChartData={historyChartData1} />
+            <TrainingResultChart 
+              historyChartData={historyChartData1} 
+              width = {1000}
+            />
           ) : (
             "No Data"
           )}
           {Array.isArray(historyChartData2.xAxis) && historyChartData2.xAxis.length > 0 ? (
-            <TrainingResultChart historyChartData={historyChartData2} />
+            <TrainingResultChart 
+              historyChartData={historyChartData2} 
+              width = {1000}
+            />
           ) : (
             "No Data"
           )}
@@ -172,6 +321,31 @@ export default function ImageClassModal (props) {
             projectType??ClassificationTable[projectType]?
             (ClassificationType[projectType]): null
           }
+        </CardContent>
+        <CardContent
+        sx = {{
+          // margin: '6px',
+          textAlign:'center',
+          display: 'flex',
+          justifyContent: 'center',
+          position: 'relative',
+        }}>
+          {Array.isArray(classesChartData3.xAxis) && classesChartData3.xAxis.length > 0 ? (
+            <TrainingResultChart 
+              historyChartData={classesChartData3} 
+              width = {500}
+            />
+          ) : (
+            "No Data"
+          )}
+          {Array.isArray(classesChartData4.xAxis) && classesChartData4.xAxis.length > 0 ? (
+            <TrainingResultChart 
+              historyChartData={classesChartData4} 
+              width = {500}
+            />
+          ) : (
+            "No Data"
+          )}
         </CardContent>
       </DialogContent>
     </CustomModalLayout>

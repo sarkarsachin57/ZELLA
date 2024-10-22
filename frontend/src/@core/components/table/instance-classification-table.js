@@ -145,8 +145,6 @@ export default function SegmentationClassificationTable(props) {
     data[index]= tmp
   })
 
-  console.log('data: ', data)
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
     setOrder(isAsc ? 'desc' : 'asc')
