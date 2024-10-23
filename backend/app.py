@@ -2645,9 +2645,8 @@ def filter_noisy_samples():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
         
-        filtered_data_info = mongodb["datasets"].find({"user_id" : user_id, "project_name" : project_name, "data_name" : filtered_data_name})
+        filtered_data_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : filtered_data_name})
         if filtered_data_info is not None:
-            logger.info(f"filtered_data_info : {filtered_data_info}")
                 
             res = {
                     "status": "fail",
