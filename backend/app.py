@@ -2355,6 +2355,86 @@ def get_detailed_training_history():
 
 
 
+
+
+
+@app.route("/model_evaluation", methods=['POST'])
+def model_evaluation():
+    
+    logger.info(f"Get request for /model_evaluationy")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        run_name = request.form['run_name']
+        data_name = request.form['data_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, run_name : {run_name}, data_name : {data_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nrun_name : {run_name}\ndata_name : {data_name}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+
+        run_record = mongodb["run_records"].find_one({'user_id' : user_id, 'project_name' : project_name, "run_name" : run_name})
+        model_path = run_record["model_path"]
+        
+        
+        train_data_name = run_record["train_data_name"]
+        train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
+        train_data_path = train_data_meta['data_extracted_path']
+        
+        val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        val_data_path = val_data_meta['data_extracted_path']
+        
+        train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
+        val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+        
+    
+
+        res = {
+                "status": "success",
+                # "history": history,
+                # "classification_report" : classification_report      
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
 @app.route("/get_single_sample_visualization", methods=['POST'])
 def get_single_sample_visualization():
     

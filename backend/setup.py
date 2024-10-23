@@ -11,7 +11,7 @@ pip install requests tensorflow pandas numpy redis pymongo pickle-mixin psutil o
 pip install mailslurp-client
 pip install ultralytics pytorch-lightning==1.8.6
 pip install gdown==4.6.0
-pip install Flask==2.0.3 Flask-Cors==3.0.10 Flask-JSGlue==0.3.1 flask-ngrok==0.0.25 Jinja2==3.0.0 Werkzeug==2.3.3 waitress==2.1.2
+pip install Flask==2.0.3 Flask-Cors==3.0.10 Flask-JSGlue==0.3.1 flask-ngrok==0.0.25 Jinja2==3.0.0 Werkzeug==2.3.3 waitress==2.1.2 Pygments==2.15.1
 pip install ftfy regex
 pip install git+https://github.com/openai/CLIP.git
 pip install apricot-select inplace-abn timm visdom

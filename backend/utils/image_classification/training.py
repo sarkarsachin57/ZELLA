@@ -318,8 +318,8 @@ def train_model(run_name, train_data_name, val_data_name, project_name, user_id,
         avg_samples = round(df["n_sample"].mean(), 2)
         
         # Add Class Average and Overall rows
-        df.loc[len(df)] = ['Class Average', avg_samples, 'NA', 'NA', 'NA', class_avg_precision, class_avg_recall, class_avg_accuracy]
-        df.loc[len(df)] = ['Overall', total_samples, 'NA', 'NA', 'NA', 'NA', 'NA', overall_accuracy]
+        df.loc[len(df)] = ['Class Average', avg_samples, '', '', '', class_avg_precision, class_avg_recall, class_avg_accuracy]
+        df.loc[len(df)] = ['Overall', total_samples, '', '', '', '', '', overall_accuracy]
         
         return df
     
