@@ -596,6 +596,36 @@ def ImageClassificationTrainingPipeline(
 
     
     update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
-    mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "Completed"}})
+    mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "Completed!", "class_list" : classnames}})
 
     return trained_model, history, class_report
+
+
+
+
+
+
+
+
+
+
+
+
+def ImageClassificationEvaluationPipeline(
+        run_name,
+        train_data_name,
+        val_data_name,
+        project_name,
+        project_type,
+        user_id,
+        run_record,
+        device,
+        train_dataset_path,
+        val_dataset_path        
+        ):
+    
+    model_name = run_record['model_name']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    
+    

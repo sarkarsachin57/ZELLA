@@ -2387,10 +2387,12 @@ def model_evaluation():
             return json.dumps(res, separators=(',', ':'), default=str)
 
         user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+        project_type = project_info["project_type"]
 
         run_record = mongodb["run_records"].find_one({'user_id' : user_id, 'project_name' : project_name, "run_name" : run_name})
         model_path = run_record["model_path"]
-        
         
         train_data_name = run_record["train_data_name"]
         train_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : train_data_name})
@@ -2399,8 +2401,10 @@ def model_evaluation():
         val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
         val_data_path = val_data_meta['data_extracted_path']
         
-        train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
-        val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+        # train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
+        # val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+        
+        
         
     
 
@@ -2643,6 +2647,7 @@ def filter_noisy_samples():
         
         filtered_data_info = mongodb["datasets"].find({"user_id" : user_id, "project_name" : project_name, "data_name" : filtered_data_name})
         if filtered_data_info is not None:
+            logger.info(f"filtered_data_info : {filtered_data_info}")
                 
             res = {
                     "status": "fail",

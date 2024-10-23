@@ -376,5 +376,5 @@ def SemanticSegmentationTrainingPipeline(run_name,
 
     
     update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
-    mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "completed!"}})
+    mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "completed!", "class_list" : train_dataset.classes}})
 
