@@ -6,6 +6,12 @@ import CustomModalLayout from './CustomModalLayout'
 import DialogContent from '@mui/material/DialogContent'
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
+import OutlinedInput from '@mui/material/OutlinedInput'
+import FormControl from '@mui/material/FormControl'
+import Grid from '@mui/material/Grid'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -24,6 +30,7 @@ import InstanceClassificationTable from 'src/@core/components/table/instance-cla
 
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 import TrainingResultChart from 'src/@core/components/chart/trainingResultChart'
+import ClassificationBarChart from 'src/@core/components/chart/customChart'
 export default function ImageClassModal (props) {
   const {
     width,
@@ -47,210 +54,259 @@ export default function ImageClassModal (props) {
     "Semantic Segmentation":<SegmentationClassificationTable data =  {data === undefined ? [] : data.classification_report}/>,
     "Instance Segmentation":<InstanceClassificationTable basicData =  {data === undefined ? [] : data.classification_report}/>,
   }
-  const historyChartData1 = {}
-  const historyChartData2 = {}
-  const classesChartData3 = {}
-  const classesChartData4 = {}
-  if(projectType) {
-    const xAxis1 = []
-    const series1 = []
-    const xAxis2 = []
-    const series2 = []
-    const xAxis3 = []
-    const series3 = []
-    const xAxis4 = []
-    const series4 = []
-    if(projectType === 'Instance Segmentation') {
-      series1 = [
-        {
-          data: data === undefined ? [] : data.history.class_loss,
-          label: "Class Loss"
-        },
-        {
-          data: data === undefined ? [] : data.history.seg_loss,
-          label: "Seg Loss"
-        }
-      ]
-      xAxis1 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.history.epochs,
-        }
-      ]
-      series2 = [
-        {
-          data: data === undefined ? [] : data.history.precision,
-          label: "Precision"
-        },
-        {
-          data: data === undefined ? [] : data.history.recall,
-          label: "Recall"
-        },
-        {
-          data: data === undefined ? [] : data.history.MAP,
-          label: "MAP"
-        }
-      ]
-      xAxis2 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.history.epochs,
-        }
-      ]
-      series3 = [
-        {
-          data: data === undefined ? [] : data.classification_report.number_images,
-          label: "Number Images"
-        },
-        {
-          data: data === undefined ? [] : data.classification_report.number_instances,
-          label: "Number Instances"
-        },
-      ]
-      xAxis3 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.classification_report.Classes,
-        }
-      ]
-      series4 = [
-        {
-          data: data === undefined ? [] : data.classification_report.Precision,
-          label: "Precision"
-        },
-        {
-          data: data === undefined ? [] : data.classification_report.Recall,
-          label: "Recall"
-        },
-        {
-          data: data === undefined ? [] : data.classification_report.MAP,
-          label: "MAP"
-        }
-      ]
-      xAxis4 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.classification_report.Classes,
-        }
-      ]
-    }
-    else if(projectType === 'Semantic Segmentation'){
-      const semanticChartData = {
-        class_name: [],
-        FN: [],
-        FP: [],
-        IOU: [],
-        TP: [],
-        precision: [],
-        recall: [],
-      }
-      data !== undefined ?data.classification_report.map((item, index)=>{
-          semanticChartData.class_name[index]= data.classification_report[index].class_name
-          semanticChartData.FN[index]= data.classification_report[index].FN
-          semanticChartData.FP[index]= data.classification_report[index].FP
-          semanticChartData.IOU[index]= data.classification_report[index].IoU
-          semanticChartData.TP[index]= data.classification_report[index].TP
-          semanticChartData.precision[index]= data.classification_report[index].precision
-          semanticChartData.recall[index]= data.classification_report[index].recall
-      }):[]
-      series1 = [
-        {
-          data: data === undefined ? [] : data.history.train_loss,
-          label: "Train Loss"
-        },
-        {
-          data: data === undefined ? [] : data.history.val_loss,
-          label: "Val Loss"
-        }
-      ]
-      xAxis1 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.history.epochs,
-        }
-      ]
-      series2 = [
-        {
-          data: data === undefined ? [] : data.history.train_iou,
-          label: "Train IOU"
-        },
-        {
-          data: data === undefined ? [] : data.history.val_iou,
-          label: "Val IOU"
-        },
-        {
-          data: data === undefined ? [] : data.history.val_class_average_iou,
-          label: "Average IOU"
-        }
-      ]
-      xAxis2 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : data.history.epochs,
-        }
-      ]
-      series3 = [
-        {
-          data: data === undefined ? [] : semanticChartData.FN,
-          label: "FN"
-        },
-        {
-          data: data === undefined ? [] : semanticChartData.FP,
-          label: "FP"
-        },
-        {
-          data: data === undefined ? [] : semanticChartData.TP,
-          label: "TP"
-        },
-        {
-          data: data === undefined ? [] : semanticChartData.TP,
-          label: "IOU"
-        },
-      ]
-      xAxis3 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : semanticChartData.class_name,
-        }
-      ]
-      series4 = [
-        {
-          data: data === undefined ? [] : semanticChartData.precision,
-          label: "Precision"
-        },
-        {
-          data: data === undefined ? [] : semanticChartData.recall,
-          label: "Recall"
-        },
-      ]
-      xAxis4 = [
-        {
-          scaleType: 'point',
-          data: data === undefined ? [] : semanticChartData.class_name,
-        }
-      ]
-    }
-    
-    historyChartData1 = {
-      xAxis: xAxis1,
-      series: series1,
-    }
-    historyChartData2 = {
-      xAxis: xAxis2,
-      series: series2,
-    }
-    classesChartData3 = {
-      xAxis: xAxis3,
-      series: series3,
-    }
-    classesChartData4 = {
-      xAxis: xAxis4,
-      series: series4,
-    }
+  const selectData = {
+    "Instance Segmentation":['MAP','Precision','Recall','number_images','number_instances'],
+    "Semantic Segmentation":['FN','FP','IOU','TP','precision','recall'],
+    "Object Detection":['MAP','Precision','Recall','number_images','number_instances'],
+    "Image Classification":['MAP','Precision','Recall','number_images','number_instances'],
   }
-  console.log("historyChartData: ", historyChartData1)
-  console.log("historyChartData: ", historyChartData2)
   
+  const [ historyChartData1, setHistoryChartData1] = useState({})
+  const [ historyChartData2, setHistoryChartData2] = useState({})
+  const [ barChartData, setBrChartData] = useState({})
+  const [ currentClassification, setCurrentClassification] = useState(selectData?.[projectType]?.[0] || '')
+  useEffect(() => {
+    if (data) {
+      if(projectType) {
+        const xAxis1 = []
+        const series1 = []
+        const xAxis2 = []
+        const series2 = []
+        if(projectType === 'Instance Segmentation') {
+          series1 = [
+            {
+              data: data === undefined ? [] : data.history.class_loss,
+              label: "Class Loss"
+            },
+            {
+              data: data === undefined ? [] : data.history.seg_loss,
+              label: "Seg Loss"
+            }
+          ]
+          xAxis1 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData1({
+            xAxis: xAxis1,
+            series: series1,
+          })
+          series2 = [
+            {
+              data: data === undefined ? [] : data.history.precision,
+              label: "Precision"
+            },
+            {
+              data: data === undefined ? [] : data.history.recall,
+              label: "Recall"
+            },
+            {
+              data: data === undefined ? [] : data.history.MAP,
+              label: "MAP"
+            }
+          ]
+          xAxis2 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData2({
+            xAxis: xAxis2,
+            series: series2,
+          })
+          const classesChartData3 = {
+            title: 'Classification Report Chart',
+            x: data === undefined ? [] : data.classification_report.Classes,
+            xtitle: 'Classes',
+            y: data === undefined ? [] : data.classification_report[currentClassification],
+            ytitle: currentClassification
+          }
+          setBrChartData(classesChartData3)
+        }
+        else if(projectType === 'Semantic Segmentation'){
+          const semanticChartData = {
+            class_name: [],
+            FN: [],
+            FP: [],
+            IOU: [],
+            TP: [],
+            precision: [],
+            recall: [],
+          }
+          data !== undefined ?data.classification_report.map((item, index)=>{
+              semanticChartData.class_name[index]= data.classification_report[index].class_name
+              semanticChartData.FN[index]= data.classification_report[index].FN
+              semanticChartData.FP[index]= data.classification_report[index].FP
+              semanticChartData.IOU[index]= data.classification_report[index].IoU
+              semanticChartData.TP[index]= data.classification_report[index].TP
+              semanticChartData.precision[index]= data.classification_report[index].precision
+              semanticChartData.recall[index]= data.classification_report[index].recall
+          }):[]
+          series1 = [
+            {
+              data: data === undefined ? [] : data.history.train_loss,
+              label: "Train Loss"
+            },
+            {
+              data: data === undefined ? [] : data.history.val_loss,
+              label: "Val Loss"
+            }
+          ]
+          xAxis1 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData1({
+            xAxis: xAxis1,
+            series: series1,
+          })
+          series2 = [
+            {
+              data: data === undefined ? [] : data.history.train_iou,
+              label: "Train IOU"
+            },
+            {
+              data: data === undefined ? [] : data.history.val_iou,
+              label: "Val IOU"
+            },
+            {
+              data: data === undefined ? [] : data.history.val_class_average_iou,
+              label: "Average IOU"
+            }
+          ]
+          xAxis2 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData2({
+            xAxis: xAxis2,
+            series: series2,
+          })
+          const classesChartData3 = {
+            title: 'Classification Report Chart',
+            x: data === undefined ? [] : semanticChartData.class_name,
+            xtitle: 'Classes',
+            y: data === undefined ? [] : semanticChartData[currentClassification],
+            ytitle: currentClassification
+          }
+          setBrChartData(classesChartData3)
+          console.log('classesChartData3: ',classesChartData3)
+          console.log('barChartData: ', barChartData)
+        }
+        else if(projectType === 'Object Detection') {
+          series1 = [
+            {
+              data: data === undefined ? [] : data.history.class_loss,
+              label: "Class Loss"
+            },
+            {
+              data: data === undefined ? [] : data.history.box_loss,
+              label: "Box Loss"
+            }
+          ]
+          xAxis1 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData1({
+            xAxis: xAxis1,
+            series: series1,
+          })
+          series2 = [
+            {
+              data: data === undefined ? [] : data.history.precision,
+              label: "Precision"
+            },
+            {
+              data: data === undefined ? [] : data.history.recall,
+              label: "Recall"
+            },
+            {
+              data: data === undefined ? [] : data.history.MAP,
+              label: "MAP"
+            }
+          ]
+          xAxis2 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData2({
+            xAxis: xAxis2,
+            series: series2,
+          })
+          const classesChartData3 = {
+            title: 'Classification Report Chart',
+            x: data === undefined ? [] : data.classification_report.Classes,
+            xtitle: 'Classes',
+            y: data === undefined ? [] : data.classification_report[currentClassification],
+            ytitle: currentClassification
+          }
+          setBrChartData(classesChartData3)
+        }
+        else if(projectType === 'Image Classification') {
+          series1 = [
+            {
+              data: data === undefined ? [] : data.history.train_loss,
+              label: "Train Loss"
+            },
+            {
+              data: data === undefined ? [] : data.history.val_loss,
+              label: "Val Loss"
+            }
+          ]
+          xAxis1 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData1({
+            xAxis: xAxis1,
+            series: series1,
+          })
+          series2 = [
+            {
+              data: data === undefined ? [] : data.history.train_acc,
+              label: "Train ACC"
+            },
+            {
+              data: data === undefined ? [] : data.history.val_acc,
+              label: "Vall ACC"
+            },
+          ]
+          xAxis2 = [
+            {
+              scaleType: 'point',
+              data: data === undefined ? [] : data.history.epochs,
+            }
+          ]
+          setHistoryChartData2({
+            xAxis: xAxis2,
+            series: series2,
+          })
+          const classesChartData3 = {
+            title: 'Classification Report Chart',
+            x: data === undefined ? [] : data.classification_report.Classes,
+            xtitle: 'Classes',
+            y: data === undefined ? [] : data.classification_report[currentClassification],
+            ytitle: currentClassification
+          }
+          setBrChartData(classesChartData3)
+        }
+      }
+    }
+  }, [data, currentClassification])
 
   return (
     <CustomModalLayout
@@ -330,22 +386,34 @@ export default function ImageClassModal (props) {
           justifyContent: 'center',
           position: 'relative',
         }}>
-          {Array.isArray(classesChartData3.xAxis) && classesChartData3.xAxis.length > 0 ? (
-            <TrainingResultChart 
-              historyChartData={classesChartData3} 
-              width = {500}
-            />
-          ) : (
-            "No Data"
-          )}
-          {Array.isArray(classesChartData4.xAxis) && classesChartData4.xAxis.length > 0 ? (
-            <TrainingResultChart 
-              historyChartData={classesChartData4} 
-              width = {500}
-            />
-          ) : (
-            "No Data"
-          )}
+          <Grid container spacing={12}>
+            <Grid item xs={12} sm={3} sx={{ textAlign: 'left' }}>
+              <InputLabel id='currentClassification'> {'Select View Data'} </InputLabel>
+              <Select
+                value={currentClassification}
+                onChange={e => setCurrentClassification(e.target.value)}
+                id='currentClassification'
+                labelId='currentClassification'
+                input={<OutlinedInput label='View Data' id='currentClassification' />}
+              >
+                {
+                  selectData[projectType].map(item =>{
+                    return (<MenuItem value={item}> {item} </MenuItem>)
+                  })
+                }
+              </Select>
+            </Grid>
+            <Grid item xs={12} sm={12} sx={{ textAlign: 'left' }}>
+              { Object.keys(barChartData).length > 0 ?
+                  <ClassificationBarChart
+                      chartData = {barChartData}
+                  />
+                  :<Typography variant="button" gutterBottom sx={{ display: 'block',}}>
+                        No Data
+                  </Typography>
+              }
+            </Grid>
+          </Grid>
         </CardContent>
       </DialogContent>
     </CustomModalLayout>
