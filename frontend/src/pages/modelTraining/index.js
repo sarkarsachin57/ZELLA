@@ -671,7 +671,7 @@ const ModelTraining = () => {
         />
       </CardBox>
       <ImageClassModal
-        width={1200}
+        width={"80%"}
         isOpen={isTrainModalOpen}
         onHandleModalClose = {handleTrainDetailModalClose}
         data = {training_detail_infor}

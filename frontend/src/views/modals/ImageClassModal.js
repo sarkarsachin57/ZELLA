@@ -31,6 +31,7 @@ import InstanceClassificationTable from 'src/@core/components/table/instance-cla
 import SettingPanelHeader from 'src/views/settings/SettingPanelHeader'
 import TrainingResultChart from 'src/@core/components/chart/trainingResultChart'
 import ClassificationBarChart from 'src/@core/components/chart/customChart'
+
 export default function ImageClassModal (props) {
   const {
     width,
@@ -41,7 +42,7 @@ export default function ImageClassModal (props) {
     projectType,
     ...rest
   } = props
-  console.log('data: ', data)
+  
   const HistoryType = {
     "Image Classification":<HistoryTable data = { data === undefined ? [] : data.history } />,
     "Object Detection":<ObjectHistoryTable data = { data === undefined ? [] : data.history } />,
@@ -58,7 +59,7 @@ export default function ImageClassModal (props) {
     "Instance Segmentation":['MAP','Precision','Recall','number_images','number_instances'],
     "Semantic Segmentation":['FN','FP','IOU','TP','precision','recall'],
     "Object Detection":['MAP','Precision','Recall','number_images','number_instances'],
-    "Image Classification":['MAP','Precision','Recall','number_images','number_instances'],
+    "Image Classification":['n_sample','TP','FP','FN','Precision','Recall','Accuracy'],
   }
   
   const [ historyChartData1, setHistoryChartData1] = useState({})
@@ -297,7 +298,7 @@ export default function ImageClassModal (props) {
           })
           const classesChartData3 = {
             title: 'Classification Report Chart',
-            x: data === undefined ? [] : data.classification_report.Classes,
+            x: data === undefined ? [] : data.classification_report.class_name,
             xtitle: 'Classes',
             y: data === undefined ? [] : data.classification_report[currentClassification],
             ytitle: currentClassification
