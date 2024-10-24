@@ -42,6 +42,11 @@ const offlineNavItemList = [
     path: '/dataPreparation',
     subTitle: [
       {
+        title: 'Noise Filtering',
+        icon: NoteAddIcon,
+        path: '/dataPreparation/noiseFiltering'
+      },
+      {
         title: 'Relevant Data Selection',
         icon: NoteAddIcon,
         path: '/dataPreparation/relevantSelection'

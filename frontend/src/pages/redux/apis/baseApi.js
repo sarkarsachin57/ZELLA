@@ -10,7 +10,8 @@ import {
   setTrainingViewDetail,
   setDatasetInfo,
   setViewSample,
-  setSimpleImageUrl
+  setSimpleImageUrl,
+  setNoiseHistory
 } from '../features/baseSlice';
 
 /**
@@ -304,8 +305,35 @@ export const baseApi = createApi({
           }
         },
       }),
-      
+/**
+  * 👇 @file Model noise Filtering
+*/
+    filterNoiseSamples: builder.mutation({
+      query(data) {
+        return {
+          url: 'filter_noisy_samples',
+          method: 'POST',
+          body: data
+        }
+      },
     }),
+    getNoiseRunFilteringLogs: builder.mutation({
+      query(data) {
+        return {
+          url: 'get_noise_filtering_logs',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setNoiseHistory(data.run_history));
+        } catch (error) {}
+      },
+    }),
+  }),
 });
 
 export const {
@@ -327,5 +355,8 @@ export const {
   useTrainObjectDetectionModelMutation,
   useTrainSemanticSegmentationModelMutation,
   useTrainInstanceSegmentationModelMutation,
-  useGetSimpleImageUrlMutation
+  useGetSimpleImageUrlMutation,
+
+  useFilterNoiseSamplesMutation,
+  useGetNoiseRunFilteringLogsMutation
 } = baseApi;
