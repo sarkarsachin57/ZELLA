@@ -3,6 +3,144 @@ from initials import *
 
 
 
+class SegmentationDataset(Dataset):
+    def __init__(self, images_dir, annotations_dir, transform=None):
+        self.images_dir = images_dir
+        self.annotations_dir = annotations_dir
+        self.transform = transform
+        
+        self.image_filenames = [f for f in os.listdir(images_dir) if f.endswith(('.jpg', '.png'))]
+        
+        with open(os.path.join(images_dir, '../metadata.json'), 'r') as f:
+            self.metadata = json.load(f)
+        self.classes = self.metadata["classes"]
+        
+    def __len__(self):
+        return len(self.image_filenames)
+    
+    def __getitem__(self, idx):
+        # Load the image
+        image_path = os.path.join(self.images_dir, self.image_filenames[idx])
+        image = Image.open(image_path).convert('RGB')  # Convert image to RGB
+
+        # Load the segmentation map (npy)
+        mask_filename = os.path.splitext(self.image_filenames[idx])[0] + '.npy'
+        mask_path = os.path.join(self.annotations_dir, mask_filename)
+        mask = np.load(mask_path)
+        
+        # Handle the transformation (if any)
+        if self.transform:
+            augmented = self.transform(image=np.array(image), mask=mask)
+            image = augmented['image']
+            mask = augmented['mask']
+
+        # No need to manually transpose the image here
+        # Convert directly to tensor (ToTensorV2 already handles this)
+        image = image.float()#astype(np.float32)  # Ensure float32
+        mask = torch.as_tensor(mask, dtype=torch.long).clone().detach()   # Segmentation map as long tensor
+
+        return image, mask
+    
+    
+
+def validate_model(model, dataloader, loss_fn, device, classnames):
+    num_classes = len(classnames)
+    model.eval()  # Set model to evaluation mode
+    val_loss = 0.0
+    iou_metric_val = 0.0
+    iou_per_class = torch.zeros(num_classes).to(device)  # To store IoU for each class
+
+    total_tp = 0
+    n_pixels = 0
+    n_samples = 0
+    classwise_pixels = {class_name: {"TP": 0, "FP": 0, "FN": 0, "precision" : 0, "recall" : 0, "IoU" : 0} for class_name in classnames}
+
+    with torch.no_grad():  # Disable gradient computation for validation
+        for images, masks in tqdm(dataloader):
+            n_samples += images.shape[0]
+            images = images.to(device)
+            masks = masks.to(device)
+
+            # Forward pass
+            outputs = model(images)
+            
+            if loss_fn is not None:
+                loss = loss_fn(outputs, masks)
+                val_loss += loss.item()
+
+            # Compute IoU for each class
+            
+            if num_classes > 2:
+                preds = torch.argmax(outputs, dim=1)
+            else:
+                preds = torch.sigmoid(outputs) > 0.5
+
+
+            total_tp += int(torch.sum(preds == masks))
+            n_pixels += masks.shape[0] * masks.shape[1] * masks.shape[2]
+
+            for class_name in classnames:
+                c = classnames.index(class_name)
+                # For each class, calculate TP, FP, FN for IoU
+                pred_c = (preds == c)
+                mask_c = (masks == c)
+
+                TP = torch.sum(pred_c & mask_c).item()
+                FP = torch.sum(pred_c & ~mask_c).item()
+                FN = torch.sum(~pred_c & mask_c).item()
+
+                classwise_pixels[class_name]["TP"] += TP
+                classwise_pixels[class_name]["FP"] += FP
+                classwise_pixels[class_name]["FN"] += FN
+
+    if loss_fn is not None:
+        avg_val_loss = val_loss / len(dataloader)
+
+    # Print detailed evaluation report
+    for class_name in classnames:
+        tp = classwise_pixels[class_name]["TP"]
+        fp = classwise_pixels[class_name]["FP"]
+        fn = classwise_pixels[class_name]["FN"]
+
+        precision = tp / (tp + fp + 1e-6)
+        recall = tp / (tp + fn + 1e-6)
+        iou = tp / (tp + fp + fn + 1e-6)
+
+        classwise_pixels[class_name]["precision"] = precision
+        classwise_pixels[class_name]["recall"] = iou
+        classwise_pixels[class_name]["IoU"] = iou
+
+        classwise_pixels[class_name]["class_name"] = class_name
+        
+
+        # print(f"Class {class_name}:")
+        # print(f"  Precision: {precision:.4f}, Recall: {recall:.4f}, IoU: {iou:.4f}")
+    classwise_pixels["average"] = {}
+    classwise_pixels["overall"] = {}
+    
+    # classwise_pixels["average"]["TP"] = int(np.mean([classwise_pixels[class_name]["TP"] for class_name in classnames]))
+    # classwise_pixels["average"]["FP"] = int(np.mean([classwise_pixels[class_name]["FP"] for class_name in classnames]))
+    # classwise_pixels["average"]["FN"] = int(np.mean([classwise_pixels[class_name]["FN"] for class_name in classnames]))
+    classwise_pixels["average"]["precision"] = round(float(np.mean([classwise_pixels[class_name]["precision"] for class_name in classnames])), 4)
+    classwise_pixels["average"]["recall"] = round(float(np.mean([classwise_pixels[class_name]["recall"] for class_name in classnames])), 4)
+    classwise_pixels["average"]["IoU"] = round(float(np.mean([classwise_pixels[class_name]["IoU"] for class_name in classnames])), 4)
+    classwise_pixels["average"]["class_name"] = "average"
+    
+    # classwise_pixels["overall"]["TP"] = int(np.sum([classwise_pixels[class_name]["TP"] for class_name in classnames]))
+    # classwise_pixels["overall"]["FP"] = int(np.sum([classwise_pixels[class_name]["FP"] for class_name in classnames]))
+    # classwise_pixels["overall"]["FN"] = int(np.sum([classwise_pixels[class_name]["FN"] for class_name in classnames]))
+    # classwise_pixels["overall"]["precison"] = round(float(tp / (tp + fp + 1e-6)), 4)
+    # classwise_pixels["overall"]["recall"] = round(float(tp / (tp + fn + 1e-6)), 4)
+    classwise_pixels["overall"]["IoU"] = round(float(total_tp / (n_pixels + 1e-6)), 4)
+    classwise_pixels["overall"]["class_name"] = "overall"
+
+    classwise_records = [{"class_name" : classwise_pixels[x]["class_name"], **classwise_pixels[x]} for x in classwise_pixels.keys()]
+    
+
+
+    return avg_val_loss, classwise_records, classwise_pixels["average"]["IoU"], classwise_pixels["overall"]["IoU"]
+
+
 
 def SemanticSegmentationTrainingPipeline(run_name,
                                     train_data_name,
@@ -38,141 +176,6 @@ def SemanticSegmentationTrainingPipeline(run_name,
     
     model_path = os.path.join(run_dir, "best_model.pt")
 
-    class SegmentationDataset(Dataset):
-        def __init__(self, images_dir, annotations_dir, transform=None):
-            self.images_dir = images_dir
-            self.annotations_dir = annotations_dir
-            self.transform = transform
-            
-            self.image_filenames = [f for f in os.listdir(images_dir) if f.endswith(('.jpg', '.png'))]
-            
-            with open(os.path.join(images_dir, '../metadata.json'), 'r') as f:
-                self.metadata = json.load(f)
-            self.classes = self.metadata["classes"]
-            
-        def __len__(self):
-            return len(self.image_filenames)
-        
-        def __getitem__(self, idx):
-            # Load the image
-            image_path = os.path.join(self.images_dir, self.image_filenames[idx])
-            image = Image.open(image_path).convert('RGB')  # Convert image to RGB
-
-            # Load the segmentation map (npy)
-            mask_filename = os.path.splitext(self.image_filenames[idx])[0] + '.npy'
-            mask_path = os.path.join(self.annotations_dir, mask_filename)
-            mask = np.load(mask_path)
-            
-            # Handle the transformation (if any)
-            if self.transform:
-                augmented = self.transform(image=np.array(image), mask=mask)
-                image = augmented['image']
-                mask = augmented['mask']
-
-            # No need to manually transpose the image here
-            # Convert directly to tensor (ToTensorV2 already handles this)
-            image = image.float()#astype(np.float32)  # Ensure float32
-            mask = torch.as_tensor(mask, dtype=torch.long).clone().detach()   # Segmentation map as long tensor
-
-            return image, mask
-        
-        
-
-    def validate_model(model, dataloader, loss_fn, device, classnames):
-        num_classes = len(classnames)
-        model.eval()  # Set model to evaluation mode
-        val_loss = 0.0
-        iou_metric_val = 0.0
-        iou_per_class = torch.zeros(num_classes).to(device)  # To store IoU for each class
-
-        total_tp = 0
-        n_pixels = 0
-        n_samples = 0
-        classwise_pixels = {class_name: {"TP": 0, "FP": 0, "FN": 0, "precision" : 0, "recall" : 0, "IoU" : 0} for class_name in classnames}
-
-        with torch.no_grad():  # Disable gradient computation for validation
-            for images, masks in tqdm(dataloader):
-                n_samples += images.shape[0]
-                images = images.to(device)
-                masks = masks.to(device)
-
-                # Forward pass
-                outputs = model(images)
-                loss = loss_fn(outputs, masks)
-                if loss_fn is not None:
-                    val_loss += loss.item()
-
-                # Compute IoU for each class
-                
-                if num_classes > 2:
-                    preds = torch.argmax(outputs, dim=1)
-                else:
-                    preds = torch.sigmoid(outputs) > 0.5
-
-
-                total_tp += int(torch.sum(preds == masks))
-                n_pixels += masks.shape[0] * masks.shape[1] * masks.shape[2]
-
-                for class_name in classnames:
-                    c = classnames.index(class_name)
-                    # For each class, calculate TP, FP, FN for IoU
-                    pred_c = (preds == c)
-                    mask_c = (masks == c)
-
-                    TP = torch.sum(pred_c & mask_c).item()
-                    FP = torch.sum(pred_c & ~mask_c).item()
-                    FN = torch.sum(~pred_c & mask_c).item()
-
-                    classwise_pixels[class_name]["TP"] += TP
-                    classwise_pixels[class_name]["FP"] += FP
-                    classwise_pixels[class_name]["FN"] += FN
-
-        if loss_fn is not None:
-            avg_val_loss = val_loss / len(dataloader)
-
-        # Print detailed evaluation report
-        for class_name in classnames:
-            tp = classwise_pixels[class_name]["TP"]
-            fp = classwise_pixels[class_name]["FP"]
-            fn = classwise_pixels[class_name]["FN"]
-
-            precision = tp / (tp + fp + 1e-6)
-            recall = tp / (tp + fn + 1e-6)
-            iou = tp / (tp + fp + fn + 1e-6)
-
-            classwise_pixels[class_name]["precision"] = precision
-            classwise_pixels[class_name]["recall"] = iou
-            classwise_pixels[class_name]["IoU"] = iou
-
-            classwise_pixels[class_name]["class_name"] = class_name
-            
-
-            # print(f"Class {class_name}:")
-            # print(f"  Precision: {precision:.4f}, Recall: {recall:.4f}, IoU: {iou:.4f}")
-        classwise_pixels["average"] = {}
-        classwise_pixels["overall"] = {}
-        
-        # classwise_pixels["average"]["TP"] = int(np.mean([classwise_pixels[class_name]["TP"] for class_name in classnames]))
-        # classwise_pixels["average"]["FP"] = int(np.mean([classwise_pixels[class_name]["FP"] for class_name in classnames]))
-        # classwise_pixels["average"]["FN"] = int(np.mean([classwise_pixels[class_name]["FN"] for class_name in classnames]))
-        classwise_pixels["average"]["precision"] = round(float(np.mean([classwise_pixels[class_name]["precision"] for class_name in classnames])), 4)
-        classwise_pixels["average"]["recall"] = round(float(np.mean([classwise_pixels[class_name]["recall"] for class_name in classnames])), 4)
-        classwise_pixels["average"]["IoU"] = round(float(np.mean([classwise_pixels[class_name]["IoU"] for class_name in classnames])), 4)
-        classwise_pixels["average"]["class_name"] = "average"
-        
-        # classwise_pixels["overall"]["TP"] = int(np.sum([classwise_pixels[class_name]["TP"] for class_name in classnames]))
-        # classwise_pixels["overall"]["FP"] = int(np.sum([classwise_pixels[class_name]["FP"] for class_name in classnames]))
-        # classwise_pixels["overall"]["FN"] = int(np.sum([classwise_pixels[class_name]["FN"] for class_name in classnames]))
-        # classwise_pixels["overall"]["precison"] = round(float(tp / (tp + fp + 1e-6)), 4)
-        # classwise_pixels["overall"]["recall"] = round(float(tp / (tp + fn + 1e-6)), 4)
-        classwise_pixels["overall"]["IoU"] = round(float(total_tp / (n_pixels + 1e-6)), 4)
-        classwise_pixels["overall"]["class_name"] = "overall"
-
-        classwise_records = [{"class_name" : classwise_pixels[x]["class_name"], **classwise_pixels[x]} for x in classwise_pixels.keys()]
-        
-
-
-        return avg_val_loss, classwise_records, classwise_pixels["average"]["IoU"], classwise_pixels["overall"]["IoU"]
 
 
 
@@ -378,3 +381,102 @@ def SemanticSegmentationTrainingPipeline(run_name,
     update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
     mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "completed!", "class_list" : train_dataset.classes}})
 
+
+
+
+
+def SemanticSegmentationEvaluationPipeline(
+        eval_run_name,
+        val_data_name,
+        project_name,
+        project_type,
+        user_id,
+        run_record,
+        val_batch_size,
+        device,
+        val_dataset_path        
+        ):
+    
+    
+    from torch.utils.data import Dataset, DataLoader
+    from PIL import Image
+    import json
+    import copy
+    import segmentation_models_pytorch as smp
+    import albumentations as A
+    from albumentations.pytorch import ToTensorV2
+    
+    train_run_name = run_record['run_name']
+    model_name = run_record['model_name']
+    model_arch = run_record['model_arch']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    
+    metadata = json.loads(open(os.path.join(val_dataset_path, 'metadata.json')).read())
+    
+    if class_list != metadata["classes"]:
+        raise ValueError(f"Class list in {val_dataset_path} does not match the class list in metadata.json!")
+    
+    
+    # Define transformations
+    transform = A.Compose([
+        A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
+        A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # Normalization
+        ToTensorV2()  # Convert to PyTorch tensor (with correct shape)
+    ])
+
+    # Device (use GPU if available)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+    device = torch.device("cpu")
+
+
+    # Prepare train and validation dataloaders
+    val_images_dir = os.path.join(val_dataset_path, 'images')
+    val_annotations_dir = os.path.join(val_dataset_path, 'annotations')
+
+
+    val_dataset = SegmentationDataset(val_images_dir, val_annotations_dir, transform=transform)
+    val_loader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=True)
+        
+        
+    num_classes = len(class_list)
+    if num_classes == 2:
+        num_classes = 1
+    
+    model = smp.create_model(
+                arch=model_arch,                     # name of the architecture, e.g. 'Unet'/ 'FPN' / etc. Case INsensitive!
+                encoder_name=model_name,
+                encoder_weights=None,
+                in_channels=3,
+                classes=num_classes,
+            )
+    
+    model.load_state_dict(torch.load(model_path, weights_only=True))
+    model.eval()
+    
+    
+    avg_val_loss, classwise_records, average_iou, overall_iou = validate_model(model, val_loader, None, device, class_list)
+    
+    
+    
+    eval_run_time = datetime.now()
+    eval_run_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    evaluation_data = {
+        "_id" : user_id + "-" + project_name + "_" + eval_run_name,
+        "eval_run_name" : eval_run_name,
+        "train_run_name" : train_run_name,
+        "eval_data_name" : val_data_name,
+        "project_name" : project_name,
+        "project_type" : project_type,
+        "user_id" : user_id,
+        "eval_run_time" : eval_run_time,
+        "eval_run_time_str" : eval_run_time_str,
+        "class_report" : classwise_records
+    }
+    
+    mongodb['evaluation_history'].insert_one(evaluation_data)
+    

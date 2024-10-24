@@ -209,7 +209,7 @@ def ObjectDetectionTrainingPipeline(run_name,
         
         model = YOLO(best_model_path)
         
-        results = model.val(data=os.path.abspath(data_config_path), batch=4, workers=1, project=run_dir)
+        results = model.val(data=os.path.abspath(data_config_path), batch=batch_size, workers=1, project=run_dir)
 
         val_metadata = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())
         all_class_instances = []
@@ -253,3 +253,169 @@ def ObjectDetectionTrainingPipeline(run_name,
         update_query = {"run_name" : run_name, "train_data_name" : train_data_name, "val_data_name" : val_data_name, "project_name" : project_name, "user_id" : user_id}
         mongodb['run_records'].update_many(update_query, {'$set' : {"training_status" : "completed!", "class_list" : train_metadata['classes']}})
 
+
+
+
+
+
+def ObjectDetectionEvaluationPipeline(
+        eval_run_name,
+        val_data_name,
+        project_name,
+        project_type,
+        user_id,
+        run_record,
+        val_batch_size,
+        device,
+        val_dataset_path        
+        ):
+    
+    from ultralytics import  YOLO 
+    
+    train_run_name = run_record['run_name']
+    model_name = run_record['model_name']
+    model_arch = run_record['model_arch']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    
+    metadata = json.loads(open(os.path.join(val_dataset_path, 'metadata.json')).read())
+    
+    if class_list != metadata["classes"]:
+        raise ValueError(f"Class list in {val_dataset_path} does not match the class list in metadata.json!")
+    
+    if model_family.startswith('YOLO'):
+        pass
+    
+    
+    val_metadata = json.loads(open(os.path.join(val_dataset_path, "metadata.json")).read())
+    
+    project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+    run_dir = os.path.join(project_info["project_dir"], "RUN_EVAL_" + eval_run_name + f"_{uuid.uuid4().__str__()}")
+    os.makedirs(run_dir, exist_ok=True)
+    
+    data_dir = os.path.join(run_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    
+        
+    if model_family.lower().startswith("yolo"):
+
+        import yaml
+
+        # Function to convert bbox to YOLO format
+        def convert_to_yolo_format(bbox, image_size):
+            dw = 1. / image_size[1]
+            dh = 1. / image_size[0]
+            x = (bbox[0] + bbox[2]) / 2.0
+            y = (bbox[1] + bbox[3]) / 2.0
+            w = bbox[2] - bbox[0]
+            h = bbox[3] - bbox[1]
+            x = x * dw
+            w = w * dw
+            y = y * dh
+            h = h * dh
+            return [x, y, w, h]
+        
+        os.makedirs(os.path.join(data_dir, 'images/val'), exist_ok=True)
+        os.makedirs(os.path.join(data_dir, 'labels/val'), exist_ok=True)
+        
+        
+        
+        
+        val_samples = os.listdir(os.path.join(val_dataset_path, "images"))
+        for sample in tqdm(val_samples, desc="val samples"):
+            image_path = os.path.join(val_dataset_path, "images", sample)
+            annotation_path = os.path.join(val_dataset_path, "annotations", sample[:-4] + ".json") # work for .jpg and .png
+            base_name = os.path.basename(image_path)
+        
+            shutil.copy(image_path, os.path.join(data_dir, "images", "val"))
+            
+            with open(annotation_path) as f:
+                data = json.load(f)
+                bboxes = data['bboxes']
+                image_size = data['size']
+                yolo_bboxes = [convert_to_yolo_format(bbox, image_size) for bbox in bboxes]
+                class_ids = data['class_ids']
+        
+                label_file = open(os.path.join(data_dir, "labels", "val", f"{base_name[:-4]}.txt"), 'w')
+                for class_id, bbox in zip(class_ids, yolo_bboxes):
+                    label_file.write(f"{class_id} {' '.join(map(str, bbox))}\n")
+                label_file.close()
+        
+        
+        # Create dataset.yaml
+        dataset_yaml = {
+            'train': os.path.join('images', 'train'),
+            'val': os.path.join('images', 'val'),
+            'nc': len(val_metadata['classes']),
+            'names': val_metadata['classes']
+        }
+
+        data_config_path = os.path.join(data_dir, 'dataset.yaml')
+        with open(data_config_path, 'w') as f:
+            yaml.dump(dataset_yaml, f)
+        
+        print("Dataset conversion complete.")
+        
+        
+        model = YOLO(model_path)
+        model = model.to(device)
+        
+        results = model.val(data=os.path.abspath(data_config_path), batch=val_batch_size, workers=1, project=run_dir)
+
+        val_metadata = json.loads(open(os.path.join(val_dataset_path, "metadata.json")).read())
+        all_class_instances = []
+        all_class_images = []
+        for annotation_file in tqdm(os.listdir(os.path.join(val_dataset_path, "annotations"))):
+            annotations = json.loads(open(os.path.join(val_dataset_path, "annotations", annotation_file)).read())
+            all_class_instances += annotations["class_ids"]
+            all_class_images += list(set(annotations["class_ids"]))
+
+        class_ids, image_counts = np.unique(all_class_images, return_counts=True)
+        image_count_dict = {}
+        for class_id, image_count in zip(class_ids, image_counts):
+            image_count_dict[val_metadata["classes"][class_id]] = image_count
+
+        class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
+        ins_count_dict = {}
+        for class_id, ins_count in zip(class_ids, ins_counts):
+            ins_count_dict[val_metadata["classes"][class_id]] = ins_count
+            
+        class_list = [str(results.names[i]) for i in range(len(results.names))]
+        class_report = {
+            "Classes" : class_list.copy(),
+            "number_images" : [int(image_count_dict[x]) for x in class_list],
+            "number_instances" : [int(ins_count_dict[x]) for x in class_list],
+            "Precision" : np.round(results.box.p, 3).tolist(),
+            "Recall" : np.round(results.box.r, 3).tolist(),
+            "MAP" : np.round(results.box.ap50, 3).tolist(),
+        }
+
+        class_report["Classes"] += ["Average"]
+        class_report["number_images"] += [int(np.sum([image_count_dict[x] for x in class_list]))]
+        class_report["number_instances"] += [int(np.sum([ins_count_dict[x] for x in class_list]))]
+        class_report["Precision"] += [round(float(results.box.mp), 3)]
+        class_report["Recall"] += [round(float(results.box.mr), 3)]
+        class_report["MAP"] += [round(float(results.box.map50), 3)]
+        
+        
+    
+    eval_run_time = datetime.now()
+    eval_run_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    evaluation_data = {
+        "_id" : user_id + "-" + project_name + "_" + eval_run_name,
+        "eval_run_name" : eval_run_name,
+        "train_run_name" : train_run_name,
+        "eval_data_name" : val_data_name,
+        "project_name" : project_name,
+        "project_type" : project_type,
+        "user_id" : user_id,
+        "eval_run_time" : eval_run_time,
+        "eval_run_time_str" : eval_run_time_str,
+        "class_report" : class_report
+    }
+    
+    mongodb['evaluation_history'].insert_one(evaluation_data)
+    

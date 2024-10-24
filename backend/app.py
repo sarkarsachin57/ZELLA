@@ -2367,13 +2367,17 @@ def model_evaluation():
         
         email = request.form['email']
         project_name = request.form['project_name']
-        run_name = request.form['run_name']
+        eval_run_name = request.form['eval_run_name']
+        run_name = request.form['train_run_name']
         data_name = request.form['data_name']
+        val_batch_size = request.form['val_batch_size']
 
-        logger.info(f'Params - email : {email}, project_name : {project_name}, run_name : {run_name}, data_name : {data_name}')
+        logger.info(f'Params - email : {email}, project_name : {project_name}, eval_run_name : {eval_run_name}, train_run_name : {run_name}, data_name : {data_name}, val_batch_size : {val_batch_size}')
             
-        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nrun_name : {run_name}\ndata_name : {data_name}"
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\neval_run_name : {eval_run_name}\ntrain_run_name : {run_name}\ndata_name : {data_name}\nval_batch_size : {val_batch_size}"
 
+        val_batch_size = int(val_batch_size)
+        
         user_data = mongodb['users'].find_one({'email' : email})
 
         if user_data is None:
@@ -2401,12 +2405,61 @@ def model_evaluation():
         val_data_meta = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
         val_data_path = val_data_meta['data_extracted_path']
         
-        # train_classes = json.loads(open(os.path.join(train_data_path, "metadata.json")).read())["classes"]
-        # val_classes = json.loads(open(os.path.join(val_data_path, "metadata.json")).read())["classes"]
+        if project_type == "Image Classification":
+            
+            ImageClassificationEvaluationPipeline(
+                    eval_run_name = eval_run_name,
+                    val_data_name = data_name,
+                    project_name = project_name,
+                    project_type = project_type,
+                    user_id = user_id,
+                    run_record = run_record,
+                    val_batch_size = val_batch_size,
+                    device = "cuda" if torch.cuda.is_available() else "cpu",
+                    val_dataset_path = val_data_path       
+                    )
+            
+        if project_type == "Semantic Segmentation":
+            
+            SemanticSegmentationEvaluationPipeline(
+                    eval_run_name = eval_run_name,
+                    val_data_name = data_name,
+                    project_name = project_name,
+                    project_type = project_type,
+                    user_id = user_id,
+                    run_record = run_record,
+                    val_batch_size = val_batch_size,
+                    device = "cuda" if torch.cuda.is_available() else "cpu",
+                    val_dataset_path = val_data_path    
+                    )
+            
+        if project_type == "Object Detection":
+            
+            ObjectDetectionEvaluationPipeline(
+                    eval_run_name = eval_run_name,
+                    val_data_name = data_name,
+                    project_name = project_name,
+                    project_type = project_type,
+                    user_id = user_id,
+                    run_record = run_record,
+                    val_batch_size = val_batch_size,
+                    device = "cuda" if torch.cuda.is_available() else "cpu",
+                    val_dataset_path = val_data_path
+                    )
         
-        
-        
-    
+        if project_type == "Instance Segmentation":
+            
+            InstanceSegmentationEvaluationPipeline(
+                    eval_run_name = eval_run_name,
+                    val_data_name = data_name,
+                    project_name = project_name,
+                    project_type = project_type,
+                    user_id = user_id,
+                    run_record = run_record,
+                    val_batch_size = val_batch_size,
+                    device = "cuda" if torch.cuda.is_available() else "cpu",
+                    val_dataset_path = val_data_path       
+                    )
 
         res = {
                 "status": "success",
@@ -2434,6 +2487,62 @@ def model_evaluation():
 
 
 
+
+
+
+
+@app.route("/get-eval-run-logs", methods=['POST'])
+def get_eval_run_logs():
+    
+    logger.info(f"Get request for /get-eval_run-logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["evaluation_history"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "run_history": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 

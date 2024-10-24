@@ -247,6 +247,63 @@ def prepare_dataset(train_dataset_path, val_dataset_path, trainval_ratio=0.8, ba
 
 
 
+def classification_report_df(y_true, y_pred, class_names):
+    
+    from sklearn.metrics import classification_report
+    from sklearn.metrics import confusion_matrix
+    
+    # Get confusion matrix
+    cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
+    
+    # Initialize data storage for each class
+    report_data = []
+    
+    # Loop through each class and calculate TP, FP, FN, precision, recall, and accuracy
+    for idx, class_name in enumerate(class_names):
+        TP = cm[idx, idx]  # True Positives
+        FP = cm[:, idx].sum() - TP  # False Positives
+        FN = cm[idx, :].sum() - TP  # False Negatives
+        TN = cm.sum() - (TP + FP + FN)  # True Negatives
+        n_samples = TP + FN  # Number of actual samples for this class
+        
+        # Calculate precision, recall, and accuracy
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+        recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+        accuracy = TP / n_samples if n_samples > 0 else 0
+        
+        # Append to report data
+        report_data.append({
+            'class_name': class_name,
+            'n_sample': n_samples,
+            'TP': TP,
+            'FP': FP,
+            'FN': FN,
+            'Precision': precision,
+            'Recall': recall,
+            'Accuracy': accuracy
+        })
+    
+    # Create a DataFrame from the report data
+    df = pd.DataFrame(report_data).round(2)
+    
+    # Calculate the weighted average (overall) accuracy
+    overall_accuracy = round((df['TP'].sum() / df['n_sample'].sum()), 2)
+    
+    # Calculate class average for precision, recall, accuracy
+    class_avg_precision = round(df['Precision'].mean(), 2)
+    class_avg_recall = round(df['Recall'].mean(), 2)
+    class_avg_accuracy = round(df['Accuracy'].mean(), 2)
+
+
+    total_samples = df["n_sample"].sum()
+    avg_samples = round(df["n_sample"].mean(), 2)
+    
+    # Add Class Average and Overall rows
+    df.loc[len(df)] = ['Class Average', avg_samples, '', '', '', class_avg_precision, class_avg_recall, class_avg_accuracy]
+    df.loc[len(df)] = ['Overall', total_samples, '', '', '', '', '', overall_accuracy]
+    
+    return df
+    
 
 def train_model(run_name, train_data_name, val_data_name, project_name, user_id, model, train_loader, val_loader, num_classes, classnames, device='cuda', num_epochs=10, learning_rate=0.001):
     """
@@ -267,62 +324,7 @@ def train_model(run_name, train_data_name, val_data_name, project_name, user_id,
     - classification_report: The classification report generated on the validation set using the best model.
     """
     import torch.optim as optim
-    from sklearn.metrics import classification_report
-    from sklearn.metrics import confusion_matrix
 
-    def classification_report_df(y_true, y_pred, class_names):
-        # Get confusion matrix
-        cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
-        
-        # Initialize data storage for each class
-        report_data = []
-        
-        # Loop through each class and calculate TP, FP, FN, precision, recall, and accuracy
-        for idx, class_name in enumerate(class_names):
-            TP = cm[idx, idx]  # True Positives
-            FP = cm[:, idx].sum() - TP  # False Positives
-            FN = cm[idx, :].sum() - TP  # False Negatives
-            TN = cm.sum() - (TP + FP + FN)  # True Negatives
-            n_samples = TP + FN  # Number of actual samples for this class
-            
-            # Calculate precision, recall, and accuracy
-            precision = TP / (TP + FP) if (TP + FP) > 0 else 0
-            recall = TP / (TP + FN) if (TP + FN) > 0 else 0
-            accuracy = TP / n_samples if n_samples > 0 else 0
-            
-            # Append to report data
-            report_data.append({
-                'class_name': class_name,
-                'n_sample': n_samples,
-                'TP': TP,
-                'FP': FP,
-                'FN': FN,
-                'Precision': precision,
-                'Recall': recall,
-                'Accuracy': accuracy
-            })
-        
-        # Create a DataFrame from the report data
-        df = pd.DataFrame(report_data).round(2)
-        
-        # Calculate the weighted average (overall) accuracy
-        overall_accuracy = round((df['TP'].sum() / df['n_sample'].sum()), 2)
-        
-        # Calculate class average for precision, recall, accuracy
-        class_avg_precision = round(df['Precision'].mean(), 2)
-        class_avg_recall = round(df['Recall'].mean(), 2)
-        class_avg_accuracy = round(df['Accuracy'].mean(), 2)
-
-
-        total_samples = df["n_sample"].sum()
-        avg_samples = round(df["n_sample"].mean(), 2)
-        
-        # Add Class Average and Overall rows
-        df.loc[len(df)] = ['Class Average', avg_samples, '', '', '', class_avg_precision, class_avg_recall, class_avg_accuracy]
-        df.loc[len(df)] = ['Overall', total_samples, '', '', '', '', '', overall_accuracy]
-        
-        return df
-    
     
     project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
     run_dir = os.path.join(project_info["project_dir"], "RUN_" + run_name + f"_{uuid.uuid4().__str__()}")
@@ -612,20 +614,103 @@ def ImageClassificationTrainingPipeline(
 
 
 def ImageClassificationEvaluationPipeline(
-        run_name,
-        train_data_name,
+        eval_run_name,
         val_data_name,
         project_name,
         project_type,
         user_id,
         run_record,
+        val_batch_size,
         device,
-        train_dataset_path,
         val_dataset_path        
         ):
     
+    
+    import torchvision.transforms as transforms
+    from torchvision import datasets
+    from torch.utils.data import DataLoader, Dataset, random_split
+    
+    train_run_name = run_record['run_name']
     model_name = run_record['model_name']
     model_family = run_record['model_family']
     model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    binary_classification = True if len(class_list) == 2 else False
+    if num_classes == 2:
+        num_classes = 1
     
+    class_folders = os.listdir(val_dataset_path)
+    for class_name in class_list:
+        if class_name not in class_folders:
+            raise ValueError(f"Class '{class_name}' not found in validation dataset. Skipping evaluation for this class.")
+    
+    model = get_model(arch_name=model_name, num_classes=num_classes, 
+                        pretrained=False, train_mode='scratch')
+    
+    model.load_state_dict(torch.load(model_path, weights_only=True))
+    model.eval()
+    
+    model = model.to(device)
+    
+    
+    
+    for x in os.listdir(val_dataset_path):
+        if ".ipynb_checkpoints" in x:
+            shutil.rmtree(os.path.join(val_dataset_path, x))
+            
+    input_size = input_sizes.get(model_name, (224, 224)) 
+    
+    # Define transformations for the dataset
+    transform = transforms.Compose([
+        transforms.Resize(input_size),  # Resize images to the expected input size for the model
+        transforms.ToTensor(),          # Convert images to PyTorch tensors
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize based on ImageNet mean/std
+    ])
+    
+    # Load the datasets
+    val_dataset = datasets.ImageFolder(val_dataset_path, transform=transform)
+    
+    # Create DataLoaders for training and validation
+    val_loader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, num_workers=2)
+    
+    
+    
+    all_preds = []
+    all_labels = []
+    
+    with torch.no_grad():
+        for inputs, labels in tqdm(val_loader, desc='Final Evaluation'):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            
+            if binary_classification:
+                preds = (torch.sigmoid(outputs) > 0.5).float()
+            else:
+                _, preds = torch.max(outputs, 1)
+            
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+    
+    # Generate the classification report using sklearn
+    # class_report = classification_report(all_labels, all_preds, target_names=classnames, zero_division=0)
+    class_report = classification_report_df(all_labels, all_preds, class_list)
+    
+    eval_run_time = datetime.now()
+    eval_run_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    evaluation_data = {
+        "_id" : user_id + "-" + project_name + "_" + eval_run_name,
+        "eval_run_name" : eval_run_name,
+        "train_run_name" : train_run_name,
+        "eval_data_name" : val_data_name,
+        "project_name" : project_name,
+        "project_type" : project_type,
+        "user_id" : user_id,
+        "eval_run_time" : eval_run_time,
+        "eval_run_time_str" : eval_run_time_str,
+        "class_report" : class_report
+    }
+    
+    mongodb['evaluation_history'].insert_one(evaluation_data)
     
