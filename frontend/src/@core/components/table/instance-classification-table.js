@@ -133,7 +133,7 @@ export default function SegmentationClassificationTable(props) {
 
   const { basicData } = props
   const data = [] 
-  basicData.Classes.map((item, index)=>{
+  basicData?.Classes?.map((item, index) => {
     const tmp = {
       'Classes': basicData.Classes[index],
       'MAP': basicData.MAP[index],
@@ -141,9 +141,9 @@ export default function SegmentationClassificationTable(props) {
       'Recall': basicData.Recall[index],
       'number_images': basicData.number_images[index],
       'number_instances': basicData.number_instances[index]
-    }
-    data[index]= tmp
-  })
+    };
+    data[index] = tmp;
+  });
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
