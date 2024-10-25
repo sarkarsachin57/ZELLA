@@ -2915,7 +2915,7 @@ def filter_noisy_samples():
                     img_iter += 1
 
                 
-                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+                shutil.make_archive(extracted_path, 'zip', zipfile_path)
 
                 noisy_filtering_info = {
                                 "total_number_of_samples" : number_of_images, 
@@ -2964,7 +2964,7 @@ def filter_noisy_samples():
                         img_iter += 1
 
                     
-                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+                shutil.make_archive(extracted_path, 'zip', zipfile_path)
 
                 noisy_filtering_info = {
                                 "total_number_of_samples" : number_of_images, 
@@ -3007,7 +3007,7 @@ def filter_noisy_samples():
                     img_iter += 1
 
                     
-                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+                shutil.make_archive(extracted_path, 'zip', zipfile_path)
 
                 noisy_filtering_info = {
                                 "total_number_of_samples" : number_of_images, 
@@ -3050,7 +3050,7 @@ def filter_noisy_samples():
 
                     img_iter += 1
 
-                shutil.make_archive(extracted_path, 'zip', zipfile_path[:-4])
+                shutil.make_archive(extracted_path, 'zip', zipfile_path)
 
                 noisy_filtering_info = {
                                 "total_number_of_samples" : number_of_images, 
