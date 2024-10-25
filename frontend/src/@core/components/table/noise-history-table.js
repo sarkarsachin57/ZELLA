@@ -177,9 +177,6 @@ export default function ModelTrainingTable(props) {
                         </TableCell>
                         <TableCell align='center'>{row.data_name}</TableCell>
                         <TableCell align='center'>{row.filtered_data_name}</TableCell>
-                        <TableCell align='center'>{row.project_name}</TableCell>
-                        <TableCell align='center'>{row.project_type}</TableCell>
-                        <TableCell align='center'>{row.current_progress}</TableCell>
                         <TableCell align='center'>{row.process_start_time_str}</TableCell>
                         <TableCell align='center'>{row.process_status}</TableCell>
                         <TableCell align='center'>{row.total_number_of_samples}</TableCell>
@@ -192,7 +189,6 @@ export default function ModelTrainingTable(props) {
                               <DownloadIcon />
                             </CustomSpan>
                           </a>
-                            
                         </TableCell>
                       </TableRow>
                     )
