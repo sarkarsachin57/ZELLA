@@ -51,25 +51,6 @@ const NoiseFiltering = () => {
       minWidth: 150
     },
     {
-      id: 'project_name',
-      numeric: true,
-      disablePadding: false,
-      label: 'Project Name',
-      minWidth: 150
-    },
-    {
-        id: 'project_type',
-        numeric: true,
-        disablePadding: false,
-        label: 'Project Type'
-    },
-    {
-      id: 'current_progress',
-      numeric: true,
-      disablePadding: false,
-      label: 'Progress'
-    },
-    {
       id: 'process_start_time_str',
       numeric: true,
       disablePadding: false,
