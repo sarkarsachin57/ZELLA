@@ -274,7 +274,6 @@ def ObjectDetectionEvaluationPipeline(
     
     train_run_name = run_record['run_name']
     model_name = run_record['model_name']
-    model_arch = run_record['model_arch']
     model_family = run_record['model_family']
     model_path = run_record['model_path']
     class_list = run_record['class_list']
@@ -285,8 +284,6 @@ def ObjectDetectionEvaluationPipeline(
     if class_list != metadata["classes"]:
         raise ValueError(f"Class list in {val_dataset_path} does not match the class list in metadata.json!")
     
-    if model_family.startswith('YOLO'):
-        pass
     
     
     val_metadata = json.loads(open(os.path.join(val_dataset_path, "metadata.json")).read())
@@ -419,3 +416,67 @@ def ObjectDetectionEvaluationPipeline(
     
     mongodb['evaluation_history'].insert_one(evaluation_data)
     
+    
+    
+    
+
+
+def ObjectDetectionSingleImageInference(
+        image_path,
+        eval_run_name,
+        val_data_name,
+        project_name,
+        project_type,
+        user_id,
+        run_record,
+        val_batch_size,
+        device,
+        val_dataset_path        
+        ):
+    
+    from ultralytics import  YOLO 
+    
+        
+    def format_yolo_det_results(results, target_classes=None):
+        
+        for result in results:
+            bboxes = result.boxes.cpu().numpy()
+            results = []
+            for xyxy, class_id in zip(bboxes.xyxy, bboxes.cls):
+                if target_classes is None:
+                    results.append([int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3]), int(class_id)])
+                elif class_id in target_classes:
+                    results.append([int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3]), int(class_id)])
+            return results
+    
+    train_run_name = run_record['run_name']
+    model_name = run_record['model_name']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    
+        
+    if model_family.lower().startswith("yolo"):
+        
+        model = YOLO(model_path)
+        model = model.to(device)
+        image = cv2.imread(image_path)
+        
+        results = []
+        try:
+            results = model(image)
+            results = format_yolo_det_results(results)
+        except:
+            results = []
+                        
+        for det in results:
+            startX, startY, endX, endY, class_id = det
+            bg_color = get_color_from_id(class_id+1)
+            text_color = isLightOrDark(bg_color)
+            class_name = class_list[class_id]
+
+            cv2.rectangle(image, (startX, startY), (endX, endY), bg_color, 1)
+            draw_bb_text(image,f" {class_name} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, bg_color)
+
+            

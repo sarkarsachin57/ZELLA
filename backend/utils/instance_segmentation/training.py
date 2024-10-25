@@ -278,7 +278,6 @@ def InstanceSegmentationEvaluationPipeline(
     
     train_run_name = run_record['run_name']
     model_name = run_record['model_name']
-    model_arch = run_record['model_arch']
     model_family = run_record['model_family']
     model_path = run_record['model_path']
     class_list = run_record['class_list']

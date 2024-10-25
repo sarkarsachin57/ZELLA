@@ -714,3 +714,56 @@ def ImageClassificationEvaluationPipeline(
     
     mongodb['evaluation_history'].insert_one(evaluation_data)
     
+    
+    
+def ImageClassificationSingleImageInference(
+                            image_path,
+                            project_name,
+                            project_type,
+                            user_id,
+                            run_record,
+                            val_batch_size,
+                            device,        
+                            ):
+    
+    
+    import torchvision.transforms as transforms
+    from torchvision import datasets
+    from torch.utils.data import DataLoader, Dataset, random_split
+    
+    train_run_name = run_record['run_name']
+    model_name = run_record['model_name']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    binary_classification = True if len(class_list) == 2 else False
+    if num_classes == 2:
+        num_classes = 1
+    
+    model = get_model(arch_name=model_name, num_classes=num_classes, 
+                        pretrained=False, train_mode='scratch')
+    
+    model.load_state_dict(torch.load(model_path, weights_only=True))
+    model.eval()
+    
+    model = model.to(device)
+    
+
+            
+    input_size = input_sizes.get(model_name, (224, 224)) 
+    
+    # Define transformations for the dataset
+    transform = transforms.Compose([
+        transforms.Resize(input_size),  # Resize images to the expected input size for the model
+        transforms.ToTensor(),          # Convert images to PyTorch tensors
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize based on ImageNet mean/std
+    ])
+    
+    
+    res = model(transform(Image.open(image_path)).unsqueeze(0).to(device))
+    
+    predicted_class = class_list[np.argmax(res.cpu().detach().numpy())]
+    
+    return predicted_class
+    
