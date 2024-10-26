@@ -501,6 +501,8 @@ def SemanticSegmentationSingleImageInference(
     class_list = run_record['class_list']
     num_classes = len(class_list)
     
+    classwise_colors = {class_name:get_color_from_id(class_id+1) for class_id, class_name in enumerate(class_list)}
+        
         
     import segmentation_models_pytorch as smp
     import albumentations as A
@@ -556,3 +558,12 @@ def SemanticSegmentationSingleImageInference(
     dst = cv2.addWeighted(image, alpha, segmap_vis, beta, 0.0)
     
     output_image = cv2.resize(dst, (int(ori_size[1]), int(ori_size[0])))
+    
+    
+    save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, os.path.basename(image_path))
+    cv2.imwrite(save_path, output_image)
+    
+    return save_path, classwise_colors
+            

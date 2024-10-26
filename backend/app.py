@@ -2446,6 +2446,153 @@ def get_single_sample_visualization():
 
 
 
+
+
+
+
+@app.route("/model_inference", methods=['POST'])
+def model_inference():
+    
+    logger.info(f"Get request for /model_inference")
+    
+    try:
+
+        email = request.form['email']         
+        project_name = request.form['project_name']
+        run_name = request.form['run_name']
+        
+            
+        logger.info(f'Params - email : {email}, project_name : {project_name}, run_name : {run_name}')
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\nrun_name : {run_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        project_data = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+
+        if project_data is None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Project {project_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        project_type = project_data["project_type"]
+        
+        run_record = mongodb["run_records"].find_one({'user_id' : user_id, 'project_name' : project_name, 'run_name' : run_name})
+        
+        if run_record is None:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Run {run_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        
+        project_dir = os.path.join("workdir", user_id, project_name, "model_inference")
+        os.makedirs(project_dir, exist_ok=True)
+    
+        
+        image_file = request.files['image_file']
+        image_path = os.path.join(project_dir, image_file.filename)
+        image_file.save(image_path)
+        
+        device = "cuda" if torch.cuda.is_available() else "cpu" 
+        
+        if project_type == "Image Classification":
+            predicted_class = ImageClassificationSingleImageInference(
+                            image_path,
+                            project_name,
+                            project_type,
+                            user_id,
+                            run_record,
+                            device,        
+                            )
+            result_dict = {"save_path": image_path, "predicted_class": predicted_class}
+            
+        if project_type == "Object Detection":
+            save_path, classwise_colors = ObjectDetectionSingleImageInference(
+                            image_path,
+                            project_name,
+                            project_type,
+                            user_id,
+                            run_record,
+                            device,     
+                            )
+            result_dict = {"save_path": save_path, "classwise_colors": classwise_colors}
+            
+        if project_type == "Instance Segmentation":
+            save_path, classwise_colors = InstanceSegmentationSingleImageInference(
+                            image_path,
+                            project_name,
+                            project_type,
+                            user_id,
+                            run_record,
+                            device,       
+                            )
+            result_dict = {"save_path": save_path, "classwise_colors": classwise_colors}
+            
+        if project_type == "Semantic Segmentation":
+            save_path, classwise_colors = SemanticSegmentationSingleImageInference(
+                            image_path,
+                            project_name,
+                            project_type,
+                            user_id,
+                            run_record,
+                            device,       
+                            )
+            
+            result_dict = {"save_path": save_path, "classwise_colors": classwise_colors}
+            
+            
+        res = {
+                "status": "success",
+                "data": result_dict,                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
 @app.route("/filter_noisy_samples", methods=['POST'])
 def filter_noisy_samples():
     

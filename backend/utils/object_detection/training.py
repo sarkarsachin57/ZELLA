@@ -452,6 +452,10 @@ def ObjectDetectionSingleImageInference(
     class_list = run_record['class_list']
     num_classes = len(class_list)
     
+    
+    classwise_colors = {class_name:get_color_from_id(class_id+1) for class_id, class_name in enumerate(class_list)}
+        
+    
         
     if model_family.lower().startswith("yolo"):
         
@@ -475,4 +479,13 @@ def ObjectDetectionSingleImageInference(
             cv2.rectangle(image, (startX, startY), (endX, endY), bg_color, 1)
             draw_bb_text(image,f" {class_name} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, bg_color)
 
-            
+    
+        save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, os.path.basename(image_path))
+        cv2.imwrite(save_path, image)
+        
+        
+        return save_path, classwise_colors
+        
+    
