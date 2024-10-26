@@ -856,10 +856,11 @@ def get_dataset_list():
         
         email = request.form['email']
         project_name = request.form['project_name']
+        data_type = request.form['data_type']
 
-        logger.info(f'Params - email : {email}, project_name : {project_name}')
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_type : {data_type}')
             
-        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        frontend_inputs = f"email : {email}\nproject_name : {project_name} \ndata_type : {data_type}"
         
         user_data = mongodb['users'].find_one({'email' : email})
 
@@ -875,7 +876,10 @@ def get_dataset_list():
 
         user_id = user_data["_id"]
         
-        dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
+        if data_type == "All":
+            dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name}))
+        else:
+            dataset_list = list(mongodb["datasets"].find({'user_id' : user_id, 'project_name' : project_name, 'data_type' : data_type}))
         
             
         res = {
