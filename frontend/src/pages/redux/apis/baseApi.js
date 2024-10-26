@@ -353,6 +353,22 @@ export const baseApi = createApi({
         } catch (error) {}
       },
     }),
+    GetEvalRunLogs: builder.mutation({
+      query(data) {
+        return {
+          url: 'get-eval-run-logs',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setModelEvaluationLogs(data.run_history));
+        } catch (error) {}
+      },
+    }),
   }),
 });
 
@@ -380,5 +396,6 @@ export const {
   useFilterNoiseSamplesMutation,
   useGetNoiseRunFilteringLogsMutation,
 
-  useModelEvaluationMutation
+  useModelEvaluationMutation,
+  useGetEvalRunLogsMutation,
 } = baseApi;

@@ -23,7 +23,7 @@ import ImageClassModal from 'src/views/modals/ImageClassModal'
 import { connectSchema } from 'src/@core/schema'
 import {
   useModelEvaluationMutation,
-  useGetRunLogsMutation,
+  useGetEvalRunLogsMutation,
   useGetDataSetListMutation,
 } from 'src/pages/redux/apis/baseApi'
 
@@ -141,21 +141,22 @@ const ModelEvaulation = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
+  const [ eval_run_logs_list, setEvalRunLosgList] = useState(useSelector(state => state.baseState.modelEvaluationLogs))
   console.log('run_logs_list: ', run_logs_list)
   console.log('project_name: ', project_name)
 
   const [ modelEvaluation ] = useModelEvaluationMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
-  const [ getRunLogs ] = useGetRunLogsMutation()
+  const [ GetEvalRunLogs ] = useGetEvalRunLogsMutation()
   
-  const onGetRunLogs = async () => {
+  const onGetEvalRunLogs = async () => {
     if (user && user?.email) {
       const formData = new FormData()
       formData.append('email', user.email)
       formData.append('project_name', project_name)
       try {
-        const data =  await getRunLogs(formData)
-        setRunLosgList(data.data.run_history)
+        const data =  await GetEvalRunLogs(formData)
+        setEvalRunLosgList(data.data.run_history)
         console.log('data: ',data.data)
       } catch (error) {
         toast.error('Something went wrong!');
@@ -178,7 +179,7 @@ const ModelEvaulation = () => {
       }
     }
 
-    onGetRunLogs()
+    onGetEvalRunLogs()
     onGetDataSetList()
   }, [project_name]);
   useEffect(() => {
@@ -242,7 +243,7 @@ const ModelEvaulation = () => {
         setEvalRunName('')
         setDataName('')
         setValBatchSize('')
-        onGetRunLogs()
+        onGetEvalRunLogs()
       }
     }
   }
@@ -317,10 +318,11 @@ const ModelEvaulation = () => {
       </SettingPanelLayout>
 
       <CardBox>
-        {/* <ModelTrainingTable
+        <ModelTrainingTable
           headCells = {headCells}
-          rows = {run_logs_list}
-        /> */}
+          rows = {eval_run_logs_list}
+          viewDetailHandler = {viewDetailHandler}
+        />
       </CardBox>
       
     </Box>
