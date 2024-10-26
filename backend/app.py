@@ -2340,7 +2340,7 @@ def get_single_sample_visualization():
                 cv2.rectangle(image, (startX, startY), (endX, endY), bg_color, 1)
                 draw_bb_text(image,f" {class_name} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, bg_color)
 
-            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             cv2.imwrite(save_path, image)
@@ -2351,7 +2351,7 @@ def get_single_sample_visualization():
             image = cv2.imread(sample_path)
             cv2.putText(image, classname, (10, 10), cv2.FONT_HERSHEY_DUPLEX, 0.3, (255, 255, 255), 1)
             
-            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             
@@ -2373,7 +2373,7 @@ def get_single_sample_visualization():
             beta = 1 - alpha
             dst = cv2.addWeighted(image, alpha, segmap_vis, beta, 0.0)
 
-            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             
@@ -2415,7 +2415,7 @@ def get_single_sample_visualization():
             
             cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
 
-            save_dir = os.path.join("workdir", project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
+            save_dir = os.path.join("workdir", user_id, project_name, "sample_visualizations", uuid.uuid4().__str__()[:8])
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             cv2.imwrite(save_path, image)
