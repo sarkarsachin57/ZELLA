@@ -324,8 +324,8 @@ def SemanticSegmentationTrainingPipeline(run_name,
     ])
 
     # Device (use GPU if available)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
-    device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+    # device = torch.device("cpu")
 
 
     # Prepare train and validation dataloaders
@@ -430,8 +430,8 @@ def SemanticSegmentationEvaluationPipeline(
     ])
 
     # Device (use GPU if available)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
-    device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+    # device = torch.device("cpu")
 
 
     # Prepare train and validation dataloaders
@@ -534,11 +534,11 @@ def SemanticSegmentationSingleImageInference(
     ])
 
     # Device (use GPU if available)
-    # device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
-    device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+    # device = torch.device("cpu")
     
     data = transform(image=np.array(Image.open(image_path)))
-    result = model(data['image'].float().unsqueeze(0))
+    result = model(data['image'].float().unsqueeze(0).to(device))
     
     segmap = torch.argmax(result[0], axis=0).cpu().detach().numpy()
     
