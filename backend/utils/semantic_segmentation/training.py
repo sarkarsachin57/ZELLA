@@ -55,6 +55,7 @@ def validate_model(model, dataloader, loss_fn, device, classnames):
     n_samples = 0
     classwise_pixels = {class_name: {"TP": 0, "FP": 0, "FN": 0, "precision" : 0, "recall" : 0, "IoU" : 0} for class_name in classnames}
 
+    avg_val_loss = 0
     with torch.no_grad():  # Disable gradient computation for validation
         for images, masks in tqdm(dataloader):
             n_samples += images.shape[0]
