@@ -11,7 +11,8 @@ import {
   setDatasetInfo,
   setViewSample,
   setSimpleImageUrl,
-  setNoiseHistory
+  setNoiseHistory,
+  setModelEvaluationLogs
 } from '../features/baseSlice';
 
 /**
@@ -333,6 +334,25 @@ export const baseApi = createApi({
         } catch (error) {}
       },
     }),
+/**
+  * 👇 @file Model Evaluation
+*/
+    modelEvaluation: builder.mutation({
+      query(data) {
+        return {
+          url: 'model_evaluation',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setModelEvaluationLogs(data.run_history));
+        } catch (error) {}
+      },
+    }),
   }),
 });
 
@@ -358,5 +378,7 @@ export const {
   useGetSimpleImageUrlMutation,
 
   useFilterNoiseSamplesMutation,
-  useGetNoiseRunFilteringLogsMutation
+  useGetNoiseRunFilteringLogsMutation,
+
+  useModelEvaluationMutation
 } = baseApi;
