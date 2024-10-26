@@ -96,13 +96,6 @@ const ModelEvaulation = () => {
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
   const [ eval_run_logs_list, setEvalRunLosgList] = useState(useSelector(state => state.baseState.modelEvaluationLogs))
-<<<<<<< HEAD
-  console.log('run_logs_list: ', run_logs_list)
-  console.log('project_name: ', project_name)
-=======
-  console.log('eval_run_logs_list: ', eval_run_logs_list)
->>>>>>> 3d76224 (feat: evaluation table)
-
   const [ modelEvaluation ] = useModelEvaluationMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
   const [ GetEvalRunLogs ] = useGetEvalRunLogsMutation()
@@ -279,11 +272,7 @@ const ModelEvaulation = () => {
       </SettingPanelLayout>
 
       <CardBox>
-<<<<<<< HEAD
-        <ModelTrainingTable
-=======
         <ModelEvaluationTable
->>>>>>> 3d76224 (feat: evaluation table)
           headCells = {headCells}
           rows = {eval_run_logs_list}
           viewDetailHandler = {viewDetailHandler}
