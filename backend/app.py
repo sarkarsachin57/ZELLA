@@ -714,12 +714,11 @@ def upload_data():
         email = request.form['email']         
         project_name = request.form['project_name']
         data_name =  request.form['data_name']
-        data_type = request.form['data_type']
         data_drive_id = request.form['data_drive_id']
         
             
-        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, data_type : {data_type}, data_drive_id : {data_drive_id}')
-        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\ndata_type : {data_type}\ndata_drive_id : {data_drive_id}"
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, data_drive_id : {data_drive_id}')
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\ndata_drive_id : {data_drive_id}"
         
         user_data = mongodb['users'].find_one({'email' : email})
 
@@ -812,7 +811,7 @@ def upload_data():
             "project_name" : project_name,
             "user_id" : user_id,
             "data_name" : data_name,
-            "data_type" : data_type,
+            "data_type" : "Uploaded",
             "project_type" : project_type,
             "data_zip_path" : data_dest_file,
             "data_extracted_path" : extracted_path,
@@ -906,192 +905,6 @@ def get_dataset_list():
 
 
 
-# @app.route("/get-dataset-info", methods=['POST'])
-# def get_dataset_info():
-    
-#     logger.info(f"Get request for /get-dataset-info")
-    
-#     try:
-        
-#         email = request.form['email']
-#         project_name = request.form['project_name']
-#         data_name = request.form['data_name']
-#         show_samples = request.form['show_samples']
-
-#         logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, show_samples : {show_samples}')
-            
-#         frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nshow_samples : {show_samples}"
-        
-#         user_data = mongodb['users'].find_one({'email' : email})
-
-#         if user_data is None:
-                
-#             res = {
-#                     "status": "fail",
-#                     "message": f"Email does not exists!"
-#                 }
-
-#             logger.info(json.dumps(res, indent=4,  default=str))
-#             return json.dumps(res, separators=(',', ':'), default=str)
-
-#         user_id = user_data["_id"]
-        
-        
-#         data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
-        
-#         if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
-            
-#             split_name = request.form['split_name']
-#             class_name = request.form['class_name']
-#             page_number = request.form['page_number']
-            
-#             logger.info(f'Params - split_name : {split_name}, class_name : {class_name}, page_number : {page_number}')
-            
-#             frontend_inputs += f"\nsplit_name : {split_name}\nclass_name : {class_name}\npage_number : {page_number}"
-            
-#             samples_per_page = 20
-#             page_number = int(page_number)
-            
-#             sample_paths = [os.path.join(data_info["data_extracted_path"], split_name, class_name, x) for x in os.listdir(os.path.join(data_info["data_extracted_path"], split_name, class_name))]
-#             number_of_samples = len(sample_paths)
-#             sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-#             res = {
-#                     "status": "success",
-#                     "number_of_samples" : number_of_samples,
-#                     "sample_paths": sample_paths,
-#                     "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
-#                 }
-
-#             logger.info(json.dumps(res, indent=4,  default=str))
-#             return json.dumps(res, separators=(',', ':'), default=str)
-                      
-                
-#         if data_info["data_type"] == "Labeled":
-            
-#             train_dir = os.path.join(data_info["data_extracted_path"], "train")
-#             val_dir = os.path.join(data_info["data_extracted_path"], "val")
-
-#             assert os.listdir(train_dir) == os.listdir(val_dir)
-            
-#             class_list = os.listdir(train_dir) 
-            
-#             train_total_samples = 0
-#             train_sample_dist = {}
-#             train_sample_paths = {}
-#             for class_name in class_list:
-#                 train_sample_paths[class_name] = [os.path.join(train_dir, class_name, x) for x in os.listdir(os.path.join(train_dir, class_name))]
-#                 train_sample_dist[class_name] = len(train_sample_paths[class_name])
-#                 train_total_samples += train_sample_dist[class_name]
-                
-#             val_total_samples = 0
-#             val_sample_dist = {}
-#             val_sample_paths = {}
-#             for class_name in class_list:
-#                 val_sample_paths[class_name] = [os.path.join(val_dir, class_name, x) for x in os.listdir(os.path.join(val_dir, class_name))]
-#                 val_sample_dist[class_name] = len(val_sample_paths[class_name])
-#                 val_total_samples += val_sample_dist[class_name]
-
-#             train_dist =  np.array(list(train_sample_dist.values()))
-#             train_class_balance_score = normalized_entropy(train_dist)
-            
-#             val_dist =  np.array(list(val_sample_dist.values()))
-#             val_class_balance_score = normalized_entropy(val_dist)
-            
-            
-#             # fig = px.bar(x=list(train_sample_dist.keys()), y=list(train_sample_dist.values()),  
-#             #             color=list(train_sample_dist.values()))
-
-#             # fig.update_layout(template='plotly_dark',
-#             #                     title={'text': f'Training Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-#             #                     yaxis_title=f'Number of Samples', 
-#             #                     xaxis_title=f'Class Names')
-
-#             # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
-            
-#             # train_dist_fig = fig.to_dict()
-            
-            
-#             # fig = px.bar(x=list(val_sample_dist.keys()), y=list(val_sample_dist.values()),  
-#             #             color=list(train_sample_dist.values()))
-
-#             # fig.update_layout(template='plotly_dark',
-#             #                     title={'text': f'Validation Data Class Distribution', 'font': {'size': 30}, "x" : 0.05, "y" : 0.95}, 
-#             #                     yaxis_title=f'Number of Samples', 
-#             #                     xaxis_title=f'Class Names')
-
-#             # fig.update_traces(hovertemplate='<b>Number of Samples:</b> %{y}<extra></extra>')
-            
-#             # val_dist_fig = fig.to_dict()
-                                          
-#             res = {
-#                     "status": "success",
-#                     "data_info": {
-#                         "split_names" : ["train", "val"],
-#                         "class_list" : class_list,
-#                         "train_total_samples": train_total_samples,
-#                         "train_class_balance_score": train_class_balance_score,
-#                         "train_dist_fig" : {
-#                                 "x": list(train_sample_dist.keys()),
-#                                 "y": list(train_sample_dist.values()),
-#                                 "xtitle": "Class Names",
-#                                 "ytitle": "Number of Samples",
-#                                 "title": "Training Data Class Distribution",
-#                             },
-#                         "val_total_samples": val_total_samples,
-#                         "val_class_balance_score": val_class_balance_score,
-#                         "val_dist_fig" : {
-#                                 "x": list(val_sample_dist.keys()),
-#                                 "y": list(val_sample_dist.values()),
-#                                 "xtitle": "Class Names",
-#                                 "ytitle": "Number of Samples",
-#                                 "title": "Validation Data Class Distribution",
-#                             }
-#                     }
-#                 }
-
-#             logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
-#             return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
-        
-        
-#         if data_info["data_type"] == "Unlabeled":
-            
-#             page_number = request.form['page_number']
-            
-#             sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
-#             number_of_samples = len(sample_paths)
-#             sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-#             res = {
-#                     "status": "success",
-#                     "sample_paths": sample_paths,
-#                     "number_of_samples" : number_of_samples,
-#                     "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
-#                 }
-
-#             logger.info(json.dumps(res, indent=4,  default=str))
-#             return json.dumps(res, separators=(',', ':'), default=str)
-            
-            
-
-#     except Exception as e:
-                
-#         additional_info = {"Inputs Received From Frontend" : frontend_inputs}
-#         log_exception(e, additional_info=additional_info)
-#         traceback.print_exc()
-
-#         res = {
-#                 "status": "fail",
-#                 "message": f"Somthing went wrong!"
-#             }
-
-#         logger.info(json.dumps(res, indent=4,  default=str))
-#         return json.dumps(res, separators=(',', ':'), default=str)
-
-
-
-
-
 @app.route("/get-image-classification-dataset-info", methods=['POST'])
 def get_image_classification_dataset_info():
     
@@ -1137,7 +950,7 @@ def get_image_classification_dataset_info():
             return json.dumps(res, separators=(',', ':'), default=str)
         
         
-        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+        if bool(int(show_samples)) == True:
             
             # split_name = request.form['split_name']
             class_name = request.form['class_name']
@@ -1165,60 +978,41 @@ def get_image_classification_dataset_info():
             return json.dumps(res, separators=(',', ':'), default=str)
                       
                 
-        if data_info["data_type"] == "Labeled":
-            
-            data_dir = data_info["data_extracted_path"]
-            
-            class_list = os.listdir(data_dir) 
-            
-            total_samples = 0
-            sample_dist = {}
-            sample_paths = {}
-            for class_name in class_list:
-                sample_paths[class_name] = [os.path.join(data_dir, class_name, x) for x in os.listdir(os.path.join(data_dir, class_name))]
-                sample_dist[class_name] = len(sample_paths[class_name])
-                total_samples += sample_dist[class_name]
-                
-            dist =  np.array(list(sample_dist.values()))
-            class_balance_score = class_distribution_score(dist)
-            
-            res = {
-                    "status": "success",
-                    "data_info": {
-                        "class_list" : class_list,
-                        "total_samples": total_samples,
-                        "class_balance_score": class_balance_score,
-                        "dist_fig" : {
-                                "x": list(sample_dist.keys()),
-                                "y": list(sample_dist.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Samples",
-                                "title": "Data Class Distribution",
-                            },
-                    }
-                }
-
-            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
-            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
         
+        data_dir = data_info["data_extracted_path"]
         
-        if data_info["data_type"] == "Unlabeled":
+        class_list = os.listdir(data_dir) 
+        
+        total_samples = 0
+        sample_dist = {}
+        sample_paths = {}
+        for class_name in class_list:
+            sample_paths[class_name] = [os.path.join(data_dir, class_name, x) for x in os.listdir(os.path.join(data_dir, class_name))]
+            sample_dist[class_name] = len(sample_paths[class_name])
+            total_samples += sample_dist[class_name]
             
-            page_number = request.form['page_number']
-            
-            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
-            number_of_samples = len(sample_paths)
-            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-            res = {
-                    "status": "success",
-                    "sample_paths": sample_paths,
-                    "number_of_samples" : number_of_samples,
-                    "number_of_pages" : math.ceil(number_of_samples/samples_per_page)
+        dist =  np.array(list(sample_dist.values()))
+        class_balance_score = class_distribution_score(dist)
+        
+        res = {
+                "status": "success",
+                "data_info": {
+                    "class_list" : class_list,
+                    "total_samples": total_samples,
+                    "class_balance_score": class_balance_score,
+                    "dist_fig" : {
+                            "x": list(sample_dist.keys()),
+                            "y": list(sample_dist.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Samples",
+                            "title": "Data Class Distribution",
+                        },
                 }
+            }
 
-            logger.info(json.dumps(res, indent=4,  default=str))
-            return json.dumps(res, separators=(',', ':'), default=str)
+        logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+        return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+    
             
             
 
@@ -1282,7 +1076,7 @@ def get_object_detection_dataset_info():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
         
-        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+        if bool(int(show_samples)) == True:
             
             # split_name = request.form['split_name']
             # class_name = request.form['class_name']
@@ -1309,85 +1103,66 @@ def get_object_detection_dataset_info():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
                       
-                
-        if data_info["data_type"] == "Labeled":
             
-            data_dir = data_info["data_extracted_path"]
-            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
-            
-            class_list = metadata["classes"]
-            
-                        
-            all_class_instances = []
-            all_class_images = []
-            for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
-                annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
-                all_class_instances += annotations["class_ids"]
-                all_class_images += list(set(annotations["class_ids"]))
+        
+        data_dir = data_info["data_extracted_path"]
+        metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+        
+        class_list = metadata["classes"]
+        
+                    
+        all_class_instances = []
+        all_class_images = []
+        for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
+            annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
+            all_class_instances += annotations["class_ids"]
+            all_class_images += list(set(annotations["class_ids"]))
 
-            class_ids, image_counts = np.unique(all_class_images, return_counts=True)
-            image_count_dict = {}
-            for class_id, image_count in zip(class_ids, image_counts):
-                image_count_dict[metadata["classes"][class_id]] = int(image_count)
+        class_ids, image_counts = np.unique(all_class_images, return_counts=True)
+        image_count_dict = {}
+        for class_id, image_count in zip(class_ids, image_counts):
+            image_count_dict[metadata["classes"][class_id]] = int(image_count)
 
-            class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
-            ins_count_dict = {}
-            for class_id, ins_count in zip(class_ids, ins_counts):
-                ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
-                
-            total_images = image_counts.sum()
-            total_instances = ins_counts.sum()
+        class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
+        ins_count_dict = {}
+        for class_id, ins_count in zip(class_ids, ins_counts):
+            ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
             
-            image_wise_class_balance_score = class_distribution_score(image_counts)
-            instances_wise_class_balance_score = class_distribution_score(ins_counts)
-            
-            
-            res = {
-                    "status": "success",
-                    "data_info": {
-                        "class_list" : class_list,
-                        "total_images": total_images,
-                        "total_instances": total_instances,
-                        "image_wise_class_balance_score": image_wise_class_balance_score,
-                        "instances_wise_class_balance_score" : instances_wise_class_balance_score,
-                        "image_dist_fig" : {
-                                "x": list(image_count_dict.keys()),
-                                "y": list(image_count_dict.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Images",
-                                "title": "Data Class Distribution",
-                            },
-                        "instance_dist_fig" : {
-                                "x": list(ins_count_dict.keys()),
-                                "y": list(ins_count_dict.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Instances",
-                                "title": "Data Class Distribution",
-                            },
-                    }
-                }
-
-            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
-            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        total_images = image_counts.sum()
+        total_instances = ins_counts.sum()
+        
+        image_wise_class_balance_score = class_distribution_score(image_counts)
+        instances_wise_class_balance_score = class_distribution_score(ins_counts)
         
         
-        if data_info["data_type"] == "Unlabeled":
-            
-            page_number = request.form['page_number']
-            
-            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
-            number_of_samples = len(sample_paths)
-            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-            res = {
-                    "status": "success",
-                    "sample_paths": sample_paths,
-                    "number_of_samples" : number_of_samples,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+        res = {
+                "status": "success",
+                "data_info": {
+                    "class_list" : class_list,
+                    "total_images": total_images,
+                    "total_instances": total_instances,
+                    "image_wise_class_balance_score": image_wise_class_balance_score,
+                    "instances_wise_class_balance_score" : instances_wise_class_balance_score,
+                    "image_dist_fig" : {
+                            "x": list(image_count_dict.keys()),
+                            "y": list(image_count_dict.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Images",
+                            "title": "Data Class Distribution",
+                        },
+                    "instance_dist_fig" : {
+                            "x": list(ins_count_dict.keys()),
+                            "y": list(ins_count_dict.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Instances",
+                            "title": "Data Class Distribution",
+                        },
                 }
+            }
 
-            logger.info(json.dumps(res, indent=4,  default=str))
-            return json.dumps(res, separators=(',', ':'), default=str)
+        logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+        return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+    
             
             
 
@@ -1455,7 +1230,7 @@ def get_instance_segmentation_dataset_info():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
         
-        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+        if bool(int(show_samples)) == True:
             
             # split_name = request.form['split_name']
             # class_name = request.form['class_name']
@@ -1482,86 +1257,66 @@ def get_instance_segmentation_dataset_info():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
                       
-                
-        if data_info["data_type"] == "Labeled":
             
-            data_dir = data_info["data_extracted_path"]
-            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
-            
-            class_list = metadata["classes"]
-            
-                        
-            all_class_instances = []
-            all_class_images = []
-            for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
-                annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
-                all_class_instances += annotations["class_ids"]
-                all_class_images += list(set(annotations["class_ids"]))
+        
+        data_dir = data_info["data_extracted_path"]
+        metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+        
+        class_list = metadata["classes"]
+        
+                    
+        all_class_instances = []
+        all_class_images = []
+        for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
+            annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
+            all_class_instances += annotations["class_ids"]
+            all_class_images += list(set(annotations["class_ids"]))
 
-            class_ids, image_counts = np.unique(all_class_images, return_counts=True)
-            image_count_dict = {}
-            for class_id, image_count in zip(class_ids, image_counts):
-                image_count_dict[metadata["classes"][class_id]] = int(image_count)
+        class_ids, image_counts = np.unique(all_class_images, return_counts=True)
+        image_count_dict = {}
+        for class_id, image_count in zip(class_ids, image_counts):
+            image_count_dict[metadata["classes"][class_id]] = int(image_count)
 
-            class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
-            ins_count_dict = {}
-            for class_id, ins_count in zip(class_ids, ins_counts):
-                ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
-                
-            total_images = image_counts.sum()
-            total_instances = ins_counts.sum()
+        class_ids, ins_counts = np.unique(all_class_instances, return_counts=True)
+        ins_count_dict = {}
+        for class_id, ins_count in zip(class_ids, ins_counts):
+            ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
             
-            image_wise_class_balance_score = class_distribution_score(image_counts)
-            instances_wise_class_balance_score = class_distribution_score(ins_counts)
-            
-            
-            res = {
-                    "status": "success",
-                    "data_info": {
-                        "class_list" : class_list,
-                        "total_images": total_images,
-                        "total_instances": total_instances,
-                        "image_wise_class_balance_score": image_wise_class_balance_score,
-                        "instances_wise_class_balance_score" : instances_wise_class_balance_score,
-                        "image_dist_fig" : {
-                                "x": list(image_count_dict.keys()),
-                                "y": list(image_count_dict.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Images",
-                                "title": "Data Class Distribution",
-                            },
-                        "instance_dist_fig" : {
-                                "x": list(ins_count_dict.keys()),
-                                "y": list(ins_count_dict.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Instances",
-                                "title": "Data Class Distribution",
-                            },
-                    }
-                }
-
-            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
-            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+        total_images = image_counts.sum()
+        total_instances = ins_counts.sum()
+        
+        image_wise_class_balance_score = class_distribution_score(image_counts)
+        instances_wise_class_balance_score = class_distribution_score(ins_counts)
         
         
-        if data_info["data_type"] == "Unlabeled":
-            
-            page_number = request.form['page_number']
-            
-            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
-            number_of_samples = len(sample_paths)
-            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-            res = {
-                    "status": "success",
-                    "sample_paths": sample_paths,
-                    "number_of_samples" : number_of_samples,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
+        res = {
+                "status": "success",
+                "data_info": {
+                    "class_list" : class_list,
+                    "total_images": total_images,
+                    "total_instances": total_instances,
+                    "image_wise_class_balance_score": image_wise_class_balance_score,
+                    "instances_wise_class_balance_score" : instances_wise_class_balance_score,
+                    "image_dist_fig" : {
+                            "x": list(image_count_dict.keys()),
+                            "y": list(image_count_dict.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Images",
+                            "title": "Data Class Distribution",
+                        },
+                    "instance_dist_fig" : {
+                            "x": list(ins_count_dict.keys()),
+                            "y": list(ins_count_dict.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Instances",
+                            "title": "Data Class Distribution",
+                        },
                 }
+            }
 
-            logger.info(json.dumps(res, indent=4,  default=str))
-            return json.dumps(res, separators=(',', ':'), default=str)
-            
+        logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+        return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+    
             
 
     except Exception as e:
@@ -1627,7 +1382,7 @@ def get_semantic_segmentation_dataset_info():
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
         
-        if data_info["data_type"] == "Labeled" and bool(int(show_samples)) == True:
+        if bool(int(show_samples)) == True:
             
             # split_name = request.form['split_name']
             # class_name = request.form['class_name']
@@ -1653,83 +1408,62 @@ def get_semantic_segmentation_dataset_info():
 
             logger.info(json.dumps(res, indent=4,  default=str))
             return json.dumps(res, separators=(',', ':'), default=str)
-                      
-                
-        if data_info["data_type"] == "Labeled":
-            
-            data_dir = data_info["data_extracted_path"]
-            metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
-            
-            class_list = metadata["classes"]
-            
-            ann_dir = os.path.join(data_dir, "annotations")
-            
-            image_class_dist = {class_name : 0 for class_name in metadata["classes"]}
-            pixel_class_dist = {class_name : 0 for class_name in metadata["classes"]}
-            for ann_file in tqdm(os.listdir(ann_dir)):
-                ann_path = os.path.join(ann_dir, ann_file)
-                segmap = np.load(ann_path)
-                class_ids, class_counts = np.unique(segmap, return_counts=True)
-                for class_id, class_count in zip(class_ids, class_counts):
-                    class_name = metadata["classes"][int(class_id)]
-                    image_class_dist[class_name] += 1
-                    pixel_class_dist[class_name] += int(class_count)
-                            
+                    
+        data_dir = data_info["data_extracted_path"]
+        metadata = json.loads(open(os.path.join(data_dir, "metadata.json")).read())
+        
+        class_list = metadata["classes"]
+        
+        ann_dir = os.path.join(data_dir, "annotations")
+        
+        image_class_dist = {class_name : 0 for class_name in metadata["classes"]}
+        pixel_class_dist = {class_name : 0 for class_name in metadata["classes"]}
+        for ann_file in tqdm(os.listdir(ann_dir)):
+            ann_path = os.path.join(ann_dir, ann_file)
+            segmap = np.load(ann_path)
+            class_ids, class_counts = np.unique(segmap, return_counts=True)
+            for class_id, class_count in zip(class_ids, class_counts):
+                class_name = metadata["classes"][int(class_id)]
+                image_class_dist[class_name] += 1
+                pixel_class_dist[class_name] += int(class_count)
                         
-            total_images = len(os.listdir(os.path.join(data_dir, "images")))
-            total_pixels = sum(list(pixel_class_dist.values()))
-            
-            image_wise_class_balance_score = class_distribution_score(np.array([image_class_dist[class_name] for class_name in class_list]))
-            pixel_wise_class_balance_score = class_distribution_score(np.array([pixel_class_dist[class_name] for class_name in class_list]))
-
-            
-            res = {
-                    "status": "success",
-                    "data_info": {
-                        "class_list" : class_list,
-                        "total_images": total_images,
-                        "total_pixels": total_pixels,
-                        "image_wise_class_balance_score": image_wise_class_balance_score,
-                        "pixel_wise_class_balance_score" : pixel_wise_class_balance_score,
-                        "image_dist_fig" : {
-                                "x": list(image_class_dist.keys()),
-                                "y": list(image_class_dist.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Images",
-                                "title": "Data Class Distribution",
-                            },
-                        "pixels_dist_fig" : {
-                                "x": list(pixel_class_dist.keys()),
-                                "y": list(pixel_class_dist.values()),
-                                "xtitle": "Class Names",
-                                "ytitle": "Number of Instances",
-                                "title": "Data Class Distribution",
-                            },
-                    }
-                }
-
-            logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
-            return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+                    
+        total_images = len(os.listdir(os.path.join(data_dir, "images")))
+        total_pixels = sum(list(pixel_class_dist.values()))
         
-        
-        if data_info["data_type"] == "Unlabeled":
-            
-            page_number = request.form['page_number']
-            
-            sample_paths = [os.path.join(data_info["data_extracted_path"], x) for x in os.listdir(data_info["data_extracted_path"])]
-            number_of_samples = len(sample_paths)
-            sample_paths = sample_paths[(page_number-1)*samples_per_page : page_number*samples_per_page]
-            
-            res = {
-                    "status": "success",
-                    "sample_paths": sample_paths,
-                    "number_of_samples" : number_of_samples,
-                    "number_of_pages" : math.ceil(len(sample_paths)/samples_per_page)
-                }
+        image_wise_class_balance_score = class_distribution_score(np.array([image_class_dist[class_name] for class_name in class_list]))
+        pixel_wise_class_balance_score = class_distribution_score(np.array([pixel_class_dist[class_name] for class_name in class_list]))
 
-            logger.info(json.dumps(res, indent=4,  default=str))
-            return json.dumps(res, separators=(',', ':'), default=str)
-            
+        
+        res = {
+                "status": "success",
+                "data_info": {
+                    "class_list" : class_list,
+                    "total_images": total_images,
+                    "total_pixels": total_pixels,
+                    "image_wise_class_balance_score": image_wise_class_balance_score,
+                    "pixel_wise_class_balance_score" : pixel_wise_class_balance_score,
+                    "image_dist_fig" : {
+                            "x": list(image_class_dist.keys()),
+                            "y": list(image_class_dist.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Images",
+                            "title": "Data Class Distribution",
+                        },
+                    "pixels_dist_fig" : {
+                            "x": list(pixel_class_dist.keys()),
+                            "y": list(pixel_class_dist.values()),
+                            "xtitle": "Class Names",
+                            "ytitle": "Number of Instances",
+                            "title": "Data Class Distribution",
+                        },
+                }
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str, cls=plotly.utils.PlotlyJSONEncoder))
+        return json.dumps(res, separators=(',', ':'), default=str, cls=plotly.utils.PlotlyJSONEncoder)
+    
+        
             
 
     except Exception as e:
@@ -2823,7 +2557,7 @@ def filter_noisy_samples():
                 "project_name" : project_name,
                 "user_id" : user_id,
                 "data_name" : filtered_data_name,
-                "data_type" : dataset_info["data_type"],
+                "data_type" : "Noise Filtered",
                 "project_type" : project_type,
                 "data_zip_path" : "Data Created via Noisy Image Filtering",
                 "data_extracted_path" : extracted_path,
