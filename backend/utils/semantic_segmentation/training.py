@@ -492,44 +492,67 @@ def SemanticSegmentationSingleImageInference(
         device,       
         ):
     
-    from ultralytics import  YOLO 
-    
     
     train_run_name = run_record['run_name']
     model_name = run_record['model_name']
     model_family = run_record['model_family']
     model_path = run_record['model_path']
+    model_arch = run_record['model_arch']
     class_list = run_record['class_list']
     num_classes = len(class_list)
     
         
-    if model_family.lower().startswith("yolo"):
+    import segmentation_models_pytorch as smp
+    import albumentations as A
+    from albumentations.pytorch import ToTensorV2
         
-        model = YOLO(model_path)
-        model = model.to(device)
-        image = cv2.imread(image_path)
+    num_classes = len(class_list)
+    if num_classes == 2:
+        num_classes = 1
+
+    model = smp.create_model(
+                arch=model_arch,                     # name of the architecture, e.g. 'Unet'/ 'FPN' / etc. Case INsensitive!
+                encoder_name=model_name,
+                encoder_weights=None,
+                in_channels=3,
+                classes=num_classes,
+            )
+
+    model.load_state_dict(torch.load(model_path, weights_only=True))
+    model.eval()
+
+
+    # Define transformations
+    transform = A.Compose([
+        A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
+        A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # Normalization
+        ToTensorV2()  # Convert to PyTorch tensor (with correct shape)
+    ])
+
+    # Device (use GPU if available)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+    device = torch.device("cpu")
+    
+    data = transform(image=np.array(Image.open(image_path)))
+    result = model(data['image'].float().unsqueeze(0))
+    
+    segmap = torch.argmax(result[0], axis=0).cpu().detach().numpy()
+    
+    image = cv2.imread(image_path)
+
+    ori_size = image.shape
+    
+    image = cv2.resize(image, (int(segmap.shape[1]), int(segmap.shape[0])))
         
-        results = []
-        try:
-            results = model(image)
-            
-            overlay = image.copy()
-            opacity = 0.75
-            for class_id, box, segment in zip(results[0].boxes.cls.cpu().detach().numpy(), results[0].boxes.xyxy.cpu().detach().numpy(), results[0].masks.xy):
-                startX, startY, endX, endY = box.astype(int)
-                class_id = int(class_id)
-                segment = segment.astype(int)
-                fill_color = get_color_from_id(class_id+1)
-                text_color = isLightOrDark(fill_color)
-                
-                roi_points = np.array(segment, dtype=np.int32)
-                cv2.fillPoly(overlay, [roi_points], fill_color)
-                
-                # cv2.rectangle(image, (startX, startY), (endX, endY),  [255, 255, 255], 1)
-                # draw_bb_text(image,f" {class_id} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, [255, 255, 255])
+        
+    segmap_vis = np.zeros_like(image)
+    for class_id, class_name in enumerate(class_list):
+        color = get_color_from_id(class_id+1) 
+        segmap_vis[segmap.astype(int) == class_id] = color
 
-            cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
-
-        except:
-            results = []
-                   
+    alpha = 0.5
+    beta = 1 - alpha
+    dst = cv2.addWeighted(image, alpha, segmap_vis, beta, 0.0)
+    
+    output_image = cv2.resize(dst, (int(ori_size[1]), int(ori_size[0])))
