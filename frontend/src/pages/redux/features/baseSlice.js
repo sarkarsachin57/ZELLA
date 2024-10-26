@@ -11,6 +11,7 @@ const initialState ={
     sample_paths: [],
     simpleImageUrl: '',
     noiseHistory: [],
+    modelEvaluationLogs: [],
 }
 
 export const baseSlice = createSlice({
@@ -51,6 +52,9 @@ export const baseSlice = createSlice({
         setNoiseHistory: (state, action) => {
             state.noiseHistory = action.payload
         },
+        setModelEvaluationLogs: (state, action) => {
+            state.modelEvaluationLogs = action.payload
+        },
     }
 });
 
@@ -66,7 +70,8 @@ export const {
     setDatasetInfo,
     setViewSample,
     setSimpleImageUrl,
-    setNoiseHistory
+    setNoiseHistory,
+    setModelEvaluationLogs
  } = baseSlice.actions;
 
 export default baseSlice.reducer;
