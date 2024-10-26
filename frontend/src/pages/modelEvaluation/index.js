@@ -17,8 +17,8 @@ import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import SettingPanelLayout from 'src/views/settings/SettingPanelLayout'
 import CardBox from 'src/views/settings/CardBox'
-import ModelTrainingTable from 'src/@core/components/table/model-training-table'
-import ImageClassModal from 'src/views/modals/ImageClassModal'
+import ModelEvaluationTable from 'src/@core/components/table/model-evaluation-table'
+import EvalDetailModal from 'src/views/modals/EvalDetailModal'
 
 import { connectSchema } from 'src/@core/schema'
 import {
@@ -36,86 +36,38 @@ const ModelEvaulation = () => {
       label: 'No'
     },
     {
-      id: 'train_data_name',
+      id: 'eval_run_name',
       numeric: true,
       disablePadding: false,
-      label: 'Train Data Name',
+      label: 'Eval Run Name',
       minWidth: 150
     },
     {
-      id: 'val_data_name',
+      id: 'train_run_name',
       numeric: true,
       disablePadding: false,
-      label: 'Val Data Name',
+      label: 'Train Run Name',
       minWidth: 150
     },
     {
-        id: 'run_name',
+        id: 'eval_data_name',
         numeric: true,
         disablePadding: false,
-        label: 'Run Name'
+        label: 'Eval Data Name'
     },
     {
-      id: 'model_family',
+      id: 'eval_run_time_str',
       numeric: true,
       disablePadding: false,
-      label: 'Model Family'
-    },
-    {
-      id: 'model_name',
-      numeric: true,
-      disablePadding: false,
-      label: 'Model Name'
-    },
-    {
-        id: 'training_mode',
-        numeric: true,
-        disablePadding: false,
-        label: 'Training Mode'
-      },
-    {
-      id: 'num_epochs',
-      numeric: true,
-      disablePadding: false,
-      label: 'Num epochs'
-    },
-    {
-      id: 'batch_size',
-      numeric: true,
-      disablePadding: false,
-      label: 'Batch Size'
-    },
-    {
-      id: 'learning_rate',
-      numeric: true,
-      disablePadding: false,
-      label: 'Learning Rate'
-    },
-    {
-      id: 'start_time',
-      numeric: true,
-      disablePadding: false,
-      label: 'Training Start Time',
+      label: 'Eval Run Time',
       minWidth: 170
     },
-    {
-      id: 'training_status',
-      numeric: true,
-      disablePadding: false,
-      label: 'Training Status',
-      minWidth: 190
-    },
+    
     {
       id: 'detail',
       numeric: true,
       disablePadding: false,
       label: 'Detail'
-    },
-    {
-      id: 'download',
-      numeric: true,
-      disablePadding: false,
-      label: 'Download'
     },
   ]
   // ============ Define the states <start> ============= **QmQ
@@ -139,11 +91,17 @@ const ModelEvaulation = () => {
   const [valBatchSize, setValBatchSize] = useState('')
   const [dataset_list, setDatasetList] = useState(useSelector(state => state.baseState.dataSetList))
   const [isLoading, setIsLoading] = useState(false)
+  const [isEvalModalOpen, setEvalModalSwitch] = useState(false)
+  const [detailData, setDetailData] = useState([])
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
   const [ eval_run_logs_list, setEvalRunLosgList] = useState(useSelector(state => state.baseState.modelEvaluationLogs))
+<<<<<<< HEAD
   console.log('run_logs_list: ', run_logs_list)
   console.log('project_name: ', project_name)
+=======
+  console.log('eval_run_logs_list: ', eval_run_logs_list)
+>>>>>>> 3d76224 (feat: evaluation table)
 
   const [ modelEvaluation ] = useModelEvaluationMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
@@ -212,12 +170,12 @@ const ModelEvaulation = () => {
     return true
   }
 
-  const handleTrainDetailModalOpen = () => {
-      setTrainModalSwitch(true);
+  const handleEvalDetailModalOpen = () => {
+    setEvalModalSwitch(true);
   }
   
-  const handleTrainDetailModalClose = () => {
-    setTrainModalSwitch(false);
+  const handleEvalDetailModalClose = () => {
+    setEvalModalSwitch(false);
   }
 
 
@@ -247,8 +205,11 @@ const ModelEvaulation = () => {
       }
     }
   }
-  
 
+  const viewDetailHandler = (data) => {
+    setDetailData(data)
+    setEvalModalSwitch(true);
+  }
 
   return (
     <Box className={CGroups.settings_layout}>
@@ -318,13 +279,22 @@ const ModelEvaulation = () => {
       </SettingPanelLayout>
 
       <CardBox>
+<<<<<<< HEAD
         <ModelTrainingTable
+=======
+        <ModelEvaluationTable
+>>>>>>> 3d76224 (feat: evaluation table)
           headCells = {headCells}
           rows = {eval_run_logs_list}
           viewDetailHandler = {viewDetailHandler}
         />
       </CardBox>
-      
+      <EvalDetailModal
+        width={"80%"}
+        isOpen={isEvalModalOpen}
+        onHandleModalClose = {handleEvalDetailModalClose}
+        data = {detailData}
+      />
     </Box>
   )
 }

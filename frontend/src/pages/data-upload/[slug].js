@@ -45,14 +45,15 @@ export default function Page({params}) {
         return state.baseState.projectList
     })
     const dataSetList = useSelector((state) => {
-        return state.baseState.dataSetList
+        // return state.baseState.dataSetList
+        return state.baseState.dataSetList?.filter(obj => obj.data_type === 'Uploaded') || []
     })
+    console.log("dataSetList: ", dataSetList)
 
     
       const [email, setEmail] = useState(localStorage.getItem('email'))
       const [projectName, setProjectName] = useState(projectList.length > 0 ? projectList.find(obj => obj._id === slug).project_name:'')
       const [dataName, setDataName] = useState('')
-      const [dataType, setDataType] = useState('')
       const [dataDriveId, setDataDriveId] = useState('')
       const [dataFile, setDataFile] = useState(undefined)
       const [isLoading, setIsLoading] = useState(false)
@@ -134,11 +135,6 @@ export default function Page({params}) {
     
           return false
         }
-        if (!dataType) {
-          toast.error('Please select the Data Type')
-    
-          return false
-        }
         
         return true
       }
@@ -172,7 +168,6 @@ export default function Page({params}) {
           formData.append('email', email)
           formData.append('project_name', projectName)
           formData.append('data_name', dataName)
-          formData.append('data_type', dataType)
           formData.append('data_drive_id', dataDriveId)
           if(dataDriveId !== ''){
             setDataFile('')
@@ -188,7 +183,6 @@ export default function Page({params}) {
             else{
               toast.success("successfully data uploaded!")
               setDataName('')
-              setDataType('')
               setDataDriveId('')
               setDataFile(undefined)
             }
@@ -211,7 +205,7 @@ export default function Page({params}) {
             select_tracking_mode={true}
           >
             <Grid container spacing={6} sx={{marginBottom:'15px'}}>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
                   type='text'
@@ -223,24 +217,7 @@ export default function Page({params}) {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
-                <FormControl fullWidth>
-                  <InputLabel id='dataType'> {'Data Type'} </InputLabel>
-                  <Select
-                    value={dataType}
-                    onChange={e =>
-                      setDataType( e.target.value )
-                    }
-                    id='dataType'
-                    labelId='dataType'
-                    input={<OutlinedInput label='Data Type' id='Data Type' />}
-                  >
-                    <MenuItem value={'Labeled'}> {'Labeled'} </MenuItem>
-                    <MenuItem value={'Unlabeled'}> {'Unlabeled'} </MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   <TextField
                     fullWidth
@@ -254,7 +231,7 @@ export default function Page({params}) {
                   />
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={4}>
                 {
                     dataDriveId === '' ? (<FileInput label='Input Data File' video_file={dataFile} onChange={handleFileOnChange} />) : ''
                 }
