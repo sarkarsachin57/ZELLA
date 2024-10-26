@@ -423,15 +423,11 @@ def ObjectDetectionEvaluationPipeline(
 
 def ObjectDetectionSingleImageInference(
         image_path,
-        eval_run_name,
-        val_data_name,
         project_name,
         project_type,
         user_id,
         run_record,
-        val_batch_size,
-        device,
-        val_dataset_path        
+        device,     
         ):
     
     from ultralytics import  YOLO 

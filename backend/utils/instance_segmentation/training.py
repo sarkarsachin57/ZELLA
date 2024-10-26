@@ -416,3 +416,56 @@ def InstanceSegmentationEvaluationPipeline(
     
     mongodb['evaluation_history'].insert_one(evaluation_data)
     
+    
+    
+
+def InstanceSegmentationSingleImageInference(
+        image_path,
+        project_name,
+        project_type,
+        user_id,
+        run_record,
+        device,       
+        ):
+    
+    from ultralytics import  YOLO 
+    
+    
+    train_run_name = run_record['run_name']
+    model_name = run_record['model_name']
+    model_family = run_record['model_family']
+    model_path = run_record['model_path']
+    class_list = run_record['class_list']
+    num_classes = len(class_list)
+    
+        
+    if model_family.lower().startswith("yolo"):
+        
+        model = YOLO(model_path)
+        model = model.to(device)
+        image = cv2.imread(image_path)
+        
+        results = []
+        try:
+            results = model(image)
+            
+            overlay = image.copy()
+            opacity = 0.75
+            for class_id, box, segment in zip(results[0].boxes.cls.cpu().detach().numpy(), results[0].boxes.xyxy.cpu().detach().numpy(), results[0].masks.xy):
+                startX, startY, endX, endY = box.astype(int)
+                class_id = int(class_id)
+                segment = segment.astype(int)
+                fill_color = get_color_from_id(class_id+1)
+                text_color = isLightOrDark(fill_color)
+                
+                roi_points = np.array(segment, dtype=np.int32)
+                cv2.fillPoly(overlay, [roi_points], fill_color)
+                
+                # cv2.rectangle(image, (startX, startY), (endX, endY),  [255, 255, 255], 1)
+                # draw_bb_text(image,f" {class_id} ", (startX, startY, endX, endY),cv2.FONT_HERSHEY_DUPLEX, 0.3, text_color, 1, [255, 255, 255])
+
+            cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
+
+        except:
+            results = []
+                   

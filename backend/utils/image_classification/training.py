@@ -722,7 +722,6 @@ def ImageClassificationSingleImageInference(
                             project_type,
                             user_id,
                             run_record,
-                            val_batch_size,
                             device,        
                             ):
     
