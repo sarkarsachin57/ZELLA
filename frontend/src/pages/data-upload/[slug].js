@@ -144,6 +144,7 @@ export default function Page({params}) {
           if (user && user?.email) {
             const formData = new FormData()
             formData.append('email', user.email)
+            formData.append('data_type', 'Uploaded')
             formData.append('project_name', projectList.length > 0 ? projectList.find(obj => obj._id === slug).project_name:'')
             try {
               await getDataSetList(formData)

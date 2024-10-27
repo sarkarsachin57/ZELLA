@@ -35,7 +35,7 @@ export default function Page() {
         { id: 'detail', numeric: true, disablePadding: false, label: 'Detail' },
     ]
 
-    const categories = ['All', 'Uploaded', 'Noise']
+    const categories = ['All', 'Uploaded', 'Noise Filtered']
 
     useEffect(() => {
         const filteredDataSetList = currentCategory === 'All' 
@@ -50,6 +50,7 @@ export default function Page() {
             if (user?.email) {
                 const formData = new FormData();
                 formData.append('email', user.email);
+                formData.append('data_type', currentCategory)
                 formData.append('project_name', projectList.length > 0 ? projectList.find(obj => obj._id === localStorage.getItem('project_id'))?.project_name : '');
 
                 try {
@@ -61,7 +62,7 @@ export default function Page() {
         }
 
         fetchDataSetList();
-    }, [user, projectList, getDataSetList]);
+    }, [user, projectList, getDataSetList, currentCategory]);
 
     return (
         <Box className={CGroups.settings_layout}>

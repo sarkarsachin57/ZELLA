@@ -120,7 +120,8 @@ const ModelEvaulation = () => {
         const formData = new FormData()
         formData.append('email', user.email)
         formData.append('project_name', project_name)
-        try {
+        formData.append('data_type', 'All')
+      try {
           const data = await getDataSetList(formData)
           console.log('datalist: ', data)
           setDatasetList(data.data.dataset_list)
