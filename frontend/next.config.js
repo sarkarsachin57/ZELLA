@@ -22,8 +22,8 @@ module.exports = {
     APPNAME: "ZELLA",
     APPVERSION: "Version 1.0",
     PROJECT_STATUS: "development",
-    // REACT_APP_SERVER_ENDPOINT: "http://164.52.206.39:5000",
-    REACT_APP_SERVER_ENDPOINT: "http://localhost:5000",
+    REACT_APP_SERVER_ENDPOINT: "http://164.52.206.39:5000",
+    // REACT_APP_SERVER_ENDPOINT: "http://localhost:5000",
   },
 
   // async redirects() {
