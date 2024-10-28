@@ -3285,6 +3285,7 @@ def split_dataset():
             mongodb["datasets"].insert_one(data_meta)
             
             
+        DataSplitting(dataset_info, user_id, project_name, project_info, data_name, split_data_name_1, split_data_name_2, split_ratio)
         
         res = {
                 "status": "success",   
