@@ -2099,7 +2099,7 @@ def get_detailed_training_history():
 @app.route("/model_evaluation", methods=['POST'])
 def model_evaluation():
     
-    logger.info(f"Get request for /model_evaluationy")
+    logger.info(f"Get request for /model_evaluation")
     
     try:
         
@@ -3031,6 +3031,344 @@ def get_noise_filtering_logs():
 
         logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.route("/split_dataset", methods=['POST'])
+def split_dataset():
+    
+    logger.info(f"Get request for /split_dataset")
+    
+    try:
+        
+        data_name = request.form['data_name']
+        split_data_name_1 = request.form['split_data_name_1']
+        split_data_name_2 = request.form['split_data_name_2']
+        split_ratio = request.form['split_ratio']
+        project_name = request.form['project_name']
+        email = request.form['email']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, split_data_name_1 : {split_data_name_1}, split_data_name_2 : {split_data_name_2}, split_ratio : {split_ratio}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\nsplit_data_name_1 : {split_data_name_1}\nsplit_data_name_2 : {split_data_name_2}, split_ratio : {split_ratio}"
+
+        split_ratio = float(split_ratio)
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({"user_id" : user_id, "project_name" : project_name})
+
+        if project_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Project does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        split_data_name_1_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : split_data_name_1})
+        if split_data_name_1_info is not None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Split Data {split_data_name_1} exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        split_data_name_2_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : split_data_name_2})
+        if split_data_name_2_info is not None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Split Data {split_data_name_2} exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        dataset_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : data_name})
+        if dataset_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Data Name - {data_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        def DataSplitting(dataset_info, user_id, project_name, project_info, data_name, split_data_name_1, split_data_name_2, split_ratio):
+            
+            data_path = dataset_info["data_extracted_path"]
+            
+            project_type = project_info["project_type"]
+                    
+            project_dir = os.path.join("workdir", user_id, project_name)
+            os.makedirs(project_dir, exist_ok=True)
+
+
+            split_1_data_id = str(uuid.uuid4())[:8]
+            split_1_extracted_path = os.path.join(project_dir, f"data_{split_1_data_id}_extracted")
+            os.makedirs(split_1_extracted_path, exist_ok=True)
+
+            split_2_data_id = str(uuid.uuid4())[:8]
+            split_2_extracted_path = os.path.join(project_dir, f"data_{split_2_data_id}_extracted")
+            os.makedirs(split_2_extracted_path, exist_ok=True)
+
+            if project_type == 'Image Classification':
+                class_folders = os.listdir(data_path)
+                for class_name in class_folders:
+                    src_path = os.path.join(data_path, class_name)
+                    split_1_dest = os.path.join(split_1_extracted_path, class_name)
+                    split_2_dest = os.path.join(split_2_extracted_path, class_name)
+                    os.makedirs(split_1_dest, exist_ok=True)
+                    os.makedirs(split_2_dest, exist_ok=True)
+                    image_list = os.listdir(src_path)
+                    split_1_samples = random.sample(image_list, round(len(image_list)*split_ratio))
+                    split_2_samples = list(set(image_list)-set(split_1_samples))
+                    for file_name in tqdm(split_1_samples, desc=f"Copying Class - {class_name} images to Split 1 Dir"):
+                        shutil.copy(os.path.join(src_path, file_name), split_1_dest)
+                    for file_name in tqdm(split_2_samples, desc=f"Copying Class - {class_name} images to Split 2 Dir"):
+                        shutil.copy(os.path.join(src_path, file_name), split_2_dest)
+
+
+            if project_type == 'Object Detection':
+                image_src = os.path.join(data_path, "images")
+                ann_src = os.path.join(data_path, "annotations")
+                metedata_path = os.path.join(data_path, "metadata.json")
+                shutil.copy(metedata_path, split_1_extracted_path)
+                shutil.copy(metedata_path, split_2_extracted_path)
+                split_1_image_dest = os.path.join(split_1_extracted_path, "images")
+                split_1_ann_dest = os.path.join(split_1_extracted_path, "annotations")
+                split_2_image_dest = os.path.join(split_2_extracted_path, "images")
+                split_2_ann_dest = os.path.join(split_2_extracted_path, "annotations")
+                os.makedirs(split_1_image_dest, exist_ok=True)
+                os.makedirs(split_1_ann_dest, exist_ok=True)
+                os.makedirs(split_2_image_dest, exist_ok=True)
+                os.makedirs(split_2_ann_dest, exist_ok=True)
+                image_list = os.listdir(image_src)
+                split_1_samples = random.sample(image_list, round(len(image_list)*split_ratio))
+                split_2_samples = list(set(image_list)-set(split_1_samples))
+                for file_name in tqdm(split_1_samples, desc=f"Copying samples to Split 1 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_1_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".json"), split_1_ann_dest)
+                for file_name in tqdm(split_2_samples, desc=f"Copying samples to Split 2 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_2_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".json"), split_2_ann_dest)
+
+            if project_type == 'Instance Segmentation':
+                image_src = os.path.join(data_path, "images")
+                ann_src = os.path.join(data_path, "annotations")
+                metedata_path = os.path.join(data_path, "metadata.json")
+                shutil.copy(metedata_path, split_1_extracted_path)
+                shutil.copy(metedata_path, split_2_extracted_path)
+                split_1_image_dest = os.path.join(split_1_extracted_path, "images")
+                split_1_ann_dest = os.path.join(split_1_extracted_path, "annotations")
+                split_2_image_dest = os.path.join(split_2_extracted_path, "images")
+                split_2_ann_dest = os.path.join(split_2_extracted_path, "annotations")
+                os.makedirs(split_1_image_dest, exist_ok=True)
+                os.makedirs(split_1_ann_dest, exist_ok=True)
+                os.makedirs(split_2_image_dest, exist_ok=True)
+                os.makedirs(split_2_ann_dest, exist_ok=True)
+                image_list = os.listdir(image_src)
+                split_1_samples = random.sample(image_list, round(len(image_list)*split_ratio))
+                split_2_samples = list(set(image_list)-set(split_1_samples))
+                for file_name in tqdm(split_1_samples, desc=f"Copying samples to Split 1 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_1_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".json"), split_1_ann_dest)
+                for file_name in tqdm(split_2_samples, desc=f"Copying samples to Split 2 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_2_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".json"), split_2_ann_dest)
+
+
+            if project_type == 'Semantic Segmentation':
+                image_src = os.path.join(data_path, "images")
+                ann_src = os.path.join(data_path, "annotations")
+                metedata_path = os.path.join(data_path, "metadata.json")
+                shutil.copy(metedata_path, split_1_extracted_path)
+                shutil.copy(metedata_path, split_2_extracted_path)
+                split_1_image_dest = os.path.join(split_1_extracted_path, "images")
+                split_1_ann_dest = os.path.join(split_1_extracted_path, "annotations")
+                split_2_image_dest = os.path.join(split_2_extracted_path, "images")
+                split_2_ann_dest = os.path.join(split_2_extracted_path, "annotations")
+                os.makedirs(split_1_image_dest, exist_ok=True)
+                os.makedirs(split_1_ann_dest, exist_ok=True)
+                os.makedirs(split_2_image_dest, exist_ok=True)
+                os.makedirs(split_2_ann_dest, exist_ok=True)
+                image_list = os.listdir(image_src)
+                split_1_samples = random.sample(image_list, round(len(image_list)*split_ratio))
+                split_2_samples = list(set(image_list)-set(split_1_samples))
+                for file_name in tqdm(split_1_samples, desc=f"Copying samples to Split 1 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_1_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".npy"), split_1_ann_dest)
+                for file_name in tqdm(split_2_samples, desc=f"Copying samples to Split 2 Dir"):
+                    shutil.copy(os.path.join(image_src, file_name), split_2_image_dest)
+                    shutil.copy(os.path.join(ann_src, ".".join(file_name.split(".")[:-1])+".npy"), split_2_ann_dest)
+                    
+            
+            data_creation_time = datetime.now()
+            data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+            
+            data_split_info = {
+                                "_id" : user_id+"_"+project_name+"_"+data_name+"_"+split_1_data_id+"_"+split_2_data_id,
+                                "data_name" : data_name, 
+                                "split_data_name_1" : split_data_name_1, 
+                                "split_data_name_2" : split_data_name_2,
+                                "project_name" : project_name,
+                                "user_id" : user_id, 
+                                "project_type" : project_type, 
+                                "process_start_time" : data_creation_time, 
+                                "process_start_time_str" : data_creation_time_str,
+                                "process_status" : f"Completed!",
+                            }
+            
+            mongodb["data_split"].insert_one(data_split_info)
+            
+            
+            
+            data_meta = {
+                "_id" : user_id+"_"+project_name+"_"+split_1_data_id,
+                "data_id" : split_1_data_id,
+                "project_name" : project_name,
+                "user_id" : user_id,
+                "data_name" : split_data_name_1,
+                "data_type" : "Splitted Data",
+                "project_type" : project_type,
+                "data_zip_path" : "Data Created via Splitting",
+                "data_extracted_path" : split_1_extracted_path,
+                "data_creation_time" : data_creation_time,
+                "data_creation_time_str" : data_creation_time_str,
+            }
+            
+            mongodb["datasets"].insert_one(data_meta)
+            
+            
+            data_meta = {
+                "_id" : user_id+"_"+project_name+"_"+split_2_data_id,
+                "data_id" : split_2_data_id,
+                "project_name" : project_name,
+                "user_id" : user_id,
+                "data_name" : split_data_name_2,
+                "data_type" : "Splitted Data",
+                "project_type" : project_type,
+                "data_zip_path" : "Data Created via Splitting",
+                "data_extracted_path" : split_2_extracted_path,
+                "data_creation_time" : data_creation_time,
+                "data_creation_time_str" : data_creation_time_str,
+            }
+            
+            mongodb["datasets"].insert_one(data_meta)
+            
+            
+        
+        res = {
+                "status": "success",   
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+@app.route("/get_data_split_logs", methods=['POST'])
+def get_data_split_logs():
+    
+    logger.info(f"Get request for /get_data_split_logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["data_split"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "run_history": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
 
 
 

@@ -698,9 +698,15 @@ def ImageClassificationEvaluationPipeline(
     
     eval_run_time = datetime.now()
     eval_run_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    
+    classification_report = {}
+    for col in class_report.columns:
+        classification_report[col] = class_report[col].tolist()
+    
     
     evaluation_data = {
-        "_id" : user_id + "-" + project_name + "_" + eval_run_name,
+        "_id" : user_id + "_" + project_name + "_" + eval_run_name,
         "eval_run_name" : eval_run_name,
         "train_run_name" : train_run_name,
         "eval_data_name" : val_data_name,
@@ -709,7 +715,7 @@ def ImageClassificationEvaluationPipeline(
         "user_id" : user_id,
         "eval_run_time" : eval_run_time,
         "eval_run_time_str" : eval_run_time_str,
-        "class_report" : class_report
+        "class_report" : classification_report
     }
     
     mongodb['evaluation_history'].insert_one(evaluation_data)

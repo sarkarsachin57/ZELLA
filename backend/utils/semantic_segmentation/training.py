@@ -458,6 +458,8 @@ def SemanticSegmentationEvaluationPipeline(
     model.load_state_dict(torch.load(model_path, weights_only=True))
     model.eval()
     
+    model = model.to(device)
+
     
     avg_val_loss, classwise_records, average_iou, overall_iou = validate_model(model, val_loader, None, device, class_list)
     
@@ -524,7 +526,7 @@ def SemanticSegmentationSingleImageInference(
     model.load_state_dict(torch.load(model_path, weights_only=True))
     model.eval()
 
-
+    
     # Define transformations
     transform = A.Compose([
         A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
@@ -537,6 +539,8 @@ def SemanticSegmentationSingleImageInference(
     device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
     # device = torch.device("cpu")
     
+    model = model.to(device)
+
     data = transform(image=np.array(Image.open(image_path)))
     result = model(data['image'].float().unsqueeze(0).to(device))
     
