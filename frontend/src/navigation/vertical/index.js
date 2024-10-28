@@ -29,7 +29,7 @@ const offlineNavItemList = [
     path: `/data-visualization`
   },
   {
-    title: 'Data Preparation',
+    title: 'Data Operation',
     icon: SettingsIcon,
     path: '/dataPreparation',
     subTitle: [
@@ -63,7 +63,7 @@ const offlineNavItemList = [
   {
     title: 'Model Inference',
     icon: LocalPolice,
-    path: '/'
+    path: '/model-inference'
   }
 ]
 

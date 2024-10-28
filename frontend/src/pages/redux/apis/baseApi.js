@@ -369,6 +369,18 @@ export const baseApi = createApi({
         } catch (error) {}
       },
     }),
+/**
+  * 👇 @file Model Inference
+*/
+    modelInference: builder.mutation({
+      query(data) {
+        return {
+          url: 'model_inference',
+          method: 'POST',
+          body: data
+        }
+      },
+    }),
   }),
 });
 
@@ -398,4 +410,6 @@ export const {
 
   useModelEvaluationMutation,
   useGetEvalRunLogsMutation,
+
+  useModelInferenceMutation,
 } = baseApi;
