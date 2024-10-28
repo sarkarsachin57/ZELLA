@@ -39,6 +39,11 @@ const offlineNavItemList = [
         path: '/dataPreparation/noiseFiltering'
       },
       {
+        title: 'Dataset Split',
+        icon: NoteAddIcon,
+        path: '/dataPreparation/datasetSplit'
+      },
+      {
         title: 'Label Correction',
         icon: VerifiedUserIcon,
         path: '/dataPreparation/labelCorrection'

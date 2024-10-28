@@ -12,7 +12,8 @@ import {
   setViewSample,
   setSimpleImageUrl,
   setNoiseHistory,
-  setModelEvaluationLogs
+  setModelEvaluationLogs,
+  setSplitDataset
 } from '../features/baseSlice';
 
 /**
@@ -381,6 +382,41 @@ export const baseApi = createApi({
         }
       },
     }),
+/**
+  * 👇 @file Model Split
+*/
+    SplitDataset: builder.mutation({
+      query(data) {
+        return {
+          url: 'split_dataset',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setSplitDataset(data.run_history));
+        } catch (error) {}
+      },
+    }),
+    getSplitDataset: builder.mutation({
+      query(data) {
+        return {
+          url: 'get_data_split_logs',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setSplitDataset(data.run_history));
+        } catch (error) {}
+      },
+    }),
   }),
 });
 
@@ -412,4 +448,7 @@ export const {
   useGetEvalRunLogsMutation,
 
   useModelInferenceMutation,
+
+  useSplitDatasetMutation,
+  useGetSplitDatasetMutation
 } = baseApi;
