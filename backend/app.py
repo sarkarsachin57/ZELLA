@@ -3389,6 +3389,199 @@ def get_data_split_logs():
 
 
 
+@app.route("/label_correction", methods=['POST'])
+def label_correction():
+    
+    logger.info(f"Get request for /label_correction")
+    
+    try:
+        
+        data_name = request.form['data_name']
+        corrected_data_name = request.form['corrected_data_name']
+        project_name = request.form['project_name']
+        email = request.form['email']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, corrected_data_name : {corrected_data_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\ncorrected_data_name : {corrected_data_name}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({"user_id" : user_id, "project_name" : project_name})
+
+        if project_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Project does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        project_type = project_info["project_type"]
+        
+        corrected_data_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : corrected_data_name})
+        if corrected_data_info is not None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Noise Corrected Data {corrected_data_name} exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        
+        dataset_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : data_name})
+        if dataset_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Data Name - {data_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        dataset_path = dataset_info["data_extracted_path"]
+        
+        
+        if project_type == "Image Classification":
+
+            ImageClassificationNoiseCorrection(
+                        data_name,
+                        corrected_data_name,
+                        project_name,
+                        project_type,
+                        user_id,
+                        dataset_path)
+
+        # if project_type == "Object Detection":
+
+        #     ObjectDetectionNoiseCorrection(
+        #                 data_name,
+        #                 corrected_data_name,
+        #                 project_name,
+        #                 project_type,
+        #                 user_id,
+        #                 dataset_path)
+
+        if project_type in ["Semantic Segmentation", "Instance Segmentation"]:
+            
+            res = {
+                    "status": "fail",
+                    "message": f"Project type - {project_type} not support!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+        res = {
+                "status": "success",   
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
+@app.route("/get_label_correction_logs", methods=['POST'])
+def get_label_correction_logs():
+    
+    logger.info(f"Get request for /get_label_correction_logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["labels_corrected_data"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "run_history": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
+
 
 @app.route("/get-errors-logs")
 def get_error_logs():

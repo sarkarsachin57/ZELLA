@@ -772,3 +772,187 @@ def ImageClassificationSingleImageInference(
     
     return predicted_class
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+def ImageClassificationNoiseCorrection(
+                            data_name,
+                            new_data_name,
+                            project_name,
+                            project_type,
+                            user_id,
+                            dataset_path):
+
+
+    class_list = sorted(os.listdir(dataset_path))
+
+        # Load the CLIP model
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    clip_model, clip_preprocess = clip.load("ViT-B/32", device=device)
+
+    def get_clip_embedding(image):
+        image_tensor = clip_preprocess(image).unsqueeze(0).to(device)
+        with torch.no_grad():
+            image_embedding = clip_model.encode_image(image_tensor).cpu().numpy()
+        return image_embedding
+    
+    image_paths = []
+    feats = []
+    labels = []
+
+    for class_id, class_name in enumerate(class_list):
+        class_folder = os.patj.join(dataset_path, class_name)
+        image_list = os.listdir(class_folder)
+
+        for image_name in tqdm(image_list, desc=f"{class_name} - "):
+            image_path = os.path.join(class_folder, image_name)
+            image_paths.append(image_path)
+            image = Image.open(image_path)
+            feats.append(get_clip_embedding(image))
+            labels.append(class_id)
+
+    feats = np.vstack(feats)
+    labels = np.array(labels)
+
+    k = 8
+    
+    print("Applying KNN on Features..")
+    knn = NearestNeighbors(n_neighbors=k + 1, algorithm='auto')
+    knn.fit(feats)
+    distances, indices = knn.kneighbors(feats)
+
+    classes, noisy_labels_dist = np.unique(labels, return_counts=True)
+    min_data_count = noisy_labels_dist.min()
+    # downsample to make data balance
+    balanced_feats = []
+    balanced_labels = []
+    for class_id in classes:
+        class_indices = np.where(labels == class_id)[0]
+        class_indices = np.random.choice(class_indices, min(len(class_indices), min_data_count*4), replace=False)
+        balanced_feats.extend(feats[class_indices])
+        balanced_labels.extend(labels[class_indices])
+
+    balanced_feats = np.array(balanced_feats)
+    balanced_labels = np.array(balanced_labels)
+
+    print(f"balanced_feats shape : {balanced_feats.shape}")
+    print(f"balanced_labels shape : {balanced_labels.shape}")
+
+    print(f"Actual Class Distribution : {np.unique(labels, return_counts=True)}")
+    print(f"Balanced Class Distribution : {np.unique(balanced_labels, return_counts=True)}")
+
+    
+    print("Detecting and Correcting Noise..")
+
+    noise_corrected_labels = labels.copy()
+    initial_noisy_labels = labels.copy()
+
+    n_corrected = 0
+    iteration = 3
+
+    for i in range(iteration):
+
+        print(f"\n\nIteration {i+1}\n")
+
+        
+        for sample_id, (neighbor_ids, neighbor_distance) in tqdm(enumerate(zip(indices, distances))):
+            current_label = labels[sample_id]
+
+            neighbor_ids = neighbor_ids.tolist()
+            if neighbor_distance[0] == 0:
+                neighbor_ids = neighbor_ids[1:]
+            # neighbor_ids.remove(sample_id)
+            neighbor_ids = np.array(neighbor_ids)
+
+            neighbor_labels = labels[neighbor_ids]
+            # neighbor_labels = balanced_labels[neighbor_ids]
+
+            mark_as_incorrect = False
+
+            n_appearences = 0
+            if current_label in neighbor_labels:
+                n_appearences = neighbor_labels.tolist().count(current_label)
+
+            if n_appearences == 0:
+                mark_as_incorrect = True
+
+            # Find the mode (most common label) among the neighbors
+            most_common_label = statistics.mode(neighbor_labels)
+
+            if mark_as_incorrect:
+                n_corrected += 1
+                noise_corrected_labels[sample_id] = most_common_label
+
+        labels = noise_corrected_labels.copy()
+
+
+    project_dir = os.path.join("workdir", user_id, project_name)
+    os.makedirs(project_dir, exist_ok=True)
+
+    data_id = str(uuid.uuid4())[:8]
+    new_extracted_path = os.path.join(project_dir, f"data_{data_id}_extracted")
+    os.makedirs(new_extracted_path, exist_ok=True)
+
+    for class_name in class_list:
+        new_class_folder = os.path.join(new_extracted_path, class_name)
+        os.makedirs(new_class_folder, exist_ok=True)
+
+    noise_corrected_labels = noise_corrected_labels.tolist()
+
+    for image_path, class_id in tqdm(zip(image_paths, noise_corrected_labels), desc="copying files"):
+        class_name = class_list[int(class_id)]
+        shutil.copy(image_path, os.path.join(new_extracted_path, class_name))
+
+
+    data_creation_time = datetime.now()
+    data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+    
+    data_split_info = {
+                        "_id" : user_id+"_"+project_name+"_"+data_name+"_"+new_data_name+"_"+data_id,
+                        "data_name" : data_name, 
+                        "corrected_data_name" : new_data_name, 
+                        "project_name" : project_name,
+                        "user_id" : user_id, 
+                        "project_type" : project_type, 
+                        "no_of_corrected" : n_corrected,
+                        "process_start_time" : data_creation_time, 
+                        "process_start_time_str" : data_creation_time_str,
+                        "process_status" : f"Completed!",
+                    }
+    
+    mongodb["labels_corrected_data"].insert_one(data_split_info)
+
+    data_meta = {
+        "_id" : user_id+"_"+project_name+"_"+data_id,
+        "data_id" : data_id,
+        "project_name" : project_name,
+        "user_id" : user_id,
+        "data_name" : new_data_name,
+        "data_type" : "Labels Corrected",
+        "project_type" : project_type,
+        "data_zip_path" : "Data Created via Noisy Labels Correction",
+        "data_extracted_path" : new_extracted_path,
+        "data_creation_time" : data_creation_time,
+        "data_creation_time_str" : data_creation_time_str,
+    }
+    
+    mongodb["datasets"].insert_one(data_meta)
+
+    return None
+    
+
+
+
+
+
+

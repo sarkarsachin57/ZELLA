@@ -188,6 +188,7 @@ import os, platform, requests, torch, tensorflow as tf, pandas as pd, numpy as n
 # import submodlib
 # from moviepy.editor import VideoFileClip, concatenate_videoclips
 from tqdm import tqdm
+import clip
 # import moviepy.video.fx.all as vfx
 from threading import Thread
 from torch.multiprocessing import Process, current_process, set_start_method, Queue
