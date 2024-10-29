@@ -1117,7 +1117,9 @@ def get_object_detection_dataset_info():
                     
         all_class_instances = []
         all_class_images = []
-        for annotation_file in tqdm(os.listdir(os.path.join(data_dir, "annotations"))):
+        ann_list = os.listdir(os.path.join(data_dir, "annotations"))
+
+        for annotation_file in tqdm(ann_list):
             annotations = json.loads(open(os.path.join(data_dir, "annotations", annotation_file)).read())
             all_class_instances += annotations["class_ids"]
             all_class_images += list(set(annotations["class_ids"]))
@@ -1132,7 +1134,7 @@ def get_object_detection_dataset_info():
         for class_id, ins_count in zip(class_ids, ins_counts):
             ins_count_dict[metadata["classes"][class_id]] = int(ins_count)
             
-        total_images = image_counts.sum()
+        total_images = len(ann_list)
         total_instances = ins_counts.sum()
         
         image_wise_class_balance_score = class_distribution_score(image_counts)
@@ -2328,9 +2330,12 @@ def get_single_sample_visualization():
             return json.dumps(res, separators=(',', ':'), default=str)
         
         project_type = project_info["project_type"]
+        class_list = None
+        classwise_colors = None
 
         if project_type == "Object Detection":
             metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
+            class_list = metadata["classes"]
             annotation = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".json")).read())
             image = cv2.imread(sample_path)
             for box, class_id in zip(annotation['bboxes'], annotation['class_ids']):
@@ -2364,6 +2369,7 @@ def get_single_sample_visualization():
         if project_type == "Semantic Segmentation":
             
             metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
+            class_list = metadata["classes"]
             ann_path = os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".npy")
             image = cv2.imread(sample_path)
             segmap = np.load(ann_path)
@@ -2387,6 +2393,7 @@ def get_single_sample_visualization():
         
         if project_type == "Instance Segmentation":
             metadata = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "metadata.json")).read())
+            class_list = metadata["classes"]
             annotation = json.loads(open(os.path.join(os.path.dirname(os.path.dirname(sample_path)), "annotations", os.path.basename(sample_path)[:-4]+".json")).read())
             image = cv2.imread(sample_path)
             overlay = image.copy()
@@ -2423,11 +2430,16 @@ def get_single_sample_visualization():
             os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, os.path.basename(sample_path))
             cv2.imwrite(save_path, image)
+
+        if class_list is not None:
+            classwise_colors = {class_name:get_color_from_id(class_id+1, rgb=True) for class_id, class_name in enumerate(class_list)}
+     
         
         
         res = {
                 "status": "success",   
-                "show_path" : save_path
+                "show_path" : save_path,
+                "classwise_colors" : classwise_colors
             }
 
         logger.info(json.dumps(res, indent=4,  default=str))
@@ -3286,7 +3298,7 @@ def split_dataset():
             
             
         DataSplitting(dataset_info, user_id, project_name, project_info, data_name, split_data_name_1, split_data_name_2, split_ratio)
-        
+
         res = {
                 "status": "success",   
             }

@@ -491,9 +491,12 @@ def draw_bb_text(frame, text,
     cv2.putText(frame, text, (startX, startY-text_h+2), font, font_scale, text_color, font_thickness)
 
 
-def get_color_from_id(idx):
+def get_color_from_id(idx, rgb=False):
     idx = idx * 3
-    color = (int((37 * idx) % 255), int((17 * idx) % 255), int((29 * idx) % 255))
+    if rgb:
+        color = (int((29 * idx) % 255), int((17 * idx) % 255), int((37 * idx) % 255))
+    else:
+        color = (int((37 * idx) % 255), int((17 * idx) % 255), int((29 * idx) % 255))
 
     return color
 

@@ -438,7 +438,7 @@ def InstanceSegmentationSingleImageInference(
     class_list = run_record['class_list']
     num_classes = len(class_list)
     
-    classwise_colors = {class_name:get_color_from_id(class_id+1) for class_id, class_name in enumerate(class_list)}
+    classwise_colors = {class_name:get_color_from_id(class_id+1, rgb=True) for class_id, class_name in enumerate(class_list)}
         
     if model_family.lower().startswith("yolo"):
         
