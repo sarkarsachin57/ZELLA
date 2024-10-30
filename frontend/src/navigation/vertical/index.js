@@ -10,6 +10,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import CallSplitIcon from '@mui/icons-material/CallSplit'
 
 /**
  * @file is responsible for sidebar menu
@@ -40,7 +41,7 @@ const offlineNavItemList = [
       },
       {
         title: 'Dataset Split',
-        icon: NoteAddIcon,
+        icon: CallSplitIcon,
         path: '/dataPreparation/datasetSplit'
       },
       {

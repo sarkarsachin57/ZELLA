@@ -8,7 +8,7 @@ import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import FilterIcon from '@mui/icons-material/Filter'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import OutlinedInput from '@mui/material/OutlinedInput'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
@@ -183,7 +183,7 @@ const LabelCorrection = () => {
         btnTitle={'Start'}
         btnAction={onInsertSubmitHandler}
         schema={connectSchema}
-        headerIcon={<FilterIcon />}
+        headerIcon={<VerifiedUserIcon />}
         isLoading={isLoading}
         headerTitle='Noise Filtering'
         select_tracking_mode={true}
