@@ -108,7 +108,6 @@ const ModelInference = () => {
 
 
   const [run_logs_list, setRunLosgList] = useState(useSelector(state => state.baseState.run_logs_list))
-  const [ eval_run_logs_list, setEvalRunLosgList] = useState(useSelector(state => state.baseState.modelEvaluationLogs))
   const [ modelInference ] = useModelInferenceMutation()
   const [ getRunLogs ] = useGetRunLogsMutation()
   
