@@ -13,6 +13,7 @@ const initialState ={
     noiseHistory: [],
     modelEvaluationLogs: [],
     splitDataLogs: [],
+    labelCorrectionLogs: [],
 }
 
 export const baseSlice = createSlice({
@@ -59,6 +60,9 @@ export const baseSlice = createSlice({
         setSplitDataset: (state, action) => {
             state.splitDataLogs = action.payload
         },
+        setLabelCorrectionLogs: (state, action) => {
+            state.labelCorrectionLogs = action.payload
+        },
     }
 });
 
@@ -76,7 +80,8 @@ export const {
     setSimpleImageUrl,
     setNoiseHistory,
     setModelEvaluationLogs,
-    setSplitDataset
+    setSplitDataset,
+    setLabelCorrectionLogs
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

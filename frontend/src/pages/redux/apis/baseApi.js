@@ -13,7 +13,8 @@ import {
   setSimpleImageUrl,
   setNoiseHistory,
   setModelEvaluationLogs,
-  setSplitDataset
+  setSplitDataset,
+  setLabelCorrectionLogs
 } from '../features/baseSlice';
 
 /**
@@ -417,6 +418,34 @@ export const baseApi = createApi({
         } catch (error) {}
       },
     }),
+/**
+  * 👇 @file Label Correction
+*/
+    LabelCorrection: builder.mutation({
+      query(data) {
+        return {
+          url: 'label_correction',
+          method: 'POST',
+          body: data
+        }
+      },
+    }),
+    getLabelCorrectionLogs: builder.mutation({
+      query(data) {
+        return {
+          url: 'get_label_correction_logs',
+          method: 'POST',
+          body: data
+        }
+      },
+      transformResponse: result => result,
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setLabelCorrectionLogs(data.run_history));
+        } catch (error) {}
+      },
+    }),
   }),
 });
 
@@ -450,5 +479,8 @@ export const {
   useModelInferenceMutation,
 
   useSplitDatasetMutation,
-  useGetSplitDatasetMutation
+  useGetSplitDatasetMutation,
+
+  useLabelCorrectionMutation,
+  useGetLabelCorrectionLogsMutation
 } = baseApi;
