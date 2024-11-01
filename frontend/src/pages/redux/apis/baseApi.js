@@ -14,7 +14,8 @@ import {
   setNoiseHistory,
   setModelEvaluationLogs,
   setSplitDataset,
-  setLabelCorrectionLogs
+  setLabelCorrectionLogs,
+  setClassWiseColor
 } from '../features/baseSlice';
 
 /**
@@ -222,6 +223,7 @@ export const baseApi = createApi({
           try {
             const { data } = await queryFulfilled;
             dispatch(setSimpleImageUrl(data.show_path));
+            dispatch(setClassWiseColor(data.classwise_colors));
           } catch (error) {}
         },
       }),

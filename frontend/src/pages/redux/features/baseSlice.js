@@ -10,6 +10,7 @@ const initialState ={
     datasetInfo: {},
     sample_paths: [],
     simpleImageUrl: '',
+    classWiseColor: {},
     noiseHistory: [],
     modelEvaluationLogs: [],
     splitDataLogs: [],
@@ -51,6 +52,9 @@ export const baseSlice = createSlice({
         setSimpleImageUrl: (state, action) => {
             state.simpleImageUrl = action.payload
         },
+        setClassWiseColor: (state, action) => {
+            state.classWiseColor = action.payload
+        },
         setNoiseHistory: (state, action) => {
             state.noiseHistory = action.payload
         },
@@ -78,6 +82,7 @@ export const {
     setDatasetInfo,
     setViewSample,
     setSimpleImageUrl,
+    setClassWiseColor,
     setNoiseHistory,
     setModelEvaluationLogs,
     setSplitDataset,
