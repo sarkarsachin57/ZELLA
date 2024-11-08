@@ -10,9 +10,11 @@ const initialState ={
     datasetInfo: {},
     sample_paths: [],
     simpleImageUrl: '',
+    classWiseColor: {},
     noiseHistory: [],
     modelEvaluationLogs: [],
     splitDataLogs: [],
+    labelCorrectionLogs: [],
 }
 
 export const baseSlice = createSlice({
@@ -50,6 +52,9 @@ export const baseSlice = createSlice({
         setSimpleImageUrl: (state, action) => {
             state.simpleImageUrl = action.payload
         },
+        setClassWiseColor: (state, action) => {
+            state.classWiseColor = action.payload
+        },
         setNoiseHistory: (state, action) => {
             state.noiseHistory = action.payload
         },
@@ -58,6 +63,9 @@ export const baseSlice = createSlice({
         },
         setSplitDataset: (state, action) => {
             state.splitDataLogs = action.payload
+        },
+        setLabelCorrectionLogs: (state, action) => {
+            state.labelCorrectionLogs = action.payload
         },
     }
 });
@@ -74,9 +82,11 @@ export const {
     setDatasetInfo,
     setViewSample,
     setSimpleImageUrl,
+    setClassWiseColor,
     setNoiseHistory,
     setModelEvaluationLogs,
-    setSplitDataset
+    setSplitDataset,
+    setLabelCorrectionLogs
  } = baseSlice.actions;
 
 export default baseSlice.reducer;

@@ -25,6 +25,7 @@ import {
   useModelEvaluationMutation,
   useGetEvalRunLogsMutation,
   useGetDataSetListMutation,
+  useGetRunLogsMutation,
 } from 'src/pages/redux/apis/baseApi'
 
 const ModelEvaulation = () => {
@@ -100,6 +101,7 @@ const ModelEvaulation = () => {
   const [ modelEvaluation ] = useModelEvaluationMutation()
   const [ getDataSetList ] = useGetDataSetListMutation()
   const [ GetEvalRunLogs ] = useGetEvalRunLogsMutation()
+  const [ getRunLogs ] = useGetRunLogsMutation()
   
   const onGetEvalRunLogs = async () => {
     if (user && user?.email) {
@@ -115,6 +117,23 @@ const ModelEvaulation = () => {
       }
     }
   }
+  useEffect(() => {
+    const onGetRunLogs = async () => {
+        if (user && user?.email) {
+          const formData = new FormData()
+          formData.append('email', user.email)
+          formData.append('project_name', project_name)
+          try {
+            const data =  await getRunLogs(formData)
+            setRunLosgList(data.data.run_history)
+          } catch (error) {
+            toast.error('Something went wrong!');
+          }
+        }
+      }
+
+    onGetRunLogs()
+  }, [project_name]);
   useEffect(() => {
     const onGetDataSetList = async () => {
       if (user && user?.email) {

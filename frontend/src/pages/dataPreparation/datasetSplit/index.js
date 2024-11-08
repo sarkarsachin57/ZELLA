@@ -8,7 +8,7 @@ import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import FilterIcon from '@mui/icons-material/Filter'
+import CallSplitIcon from '@mui/icons-material/CallSplit'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
@@ -186,7 +186,7 @@ const DatasetSplit = () => {
         btnTitle={'Start'}
         btnAction={onInsertSubmitHandler}
         schema={connectSchema}
-        headerIcon={<FilterIcon />}
+        headerIcon={<CallSplitIcon />}
         isLoading={isLoading}
         headerTitle='Noise Filtering'
         select_tracking_mode={true}

@@ -1,18 +1,10 @@
-import CGroups from '../../../styles/pages/settings.module.scss'
 
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import clsx from 'clsx';
-import { styled, Box, Theme } from '@mui/system';
+import { styled, Box } from '@mui/system';
 import ModalUnstyled from '@mui/base/ModalUnstyled';
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import CardMedia from '@mui/material/CardMedia';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import { LoadingButton } from 'src/@core/components/button/LoadingButton';
+import ClassWise from 'src/@core/components/class-wise/class-wise'
 
 const BackdropUnstyled = React.forwardRef((props, ref) => {
   const { open = false, className, ...other } = props;
@@ -65,6 +57,9 @@ export default function SimpleImageModal(props) {
     const simpleImageUrl = useSelector((state) => {
       return state.baseState.simpleImageUrl
     })
+    const classWiseColor = useSelector((state) => {
+      return state.baseState.classWiseColor
+    })
     const {
       isOpen = false,
       onHandleModalClose,
@@ -90,10 +85,15 @@ export default function SimpleImageModal(props) {
 
           >
               <Box sx={style}>
-                  <CardImage 
-                    src = {baseUrl + simpleImageUrl} 
-                    alt='pic' 
-                  />
+                <CardImage 
+                  src = {baseUrl + simpleImageUrl} 
+                  alt='pic' 
+                />
+                {
+                  classWiseColor ? (
+                    <ClassWise data={classWiseColor} />
+                  ) : null
+                }
               </Box>
           </Modal>
         </div>

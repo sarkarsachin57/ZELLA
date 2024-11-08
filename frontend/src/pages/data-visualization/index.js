@@ -35,7 +35,7 @@ export default function Page() {
         { id: 'detail', numeric: true, disablePadding: false, label: 'Detail' },
     ]
 
-    const categories = ['All', 'Uploaded', 'Noise Filtered','Splitted Data']
+    const categories = ['All', 'Uploaded', 'Noise Filtered','Splitted Data','Labels Corrected']
 
     useEffect(() => {
         const filteredDataSetList = currentCategory === 'All' 
