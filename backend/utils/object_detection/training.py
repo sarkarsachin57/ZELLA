@@ -499,10 +499,15 @@ def ObjectDetectionNoiseCorrection(
                             user_id,
                             dataset_path):
 
+    from sklearn.neighbors import NearestNeighbors
+    import statistics
 
-    class_list = sorted(os.listdir(dataset_path))
 
-        # Load the CLIP model
+    class_list = json.loads(open(os.path.join(dataset_path, "metadata.json")).read())["classes"]
+    image_dir = os.path.join(dataset_path, "images")
+    ann_dir = os.path.join(dataset_path, "annotation")
+
+     # Load the CLIP model
     device = "cuda" if torch.cuda.is_available() else "cpu"
     clip_model, clip_preprocess = clip.load("ViT-B/32", device=device)
 
@@ -511,21 +516,32 @@ def ObjectDetectionNoiseCorrection(
         with torch.no_grad():
             image_embedding = clip_model.encode_image(image_tensor).cpu().numpy()
         return image_embedding
-    
+        
+    image_list = os.listdir(image_dir)
+
+
     image_paths = []
+    boxes = []
     feats = []
     labels = []
+    image_sizes = {}
 
-    for class_id, class_name in enumerate(class_list):
-        class_folder = os.patj.join(dataset_path, class_name)
-        image_list = os.listdir(class_folder)
-
-        for image_name in tqdm(image_list, desc=f"{class_name} - "):
-            image_path = os.path.join(class_folder, image_name)
-            image_paths.append(image_path)
-            image = Image.open(image_path)
+    for image_name in tqdm(image_list):
+        image_path = os.path.join(image_dir, image_name)
+        ann_path = os.path.join(ann_dir, ".".join(image_name.split(".")[:-1])+".json")
+        ann = json.loads(open(ann_path).open())
+        boxes = ann["bboxes"]
+        class_ids = ann["class_ids"]
+        size = ann["size"]
+        image_sizes[image_path] = size
+        image = Image.open(image_path)
+        for box, class_id in zip(boxes, class_ids):
+            xmin, ymin, xmax, ymax = box
+            cropped_image = image[ymin:ymax, xmin:xmax]
             feats.append(get_clip_embedding(image))
             labels.append(class_id)
+            boxes.append(box)
+            image_paths.append(image_path)
 
     feats = np.vstack(feats)
     labels = np.array(labels)
@@ -609,15 +625,27 @@ def ObjectDetectionNoiseCorrection(
     new_extracted_path = os.path.join(project_dir, f"data_{data_id}_extracted")
     os.makedirs(new_extracted_path, exist_ok=True)
 
-    for class_name in class_list:
-        new_class_folder = os.path.join(new_extracted_path, class_name)
-        os.makedirs(new_class_folder, exist_ok=True)
+    new_images_dir = os.path.join(new_extracted_path, "images")
+    os.makedirs(new_images_dir, exist_ok=True)
+    new_ann_dir = os.path.join(new_extracted_path, "annotation")
+    os.makedirs(new_ann_dir, exist_ok=True)
 
     noise_corrected_labels = noise_corrected_labels.tolist()
 
-    for image_path, class_id in tqdm(zip(image_paths, noise_corrected_labels), desc="copying files"):
-        class_name = class_list[int(class_id)]
-        shutil.copy(image_path, os.path.join(new_extracted_path, class_name))
+    unique_image_paths = np.unique(image_paths).tolist()
+    for image_path in tqdm(unique_image_paths, desc="copying files"):
+        image_name = os.path.basename(image_path)
+        shutil.copy(image_path, new_images_dir)
+        image_indices = np.where(np.array(image_paths)==image_path)[0]
+        size = image_sizes[image_path]
+        image_boxes = np.array(boxes)[image_indices].tolist()
+        image_labels = np.array(noise_corrected_labels)[image_indices].tolist()
+        ann = {"bboxes" : image_boxes, "class_ids" : image_labels, "size" : size}
+        ann_json = json.dumps(ann)
+        with open(os.path.join(new_ann_dir, ".".join(image_name.split(".")[:-1])+".json"), "w") as f:
+            f.writelines(ann_json)
+
+    shutil.copy(os.path.join(dataset_path, "metadata.json"), new_extracted_path)
 
 
     data_creation_time = datetime.now()

@@ -3469,15 +3469,15 @@ def label_correction():
                         user_id,
                         dataset_path)
 
-        # if project_type == "Object Detection":
+        if project_type == "Object Detection":
 
-        #     ObjectDetectionNoiseCorrection(
-        #                 data_name,
-        #                 corrected_data_name,
-        #                 project_name,
-        #                 project_type,
-        #                 user_id,
-        #                 dataset_path)
+            ObjectDetectionNoiseCorrection(
+                        data_name,
+                        corrected_data_name,
+                        project_name,
+                        project_type,
+                        user_id,
+                        dataset_path)
 
         if project_type in ["Semantic Segmentation", "Instance Segmentation"]:
             

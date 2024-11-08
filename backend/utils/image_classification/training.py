@@ -793,6 +793,8 @@ def ImageClassificationNoiseCorrection(
                             user_id,
                             dataset_path):
 
+    from sklearn.neighbors import NearestNeighbors
+    import statistics
 
     class_list = sorted(os.listdir(dataset_path))
 
@@ -811,7 +813,7 @@ def ImageClassificationNoiseCorrection(
     labels = []
 
     for class_id, class_name in enumerate(class_list):
-        class_folder = os.patj.join(dataset_path, class_name)
+        class_folder = os.path.join(dataset_path, class_name)
         image_list = os.listdir(class_folder)
 
         for image_name in tqdm(image_list, desc=f"{class_name} - "):
