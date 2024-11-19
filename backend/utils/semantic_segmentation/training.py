@@ -318,7 +318,7 @@ def SemanticSegmentationTrainingPipeline(run_name,
     # Define transformations
     transform = A.Compose([
         A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
-        A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
+        # A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # Normalization
         ToTensorV2()  # Convert to PyTorch tensor (with correct shape)
     ])
@@ -424,7 +424,7 @@ def SemanticSegmentationEvaluationPipeline(
     # Define transformations
     transform = A.Compose([
         A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
-        A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
+        # A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # Normalization
         ToTensorV2()  # Convert to PyTorch tensor (with correct shape)
     ])
@@ -530,7 +530,7 @@ def SemanticSegmentationSingleImageInference(
     # Define transformations
     transform = A.Compose([
         A.Resize(256, 256),  # Resize to ensure height and width are divisible by 32
-        A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
+        # A.HorizontalFlip(p=0.5),  # Optional: Random horizontal flip for augmentation
         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),  # Normalization
         ToTensorV2()  # Convert to PyTorch tensor (with correct shape)
     ])

@@ -10,8 +10,7 @@ by any person or entity other than authorized members of AvaWatz without the exp
 For inquiries regarding the use of this source code, please contact AvaWatz.
 '''
 
-import os
-
+import os, jwt
 # print("before loading mongodb ----")
 # os.system(f"free -h")
 

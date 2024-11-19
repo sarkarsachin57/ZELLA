@@ -35,12 +35,16 @@ from utils.object_detection.training import *
 from utils.semantic_segmentation.training import * 
 from utils.instance_segmentation.training import *
 
+from utils.image_classification.augment import *
+from utils.object_detection.augment import *
+from utils.semantic_segmentation.augment import *
+
 
 # Thread(target=AutoPurge, args=(6, 2*24)).start()
 
 
 
-parser = argparse.ArgumentParser(prog='ZELLA',description='ZELLA is a Robust Model Training and Evaluation Framework.')
+parser = argparse.ArgumentParser(prog='ZELLA', description='ZELLA is a Robust Model Training and Evaluation Framework.')
 
 parser.add_argument('--live', action='store_true') 
 parser.add_argument('--start_running_cameras', action='store_true') 
@@ -268,8 +272,11 @@ def user_login():
 
                 logger.info(json.dumps(res, indent=4,  default=str))
                 return json.dumps(res, separators=(',', ':'), default=str)
+
+        token = jwt.encode({'email':email, "expire_time" : 3600}, "secret", algorithm="HS256").decode()
+
             
-        token = uuid.uuid4().__str__()
+        # token = uuid.uuid4().__str__()
         current_tokens[token] = {'email':email, 'start_time' : time.time(), "avatar_path" : user_df.loc[0]['avatar_path']}
 
         redis_obj.set(f"all_user_current_tokens", json.dumps(current_tokens, indent=4))
@@ -904,6 +911,87 @@ def get_dataset_list():
         logger.info(json.dumps(res, indent=4,  default=str))
         return json.dumps(res, separators=(',', ':'), default=str)
 
+
+
+
+
+@app.route("/get_class_list", methods=['POST'])
+def get_class_list():
+    
+    logger.info(f"Get request for /get_class_list")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+        data_name = request.form['data_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        
+        data_info = mongodb["datasets"].find_one({'user_id' : user_id, 'project_name' : project_name, "data_name" : data_name})
+        
+        
+        if data_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Dataset does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        project_info = mongodb["projects"].find_one({'user_id' : user_id, 'project_name' : project_name})
+        project_type = project_info['project_type']
+
+        data_dir = data_info["data_extracted_path"]
+
+        if project_type == "Image Classification":
+        
+            class_list = os.listdir(data_dir) 
+
+        else:
+            
+            class_list = json.loads(open(os.path.join(data_dir, "metadata.json")).read())["classes"]
+            
+        res = {
+                "status": "success",
+                "class_list": class_list                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
@@ -3048,6 +3136,303 @@ def get_noise_filtering_logs():
 
 
 
+
+
+
+@app.route("/data_augmentation", methods=['POST'])
+def data_augmentation():
+    
+    logger.info(f"Get request for /data_augmentation")
+    
+    try:
+        
+        data_name = request.form['data_name']
+        aug_data_name = request.form['aug_data_name']
+        project_name = request.form['project_name']
+        email = request.form['email']
+        aug_mode = request.form['aug_mode']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}, data_name : {data_name}, aug_data_name : {aug_data_name}, aug_mode : {aug_mode}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}\ndata_name : {data_name}\naug_data_name : {aug_data_name}\naug_mode : {aug_mode}"
+
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        project_info = mongodb["projects"].find_one({"user_id" : user_id, "project_name" : project_name})
+
+        if project_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Project does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+        
+        aug_data_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : aug_data_name})
+        new_data = True
+        if aug_data_info is not None:
+
+            if aug_data_info["data_type"] == "Augmented Data":
+                new_data = False
+            else:
+                res = {
+                        "status": "fail",
+                        "message": f"Augmented Data {aug_data_name} exists!"
+                    }
+            
+                logger.info(json.dumps(res, indent=4,  default=str))
+
+        
+        dataset_info = mongodb["datasets"].find_one({"user_id" : user_id, "project_name" : project_name, "data_name" : data_name})
+        if dataset_info is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Data Name - {data_name} does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        
+        
+        data_path = dataset_info["data_extracted_path"]
+        
+        project_type = project_info["project_type"]
+                
+        project_dir = os.path.join("workdir", user_id, project_name)
+        os.makedirs(project_dir, exist_ok=True)
+
+        
+        data_creation_time = datetime.now()
+        data_creation_time_str = data_creation_time.strftime('%Y-%m-%d %I:%M:%S %p')
+            
+
+        if new_data:
+            aug_data_id = str(uuid.uuid4())[:8]
+            aug_extracted_path = os.path.join(project_dir, f"data_{aug_data_id}_extracted")
+            shutil.copytree(data_path, aug_extracted_path)  
+        
+            data_meta = {
+                "_id" : user_id+"_"+project_name+"_"+aug_data_id,
+                "data_id" : aug_data_id,
+                "project_name" : project_name,
+                "user_id" : user_id,
+                "data_name" : aug_data_name,
+                "data_type" : "Augmented Data",
+                "project_type" : project_type,
+                "data_zip_path" : "Data Created via Augmentation",
+                "data_extracted_path" : aug_extracted_path,
+                "data_creation_time" : data_creation_time,
+                "data_creation_time_str" : data_creation_time_str,
+            }
+            
+            mongodb["datasets"].insert_one(data_meta)
+            
+        else:
+            aug_extracted_path = aug_data_info["data_extracted_path"]        
+
+        if project_type == "Image Classification":
+
+            
+            target_classes = request.form['target_classes']
+            num_augments = request.form['num_augments']
+            augmentation_list = request.form['augmentation_list']
+
+            logger.info(f'Params - augmentation_list : {augmentation_list}, target_classes : {target_classes}, num_augments : {num_augments}')
+                
+            frontend_inputs += f"augmentation_list : {augmentation_list}\ntarget_classes : {target_classes}\nnum_augments : {num_augments}"
+
+            # print(f"augmentation_list[0] : {augmentation_list[0]}, target_classes[0] : {target_classes[0]}, num_augments[target_classes[0]] :  {num_augments[target_classes[0]]}")
+
+            augmentation_list = json.loads(augmentation_list)
+            target_classes = json.loads(target_classes)
+            n_augments = json.loads(num_augments)
+
+            if target_classes == []:
+                target_classes = None
+                n_augments = int(num_augments)
+            
+                
+            augmentation_info = {
+                                "_id" : user_id+"_"+project_name+"_"+data_name+"_"+aug_data_name+"_"+uuid.uuid4().__str__()[:8],
+                                "data_name" : data_name, 
+                                "aug_data_name" : aug_data_name, 
+                                "project_name" : project_name,
+                                "user_id" : user_id, 
+                                "project_type" : project_type, 
+                                "process_start_time" : data_creation_time, 
+                                "process_start_time_str" : data_creation_time_str,
+                                "aug_mode" : aug_mode,
+                                "augmentation_list" : augmentation_list,
+                                "target_classes" : target_classes, 
+                                "n_augments" : n_augments,
+                                "process_status" : f"Completed!",
+                            }
+            
+            mongodb["augmentation_records"].insert_one(augmentation_info)  
+
+                    
+            augmentor = ImageClassificationAugmentor(
+                dataset_root=data_path,
+                new_dataset_path=aug_extracted_path,
+                augmentations=augmentation_list,
+                target_classes=target_classes,
+                n_augments=n_augments,
+                aug_configs={}
+            )
+
+            augmentor.augment_images() 
+
+
+        
+        if project_type == "Object Detection":
+            
+            target_classes = request.form['target_classes']
+            num_augments = request.form['num_augments']
+            augmentation_list = request.form['augmentation_list']
+
+            logger.info(f'Params - augmentation_list : {augmentation_list}, target_classes : {target_classes}, num_augments : {num_augments}')
+                
+            frontend_inputs += f"augmentation_list : {augmentation_list}\ntarget_classes : {target_classes}\nnum_augments : {num_augments}"
+
+            # print(f"augmentation_list[0] : {augmentation_list[0]}, target_classes[0] : {target_classes[0]}, num_augments[target_classes[0]] :  {num_augments[target_classes[0]]}")
+
+            augmentation_list = json.loads(augmentation_list)
+            target_classes = json.loads(target_classes)
+            n_augments = json.loads(num_augments)
+
+            if target_classes == []:
+                target_classes = None
+                n_augments = int(num_augments)
+            
+                
+            augmentation_info = {
+                                "_id" : user_id+"_"+project_name+"_"+data_name+"_"+aug_data_name+"_"+uuid.uuid4().__str__()[:8],
+                                "data_name" : data_name, 
+                                "aug_data_name" : aug_data_name, 
+                                "project_name" : project_name,
+                                "user_id" : user_id, 
+                                "project_type" : project_type, 
+                                "process_start_time" : data_creation_time, 
+                                "process_start_time_str" : data_creation_time_str,
+                                "aug_mode" : aug_mode,
+                                "augmentation_list" : augmentation_list,
+                                "target_classes" : target_classes, 
+                                "n_augments" : n_augments,
+                                "process_status" : f"Completed!",
+                            }
+            
+            mongodb["augmentation_records"].insert_one(augmentation_info)  
+
+                    
+            augmentor = ObjectDetectionAugmentor(
+                dataset_root=data_path,
+                new_dataset_path=aug_extracted_path,
+                augmentations=augmentation_list,
+                target_classes=target_classes,
+                n_augments=n_augments,
+                aug_configs={}
+            )
+
+            augmentor.augment_images()     
+            
+        res = {
+                "status": "success",   
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+
+
+
+
+
+
+
+
+
+@app.route("/get_augmentation_logs", methods=['POST'])
+def get_augmentation_logs():
+    
+    logger.info(f"Get request for /get_augmentation_logs")
+    
+    try:
+        
+        email = request.form['email']
+        project_name = request.form['project_name']
+
+        logger.info(f'Params - email : {email}, project_name : {project_name}')
+            
+        frontend_inputs = f"email : {email}\nproject_name : {project_name}"
+        
+        user_data = mongodb['users'].find_one({'email' : email})
+
+        if user_data is None:
+                
+            res = {
+                    "status": "fail",
+                    "message": f"Email does not exists!"
+                }
+
+            logger.info(json.dumps(res, indent=4,  default=str))
+            return json.dumps(res, separators=(',', ':'), default=str)
+
+        user_id = user_data["_id"]
+        
+        run_history = list(mongodb["augmentation_records"].find({'user_id' : user_id, 'project_name' : project_name}))
+        
+            
+        res = {
+                "status": "success",
+                "run_history": run_history                
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
+
+    except Exception as e:
+                
+        additional_info = {"Inputs Received From Frontend" : frontend_inputs}
+        log_exception(e, additional_info=additional_info)
+        traceback.print_exc()
+
+        res = {
+                "status": "fail",
+                "message": f"Somthing went wrong!"
+            }
+
+        logger.info(json.dumps(res, indent=4,  default=str))
+        return json.dumps(res, separators=(',', ':'), default=str)
 
 
 
