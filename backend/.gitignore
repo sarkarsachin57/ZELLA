@@ -1,0 +1,10 @@
+__pycache__/*
+
+workdir/*
+.ipynb_checkpoints/*
+vevn/*
+virtual/*
+runs/*
+__pycache__/*
+yolo11n.pt
+training_od_logs.txt
