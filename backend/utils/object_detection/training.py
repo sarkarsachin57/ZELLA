@@ -505,7 +505,7 @@ def ObjectDetectionNoiseCorrection(
 
     class_list = json.loads(open(os.path.join(dataset_path, "metadata.json")).read())["classes"]
     image_dir = os.path.join(dataset_path, "images")
-    ann_dir = os.path.join(dataset_path, "annotation")
+    ann_dir = os.path.join(dataset_path, "annotations")
 
      # Load the CLIP model
     device = "cuda" if torch.cuda.is_available() else "cpu"
